@@ -1,0 +1,313 @@
+/* ===== Profile Page ===== */
+.page {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem 4rem;
+    animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(12px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.container {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+/* ===== Profile Header ===== */
+.profileHeader {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 1rem;
+}
+
+.avatarSection {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.avatarContainer {
+    position: relative;
+    width: 110px;
+    height: 110px;
+}
+
+.avatarImage {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 4px solid #ffffff;
+    box-shadow: 0 8px 24px rgba(124, 58, 237, 0.2);
+}
+
+.avatarInitial {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary-700, #5A22B5), var(--primary-500, #8B5CF6));
+    color: #ffffff;
+    font-size: 2.5rem;
+    font-weight: 700;
+    border: 4px solid #ffffff;
+    box-shadow: 0 8px 24px rgba(124, 58, 237, 0.2);
+}
+
+.cameraBtn {
+    all: unset;
+    cursor: pointer;
+    position: absolute;
+    bottom: 4px;
+    right: 4px;
+    width: 34px;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: var(--primary-600, #7C3AED);
+    color: #ffffff;
+    box-shadow: 0 2px 8px rgba(124, 58, 237, 0.4);
+    transition: all 0.2s ease;
+    z-index: 2;
+}
+
+.cameraBtn:hover {
+    transform: scale(1.1);
+    background: var(--primary-700, #5A22B5);
+}
+
+.cameraBtn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.fileInput {
+    display: none;
+}
+
+.miniSpinner {
+    width: 14px;
+    height: 14px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top-color: #ffffff;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.userName {
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: var(--text-primary, #0F172A);
+    letter-spacing: -0.02em;
+}
+
+.userRole {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.3rem 0.9rem;
+    border-radius: 20px;
+    background: linear-gradient(135deg, rgba(124, 58, 237, 0.08), rgba(139, 92, 246, 0.12));
+    color: var(--primary-700, #5A22B5);
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+}
+
+/* ===== Success Banner ===== */
+.successBanner {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.25rem;
+    border-radius: 14px;
+    background: rgba(16, 185, 129, 0.08);
+    color: #059669;
+    font-size: 0.875rem;
+    font-weight: 600;
+    animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ===== Info Section ===== */
+.infoSection {
+    background: var(--bg-surface, #ffffff);
+    border-radius: 20px;
+    border: 1px solid rgba(0, 0, 0, 0.04);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+    overflow: hidden;
+}
+
+.sectionTitle {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-muted, #94A3B8);
+    padding: 1.25rem 1.5rem 0.5rem;
+}
+
+.infoList {
+    display: flex;
+    flex-direction: column;
+}
+
+.infoItem {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+    transition: background 0.15s ease;
+}
+
+.infoItem:last-child {
+    border-bottom: none;
+}
+
+.infoItem:hover {
+    background: rgba(248, 250, 252, 0.8);
+}
+
+.infoIcon {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    background: linear-gradient(135deg, rgba(124, 58, 237, 0.06), rgba(139, 92, 246, 0.1));
+    color: var(--primary-600, #7C3AED);
+    flex-shrink: 0;
+}
+
+.infoContent {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    min-width: 0;
+}
+
+.infoLabel {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--text-muted, #94A3B8);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.infoValue {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text-primary, #0F172A);
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.statusDot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--success, #10B981);
+    flex-shrink: 0;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.5;
+    }
+}
+
+/* ===== Paths Card ===== */
+.pathsCard {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 2rem;
+    background: linear-gradient(135deg, var(--primary-700, #5A22B5), var(--primary-600, #7C3AED));
+    border-radius: 20px;
+    text-align: center;
+    box-shadow: 0 8px 24px rgba(124, 58, 237, 0.25);
+}
+
+.pathsNumber {
+    font-size: 3rem;
+    font-weight: 800;
+    color: #ffffff;
+    line-height: 1;
+}
+
+.pathsLabel {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.7);
+    margin-top: 0.25rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 480px) {
+    .page {
+        padding: 1.5rem 1rem 3rem;
+    }
+
+    .avatarContainer {
+        width: 90px;
+        height: 90px;
+    }
+
+    .avatarInitial {
+        font-size: 2rem;
+    }
+
+    .userName {
+        font-size: 1.4rem;
+    }
+}

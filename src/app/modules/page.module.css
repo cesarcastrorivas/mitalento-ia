@@ -1,0 +1,195 @@
+.page {
+    animation: fadeIn 0.4s ease-out;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 32px;
+    margin-bottom: 40px;
+}
+
+.header h1 {
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 8px;
+}
+
+.header>div:first-child p {
+    color: var(--text-muted);
+}
+
+.progressCard {
+    background: var(--gradient-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 20px 24px;
+    min-width: 280px;
+}
+
+.progressHeader {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    font-size: 14px;
+}
+
+.progressPercent {
+    font-weight: 700;
+    color: var(--primary);
+}
+
+.progressText {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-top: 8px;
+    display: block;
+}
+
+.modulesGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 24px;
+}
+
+.moduleCard {
+    background: var(--gradient-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    transition: all var(--transition-normal);
+}
+
+.moduleCard:hover:not(.locked) {
+    border-color: var(--border-hover);
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+}
+
+.moduleCard.completed {
+    border-color: var(--success);
+}
+
+.moduleCard.locked {
+    opacity: 0.7;
+}
+
+.modulePreview {
+    position: relative;
+    height: 180px;
+    background: var(--bg-primary);
+    overflow: hidden;
+}
+
+.videoThumbnail {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.lockedOverlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.lockedOverlay span {
+    font-size: 32px;
+}
+
+.lockedOverlay p {
+    font-size: 14px;
+    color: var(--text-muted);
+}
+
+.completedBadge {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: var(--success);
+    color: white;
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.moduleContent {
+    padding: 20px;
+}
+
+.moduleOrder {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--primary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.moduleContent h3 {
+    font-size: 18px;
+    font-weight: 600;
+    margin: 8px 0;
+}
+
+.moduleContent p {
+    font-size: 14px;
+    color: var(--text-muted);
+    line-height: 1.5;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.scoreInfo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border-color);
+}
+
+.score {
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.score.passed {
+    color: var(--success);
+}
+
+.score.failed {
+    color: var(--danger);
+}
+
+.attempts {
+    font-size: 13px;
+    color: var(--text-muted);
+}
+
+.moduleFooter {
+    padding: 16px 20px;
+    border-top: 1px solid var(--border-color);
+}
+
+@media (max-width: 768px) {
+    .header {
+        flex-direction: column;
+    }
+
+    .progressCard {
+        width: 100%;
+    }
+
+    .modulesGrid {
+        grid-template-columns: 1fr;
+    }
+}

@@ -1,0 +1,258 @@
+.page {
+    max-width: 1200px;
+    animation: fadeIn 0.4s ease-out;
+}
+
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 32px;
+}
+
+.header h1 {
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 8px;
+}
+
+.header p {
+    color: var(--text-muted);
+}
+
+.modulesGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 24px;
+}
+
+.moduleCard {
+    background: var(--gradient-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    transition: all var(--transition-normal);
+}
+
+.moduleCard:hover {
+    border-color: var(--border-hover);
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+}
+
+.modulePreview {
+    position: relative;
+    height: 180px;
+    background: var(--bg-primary);
+    overflow: hidden;
+}
+
+.modulePreview .badge {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+}
+
+.videoPreview {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.moduleContent {
+    padding: 20px;
+}
+
+.moduleOrder {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--primary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.moduleContent h3 {
+    font-size: 18px;
+    font-weight: 600;
+    margin: 8px 0;
+}
+
+.moduleContent p {
+    font-size: 14px;
+    color: var(--text-muted);
+    line-height: 1.5;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.moduleStats {
+    display: flex;
+    gap: 16px;
+    margin-top: 12px;
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+.moduleActions {
+    padding: 16px 20px;
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    gap: 12px;
+}
+
+.moduleActions .btn {
+    flex: 1;
+    padding: 10px;
+    font-size: 13px;
+}
+
+/* Modal */
+.modalOverlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 24px;
+    animation: fadeIn 0.2s ease-out;
+}
+
+.modal {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-xl);
+    width: 100%;
+    max-width: 600px;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.modalHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 24px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.modalHeader h2 {
+    font-size: 20px;
+    font-weight: 600;
+}
+
+.closeBtn {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    border-radius: var(--radius-sm);
+    transition: all var(--transition-fast);
+}
+
+.closeBtn:hover {
+    background: var(--bg-elevated);
+    color: var(--text-primary);
+}
+
+.form {
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.formRow {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+}
+
+.checkbox {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.checkbox input {
+    width: 18px;
+    height: 18px;
+}
+
+.formActions {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+    padding-top: 8px;
+}
+
+/* Upload area */
+.uploadArea {
+    border: 2px dashed var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 40px 24px;
+    text-align: center;
+    transition: all var(--transition-fast);
+}
+
+.uploadArea:hover {
+    border-color: var(--primary);
+}
+
+.uploadArea p {
+    color: var(--text-muted);
+    font-size: 13px;
+    margin-top: 12px;
+}
+
+.uploadProgress {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: center;
+}
+
+.uploadProgress span {
+    font-size: 14px;
+    color: var(--text-secondary);
+}
+
+.videoPreviewContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.uploadedVideo {
+    width: 100%;
+    max-height: 200px;
+    border-radius: var(--radius-md);
+    background: var(--bg-primary);
+}
+
+@media (max-width: 640px) {
+    .formRow {
+        grid-template-columns: 1fr;
+    }
+
+    .header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 16px;
+    }
+
+    .modulesGrid {
+        grid-template-columns: 1fr;
+    }
+}

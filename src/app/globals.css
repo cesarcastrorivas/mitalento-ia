@@ -1,0 +1,304 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary-900: var(--primary-900);
+  --color-primary-700: var(--primary-700);
+  --color-primary-600: var(--primary-600);
+  --color-primary-500: var(--primary-500);
+
+  --color-bg-main: var(--bg-main);
+  --color-bg-surface: var(--bg-surface);
+  --color-bg-elevated: var(--bg-elevated);
+
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
+
+  --font-display: Inter, system-ui, sans-serif;
+  --font-body: Inter, system-ui, sans-serif;
+
+  --animate-fade-in: fade-in 0.3s ease-out;
+  --animate-slide-up: slide-up 0.4s ease-out;
+
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes slide-up {
+    from {
+      transform: translateY(10px);
+      opacity: 0;
+    }
+
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+}
+
+:root {
+  /* Purple Intelligence Palette - Premium */
+
+  /* Primary Brand Colors */
+  --primary-900: #4C1D95;
+  /* Deepest Purple - Text/Contrast */
+  --primary-700: #5A22B5;
+  /* Main Brand - UI Elements */
+  --primary-600: #7C3AED;
+  /* Interactive/Hover */
+  --primary-500: #8B5CF6;
+  /* Vibrant Accents */
+
+  /* Backgrounds - "Cloud" Theme */
+  --bg-main: #F5F7FB;
+  /* Page Background - Soft Cool Grey/Blueish */
+  --bg-surface: #FFFFFF;
+  /* Cards/Modals - Pure White */
+  --bg-elevated: #F8FAFC;
+  /* Secondary Areas - Very Light Grey */
+
+  /* Text Colors - High Contrast & Legibility */
+  --text-primary: #0F172A;
+  /* Main Headings - Slate 900 */
+  --text-secondary: #64748B;
+  /* Body Text - Slate 500 */
+  --text-muted: #94A3B8;
+  /* Placeholders/Meta - Slate 400 */
+
+  /* Semantic Colors */
+  --success: #10B981;
+  /* Emerald 500 */
+  --warning: #F59E0B;
+  /* Amber 500 */
+  --error: #EF4444;
+  /* Red 500 */
+}
+
+@layer base {
+  html {
+    font-family: 'Inter', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    background-color: var(--bg-main);
+    color: var(--text-primary);
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-weight: 600;
+    color: var(--text-primary);
+    letter-spacing: -0.025em;
+    /* Tighter tracking for headings */
+  }
+}
+
+@layer components {
+
+  /* Premium Card - "Apple Style" */
+  .card-premium {
+    background: var(--bg-surface);
+    border-radius: 20px;
+    /* Generous radius */
+    box-shadow:
+      0 4px 6px -1px rgba(0, 0, 0, 0.02),
+      0 2px 4px -1px rgba(0, 0, 0, 0.02),
+      0 0 0 1px rgba(0, 0, 0, 0.03);
+    /* Subtle border via shadow */
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .card-premium:hover {
+    transform: translateY(-2px);
+    box-shadow:
+      0 10px 15px -3px rgba(0, 0, 0, 0.04),
+      0 4px 6px -2px rgba(0, 0, 0, 0.02),
+      0 0 0 1px rgba(90, 34, 181, 0.1);
+    /* Subtle purple tint on hover */
+  }
+
+  /* Glassmorphism Utility */
+  .glass-panel {
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.4);
+  }
+
+  /* Buttons */
+  .btn-primary {
+    background: linear-gradient(135deg, var(--primary-700), var(--primary-600));
+    color: #FFFFFF;
+    border-radius: 12px;
+    padding: 10px 20px;
+    font-weight: 500;
+    font-size: 0.9375rem;
+    /* 15px */
+    transition: all 0.2s ease-out;
+    box-shadow: 0 2px 4px rgba(90, 34, 181, 0.2);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .btn-primary:hover {
+    filter: brightness(110%);
+    box-shadow: 0 4px 8px rgba(90, 34, 181, 0.3);
+    transform: translateY(-1px);
+  }
+
+  .btn-primary:active {
+    transform: translateY(0);
+    filter: brightness(100%);
+  }
+
+  /* Inputs */
+  .input-premium {
+    width: 100%;
+    padding: 12px 16px;
+    border-radius: 12px;
+    background: var(--bg-elevated);
+    border: 1px solid transparent;
+    color: var(--text-primary);
+    font-size: 0.9375rem;
+    transition: all 0.2s ease-out;
+  }
+
+  .input-premium::placeholder {
+    color: var(--text-muted);
+  }
+
+  .input-premium:focus {
+    outline: none;
+    background: var(--bg-surface);
+    border-color: var(--primary-500);
+    box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.15);
+    /* Soft focus ring */
+  }
+}
+
+/* Typography Utilities - Adjusted for cleaner look */
+.text-display {
+  font-size: 2.5rem;
+  /* 40px */
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+.text-h1 {
+  font-size: 1.875rem;
+  /* 30px */
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+}
+
+.text-h2 {
+  font-size: 1.5rem;
+  /* 24px */
+  font-weight: 600;
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+}
+
+.text-h3 {
+  font-size: 1.25rem;
+  /* 20px */
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.text-body {
+  font-size: 1rem;
+  /* 16px */
+  line-height: 1.6;
+  color: var(--text-secondary);
+}
+
+.text-sm {
+  font-size: 0.875rem;
+  /* 14px */
+  line-height: 1.5;
+}
+
+.text-xs {
+  font-size: 0.75rem;
+  /* 12px */
+  line-height: 1.5;
+}
+
+/* =========================================
+   PWA — Standalone Mode Optimizations
+   ========================================= */
+
+/* Prevent overscroll / pull-to-refresh in standalone mode */
+@media (display-mode: standalone) {
+  html {
+    overscroll-behavior: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  body {
+    /* Respect safe areas on notch devices */
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-left: env(safe-area-inset-left, 0px);
+    padding-right: env(safe-area-inset-right, 0px);
+    /* Bottom is handled by the nav bar */
+    overscroll-behavior-y: contain;
+    -webkit-tap-highlight-color: transparent;
+    /* Prevent text selection on UI elements */
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  /* Re-enable text selection in content areas */
+  p,
+  article,
+  .text-body,
+  [contenteditable],
+  input,
+  textarea,
+  pre,
+  code {
+    -webkit-user-select: text;
+    user-select: text;
+  }
+}
+
+/* Smooth momentum scrolling for mobile */
+.scroll-container {
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+
+/* PWA install prompt animation */
+@keyframes slideUpFade {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.pwa-animate-in {
+  animation: slideUpFade 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}

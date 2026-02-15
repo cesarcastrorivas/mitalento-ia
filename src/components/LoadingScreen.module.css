@@ -1,0 +1,70 @@
+.container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 60vh;
+    gap: 1.5rem;
+    animation: fadeIn 0.4s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+.spinnerWrapper {
+    position: relative;
+    width: 52px;
+    height: 52px;
+}
+
+.spinner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+.ring {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    border: 3px solid transparent;
+}
+
+.ring:first-child {
+    border-top-color: var(--primary-600, #7C3AED);
+    border-right-color: var(--primary-600, #7C3AED);
+    animation: spinClockwise 0.9s linear infinite;
+}
+
+.ring:last-child {
+    inset: 4px;
+    border-bottom-color: var(--primary-500, #8B5CF6);
+    border-left-color: var(--primary-500, #8B5CF6);
+    animation: spinCounter 1.2s linear infinite;
+}
+
+@keyframes spinClockwise {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes spinCounter {
+    to {
+        transform: rotate(-360deg);
+    }
+}
+
+.message {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--text-muted, #94A3B8);
+    letter-spacing: 0.01em;
+}

@@ -1,0 +1,40 @@
+.confettiContainer {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    pointer-events: none;
+    overflow: hidden;
+}
+
+.particle {
+    position: absolute;
+    top: var(--y);
+    left: var(--x);
+    width: var(--size);
+    height: var(--size);
+    background: var(--color);
+    border-radius: 2px;
+    animation: confettiFall var(--duration) ease-out var(--delay) forwards;
+    opacity: 0;
+}
+
+.particle:nth-child(odd) {
+    border-radius: 50%;
+}
+
+.particle:nth-child(3n) {
+    width: calc(var(--size) * 0.6);
+    height: calc(var(--size) * 1.4);
+}
+
+@keyframes confettiFall {
+    0% {
+        opacity: 1;
+        transform: translateY(0) rotate(0deg);
+    }
+
+    100% {
+        opacity: 0;
+        transform: translateY(110vh) rotate(var(--r));
+    }
+}

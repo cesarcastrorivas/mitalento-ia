@@ -1,0 +1,476 @@
+/* ===== Progress Page — Premium UI ===== */
+.page {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 0 1.5rem 4rem;
+    animation: fadeInPage 0.5s ease-out;
+}
+
+@keyframes fadeInPage {
+    from {
+        opacity: 0;
+        transform: translateY(12px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ===== Loading ===== */
+.loadingContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 60vh;
+    gap: 1.25rem;
+}
+
+.loadingSpinner {
+    width: 48px;
+    height: 48px;
+    border: 3px solid rgba(124, 58, 237, 0.12);
+    border-top-color: var(--primary-600, #7C3AED);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.loadingText {
+    font-size: 0.875rem;
+    color: var(--text-muted, #94A3B8);
+    font-weight: 500;
+}
+
+/* ===== Hero Section ===== */
+.hero {
+    position: relative;
+    border-radius: 24px;
+    padding: 2.5rem 2rem;
+    margin-top: 1.5rem;
+    overflow: hidden;
+    background: linear-gradient(135deg, #1e1b4b 0%, #312e81 40%, #4c1d95 100%);
+    box-shadow: 0 16px 48px rgba(79, 70, 229, 0.2);
+}
+
+.heroBackground {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    overflow: hidden;
+}
+
+.heroOrb1,
+.heroOrb2 {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(60px);
+    opacity: 0.3;
+}
+
+.heroOrb1 {
+    width: 240px;
+    height: 240px;
+    background: #a78bfa;
+    top: -60px;
+    right: -40px;
+    animation: float1 8s ease-in-out infinite;
+}
+
+.heroOrb2 {
+    width: 180px;
+    height: 180px;
+    background: #7c3aed;
+    bottom: -50px;
+    left: -30px;
+    animation: float2 10s ease-in-out infinite;
+}
+
+@keyframes float1 {
+
+    0%,
+    100% {
+        transform: translate(0, 0);
+    }
+
+    50% {
+        transform: translate(-20px, 15px);
+    }
+}
+
+@keyframes float2 {
+
+    0%,
+    100% {
+        transform: translate(0, 0);
+    }
+
+    50% {
+        transform: translate(15px, -20px);
+    }
+}
+
+.heroContent {
+    position: relative;
+    z-index: 2;
+}
+
+.heroTop {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 2rem;
+}
+
+.heroText {
+    flex: 1;
+}
+
+.heroTitle {
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: #ffffff;
+    letter-spacing: -0.02em;
+    margin-bottom: 0.75rem;
+    line-height: 1.2;
+}
+
+.badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.35rem 0.9rem;
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid;
+    font-size: 0.8rem;
+    font-weight: 600;
+    backdrop-filter: blur(8px);
+}
+
+/* ===== Circular Progress ===== */
+.circularProgress {
+    position: relative;
+    width: 120px;
+    height: 120px;
+    flex-shrink: 0;
+}
+
+.circleSvg {
+    width: 100%;
+    height: 100%;
+    transform: rotate(-90deg);
+}
+
+.circleTrack {
+    fill: none;
+    stroke: rgba(255, 255, 255, 0.1);
+    stroke-width: 6;
+}
+
+.circleFill {
+    fill: none;
+    stroke: url(#progressGradient);
+    stroke-width: 6;
+    stroke-linecap: round;
+    stroke: #a78bfa;
+    transition: stroke-dashoffset 1s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.circleValue {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.circlePercent {
+    font-size: 2rem;
+    font-weight: 800;
+    color: #ffffff;
+    line-height: 1;
+}
+
+.circleSymbol {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.6);
+    margin-left: 1px;
+}
+
+/* ===== Stats Grid ===== */
+.statsGrid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+
+.statCard {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem 1.25rem;
+    background: var(--bg-surface, #ffffff);
+    border-radius: 16px;
+    border: 1px solid rgba(0, 0, 0, 0.04);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+    transition: all 0.25s ease;
+    animation: cardSlideUp 0.4s ease-out both;
+}
+
+.statCard:nth-child(1) {
+    animation-delay: 0.05s;
+}
+
+.statCard:nth-child(2) {
+    animation-delay: 0.1s;
+}
+
+.statCard:nth-child(3) {
+    animation-delay: 0.15s;
+}
+
+.statCard:nth-child(4) {
+    animation-delay: 0.2s;
+}
+
+@keyframes cardSlideUp {
+    from {
+        opacity: 0;
+        transform: translateY(16px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.statCard:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(124, 58, 237, 0.08);
+}
+
+.statIconWrapper {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    background: linear-gradient(135deg, rgba(124, 58, 237, 0.06), rgba(139, 92, 246, 0.1));
+    color: var(--primary-600, #7C3AED);
+    flex-shrink: 0;
+}
+
+.statInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+}
+
+.statValue {
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: var(--text-primary, #0F172A);
+    line-height: 1.2;
+}
+
+.statLabel {
+    font-size: 0.7rem;
+    font-weight: 500;
+    color: var(--text-muted, #94A3B8);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* ===== Section ===== */
+.section {
+    margin-top: 2.5rem;
+}
+
+.sectionTitle {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-primary, #0F172A);
+    letter-spacing: -0.01em;
+    margin-bottom: 1.25rem;
+}
+
+/* ===== Sessions List ===== */
+.sessionsList {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.sessionItem {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.25rem;
+    background: var(--bg-surface, #ffffff);
+    border-radius: 14px;
+    border: 1px solid rgba(0, 0, 0, 0.04);
+    transition: all 0.2s ease;
+    animation: cardSlideUp 0.35s ease-out both;
+}
+
+.sessionItem:hover {
+    transform: translateX(4px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+}
+
+.sessionLeft {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    min-width: 0;
+}
+
+.sessionIcon {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    flex-shrink: 0;
+}
+
+.sessionIcon.passed {
+    background: rgba(16, 185, 129, 0.1);
+    color: #059669;
+}
+
+.sessionIcon.failed {
+    background: rgba(239, 68, 68, 0.08);
+    color: #DC2626;
+}
+
+.sessionInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+    min-width: 0;
+}
+
+.sessionTitle {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-primary, #0F172A);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.sessionDate {
+    font-size: 0.75rem;
+    color: var(--text-muted, #94A3B8);
+}
+
+.sessionRight {
+    flex-shrink: 0;
+    margin-left: 1rem;
+}
+
+.sessionScore {
+    font-size: 1.1rem;
+    font-weight: 800;
+}
+
+.sessionScore.passed {
+    color: #059669;
+}
+
+.sessionScore.failed {
+    color: #DC2626;
+}
+
+/* ===== Empty State ===== */
+.emptyState {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 3rem 2rem;
+    background: var(--bg-elevated, #F8FAFC);
+    border: 2px dashed rgba(124, 58, 237, 0.12);
+    border-radius: 20px;
+}
+
+.emptyIcon {
+    font-size: 2.5rem;
+    opacity: 0.5;
+    margin-bottom: 0.75rem;
+}
+
+.emptyTitle {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text-primary, #0F172A);
+    margin-bottom: 0.25rem;
+}
+
+.emptyText {
+    font-size: 0.875rem;
+    color: var(--text-secondary, #64748B);
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 768px) {
+    .hero {
+        padding: 2rem 1.5rem;
+        border-radius: 20px;
+    }
+
+    .heroTitle {
+        font-size: 1.4rem;
+    }
+
+    .circularProgress {
+        width: 90px;
+        height: 90px;
+    }
+
+    .circlePercent {
+        font-size: 1.5rem;
+    }
+
+    .statsGrid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 480px) {
+    .page {
+        padding: 0 1rem 3rem;
+    }
+
+    .heroTop {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .circularProgress {
+        align-self: center;
+    }
+
+    .statsGrid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.75rem;
+    }
+
+    .statCard {
+        padding: 0.85rem 1rem;
+    }
+}

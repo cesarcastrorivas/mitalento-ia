@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#4C1D95">
+  <title>Sin Conexión — Mi Talento</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background: #F5F7FB;
+      color: #0F172A;
+      min-height: 100vh;
+      min-height: 100dvh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+      padding-top: calc(2rem + env(safe-area-inset-top, 0px));
+      padding-bottom: calc(2rem + env(safe-area-inset-bottom, 0px));
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    .container {
+      max-width: 380px;
+      width: 100%;
+      text-align: center;
+    }
+
+    .icon-wrapper {
+      width: 96px;
+      height: 96px;
+      margin: 0 auto 2rem;
+      background: linear-gradient(135deg, rgba(76, 29, 149, 0.08), rgba(139, 92, 246, 0.12));
+      border-radius: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: pulse 2.5s ease-in-out infinite;
+    }
+
+    .icon-wrapper svg {
+      width: 44px;
+      height: 44px;
+      color: #7C3AED;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.05); opacity: 0.85; }
+    }
+
+    h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #0F172A;
+      letter-spacing: -0.02em;
+      margin-bottom: 0.5rem;
+    }
+
+    p {
+      font-size: 0.9375rem;
+      color: #64748B;
+      line-height: 1.6;
+      margin-bottom: 2rem;
+    }
+
+    .retry-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 12px 28px;
+      background: linear-gradient(135deg, #5A22B5, #7C3AED);
+      color: #fff;
+      border: none;
+      border-radius: 14px;
+      font-size: 0.9375rem;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(90, 34, 181, 0.25);
+      transition: all 0.2s ease-out;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .retry-btn:hover {
+      filter: brightness(110%);
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(90, 34, 181, 0.35);
+    }
+
+    .retry-btn:active {
+      transform: translateY(0);
+      filter: brightness(100%);
+    }
+
+    .retry-btn svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    .brand {
+      margin-top: 3rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      opacity: 0.5;
+    }
+
+    .brand span {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: #64748B;
+      letter-spacing: -0.01em;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="icon-wrapper">
+      <!-- Wi-Fi Off icon -->
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M8.288 15.038a5.25 5.25 0 017.424 0M5.106 11.856c3.807-3.808 9.98-3.808 13.788 0M1.924 8.674c5.565-5.565 14.587-5.565 20.152 0M12.53 18.22l-.53.53-.53-.53a.75.75 0 011.06 0z" />
+        <line x1="3" y1="3" x2="21" y2="21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+    </div>
+
+    <h1>Sin conexión</h1>
+    <p>Parece que no tienes conexión a internet. Verifica tu red e intenta de nuevo.</p>
+
+    <button class="retry-btn" onclick="window.location.reload()">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182" />
+      </svg>
+      Reintentar
+    </button>
+
+    <div class="brand">
+      <span>🎓</span>
+      <span>Mi Talento Urbanity</span>
+    </div>
+  </div>
+</body>
+</html>

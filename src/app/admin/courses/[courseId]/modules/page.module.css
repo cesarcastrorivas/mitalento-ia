@@ -1,0 +1,428 @@
+/* Reutilizando estilos de módulos */
+.page {
+    max-width: 1200px;
+    animation: fadeIn 0.4s ease-out;
+}
+
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 32px;
+}
+
+.header h1 {
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 8px;
+}
+
+.header p {
+    color: var(--text-muted);
+}
+
+.modulesGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 24px;
+}
+
+.moduleCard {
+    background: var(--gradient-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    transition: all var(--transition-normal);
+}
+
+.moduleCard:hover {
+    border-color: var(--border-hover);
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+}
+
+.modulePreview {
+    position: relative;
+    height: 180px;
+    background: var(--bg-primary);
+    overflow: hidden;
+}
+
+.modulePreview .badge {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+}
+
+.videoPreview {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.moduleContent {
+    padding: 20px;
+}
+
+.moduleOrder {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--primary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.moduleContent h3 {
+    font-size: 18px;
+    font-weight: 600;
+    margin: 8px 0;
+}
+
+.moduleContent p {
+    font-size: 14px;
+    color: var(--text-muted);
+    line-height: 1.5;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.moduleStats {
+    display: flex;
+    gap: 16px;
+    margin-top: 12px;
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+.moduleActions {
+    padding: 16px 20px;
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    gap: 12px;
+}
+
+.moduleActions .btn {
+    flex: 1;
+    padding: 10px;
+    font-size: 13px;
+}
+
+/* Modal Premium */
+.modalOverlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 24px;
+    animation: fadeIn 0.25s ease-out;
+}
+
+.modal {
+    background: var(--bg-surface);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 24px;
+    width: 100%;
+    max-width: 560px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25),
+        0 0 0 1px rgba(139, 92, 246, 0.1);
+    animation: modalSlideUp 0.3s ease-out;
+}
+
+@keyframes modalSlideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px) scale(0.98);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.modalHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 24px 28px;
+    background: linear-gradient(135deg, var(--bg-elevated) 0%, var(--bg-surface) 100%);
+    border-bottom: 1px solid rgba(139, 92, 246, 0.1);
+}
+
+.modalHeader h2 {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.modalHeader h2::before {
+    content: '';
+    width: 4px;
+    height: 24px;
+    background: linear-gradient(180deg, var(--primary-600) 0%, var(--primary-500) 100%);
+    border-radius: 2px;
+}
+
+.closeBtn {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-elevated);
+    border: 1px solid transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    border-radius: 10px;
+    transition: all 0.2s ease-out;
+    font-size: 18px;
+}
+
+.closeBtn:hover {
+    background: var(--bg-surface);
+    border-color: var(--primary-500);
+    color: var(--primary-600);
+    transform: rotate(90deg);
+}
+
+.form {
+    padding: 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+/* Input Groups Premium */
+.form :global(.input-group) {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.form :global(.input-group) label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.form :global(.input),
+.form :global(.textarea) {
+    width: 100%;
+    padding: 14px 16px;
+    border-radius: 12px;
+    background: var(--bg-elevated);
+    border: 1px solid transparent;
+    color: var(--text-primary);
+    font-size: 15px;
+    transition: all 0.2s ease-out;
+}
+
+.form :global(.input)::placeholder,
+.form :global(.textarea)::placeholder {
+    color: var(--text-muted);
+}
+
+.form :global(.input):focus,
+.form :global(.textarea):focus {
+    outline: none;
+    background: var(--bg-surface);
+    border-color: var(--primary-500);
+    box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.1);
+}
+
+.form :global(.textarea) {
+    min-height: 100px;
+    resize: vertical;
+}
+
+.formRow {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+}
+
+/* Toggle Switch Style Checkbox */
+.checkbox {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-primary);
+    padding: 12px 16px;
+    background: var(--bg-elevated);
+    border-radius: 12px;
+    border: 1px solid transparent;
+    transition: all 0.2s ease-out;
+}
+
+.checkbox:hover {
+    border-color: var(--primary-500);
+    background: var(--bg-surface);
+}
+
+.checkbox input[type="checkbox"] {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 44px;
+    height: 24px;
+    background: var(--text-muted);
+    border-radius: 12px;
+    position: relative;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.checkbox input[type="checkbox"]::before {
+    content: '';
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    background: white;
+    border-radius: 50%;
+    top: 2px;
+    left: 2px;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.checkbox input[type="checkbox"]:checked {
+    background: linear-gradient(135deg, var(--primary-600) 0%, var(--primary-500) 100%);
+}
+
+.checkbox input[type="checkbox"]:checked::before {
+    transform: translateX(20px);
+}
+
+.formActions {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+    padding-top: 12px;
+    border-top: 1px solid var(--bg-elevated);
+    margin-top: 8px;
+}
+
+.formActions :global(.btn) {
+    padding: 14px 28px;
+    font-weight: 600;
+    border-radius: 12px;
+}
+
+/* Upload area Premium */
+.uploadArea {
+    border: 2px dashed rgba(139, 92, 246, 0.3);
+    border-radius: 16px;
+    padding: 40px 24px;
+    text-align: center;
+    transition: all 0.2s ease-out;
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.03) 0%, transparent 100%);
+    position: relative;
+    overflow: hidden;
+}
+
+.uploadArea::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at center, rgba(139, 92, 246, 0.05) 0%, transparent 70%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.uploadArea:hover {
+    border-color: var(--primary-500);
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.08) 0%, rgba(139, 92, 246, 0.02) 100%);
+}
+
+.uploadArea:hover::before {
+    opacity: 1;
+}
+
+.uploadArea p {
+    color: var(--text-muted);
+    font-size: 13px;
+    margin-top: 12px;
+}
+
+.uploadArea :global(.btn) {
+    position: relative;
+    z-index: 1;
+}
+
+.uploadProgress {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    align-items: center;
+    padding: 8px 0;
+}
+
+.uploadProgress span {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--primary-600);
+}
+
+.uploadProgress :global(.progress-bar) {
+    width: 100%;
+    height: 8px;
+    background: var(--bg-elevated);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.uploadProgress :global(.progress-bar-fill) {
+    height: 100%;
+    background: linear-gradient(90deg, var(--primary-600) 0%, var(--primary-500) 100%);
+    border-radius: 4px;
+    transition: width 0.3s ease;
+}
+
+.videoPreviewContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    background: var(--bg-elevated);
+    padding: 16px;
+    border-radius: 16px;
+    border: 1px solid rgba(139, 92, 246, 0.1);
+}
+
+.uploadedVideo {
+    width: 100%;
+    max-height: 200px;
+    border-radius: 12px;
+    background: var(--bg-main);
+    object-fit: cover;
+}
+
+@media (max-width: 640px) {
+    .formRow {
+        grid-template-columns: 1fr;
+    }
+
+    .header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 16px;
+    }
+
+    .modulesGrid {
+        grid-template-columns: 1fr;
+    }
+}
