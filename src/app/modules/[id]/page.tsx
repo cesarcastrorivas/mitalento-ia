@@ -6,8 +6,9 @@ import { doc, getDoc, addDoc, collection, updateDoc, Timestamp, query, where, or
 import { db } from '@/lib/firebase';
 import { Module, Question, QuizSession, UserAnswer } from '@/types';
 import { useAuth } from '@/contexts/AuthContext';
+import { getEffectivePassingScore, checkCascadeCompletion } from '@/lib/grading-utils';
 import styles from './page.module.css';
-import { ChevronLeft, ChevronRight, Play, CheckCircle, Lock, AlertCircle, Trophy, Clock, Star, ArrowRight, PlayCircle, FileText, Menu, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Play, CheckCircle, Lock, AlertCircle, Trophy, Clock, Star, ArrowRight, PlayCircle, FileText, Menu, X, Info } from 'lucide-react';
 import Confetti from '@/components/Confetti';
 import LoadingScreen from '@/components/LoadingScreen';
 import Toast, { ToastType } from '@/components/Toast';
@@ -24,9 +25,9 @@ export default function ModulePage() {
 
     const [module, setModule] = useState<Module | null>(null);
     const [loading, setLoading] = useState(true);
-    const [toolsOpen, setToolsOpen] = useState(false);
-    // activeTab ahora controla qué herramienta ver: 'quiz' | 'notes'
-    const [activeToolTab, setActiveToolTab] = useState<'quiz' | 'notes'>('quiz');
+
+    // Info Panel State (Right Sidebar)
+    const [infoOpen, setInfoOpen] = useState(true);
 
     // Estado Legacy/Auxiliar
     const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -43,9 +44,13 @@ export default function ModulePage() {
     const [score, setScore] = useState(0);
     const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
 
+    // New Modal State
+    const [showQuizModal, setShowQuizModal] = useState(false);
+
     const [courseModules, setCourseModules] = useState<Module[]>([]);
     const [userProgress, setUserProgress] = useState<Record<string, any>>({});
     const [courseTitle, setCourseTitle] = useState('');
+    const [coursePathId, setCoursePathId] = useState<string | null>(null);
 
     // Legacy ViewState (para evitar errores en lógica no migrada, aunque intentaremos no usarlo)
     const [viewState, setViewState] = useState<ViewState>('video');
@@ -58,8 +63,8 @@ export default function ModulePage() {
         };
         window.addEventListener('scroll', handleScroll);
 
-        // Auto-open tools only on large screens, close on mobile/tablet to avoid obscuring content
-        setToolsOpen(window.innerWidth > 1200);
+        // Auto-open info only on large screens, close on mobile/tablet
+        setInfoOpen(window.innerWidth > 1200);
 
         return () => window.removeEventListener('scroll', handleScroll);
     }, [moduleId, user]);
@@ -128,7 +133,9 @@ export default function ModulePage() {
                 // Datos del curso
                 const courseDoc = await getDoc(doc(db, 'courses', currentModuleData.courseId));
                 if (courseDoc.exists()) {
-                    setCourseTitle(courseDoc.data().title);
+                    const courseData = courseDoc.data();
+                    setCourseTitle(courseData.title);
+                    setCoursePathId(courseData.pathId || null);
                 }
 
                 // Lista de módulos ordenados
@@ -151,8 +158,9 @@ export default function ModulePage() {
     };
 
     const handleBack = () => {
-        if (module?.courseId) {
-            router.push(`/courses/${module.courseId}`);
+        // Al "volver", vamos a la ruta de aprendizaje (lista de cursos)
+        if (coursePathId) {
+            router.push(`/paths/${coursePathId}`);
         } else {
             router.push('/dashboard');
         }
@@ -245,7 +253,9 @@ export default function ModulePage() {
         });
 
         const calculatedScore = Math.round((correctCount / questions.length) * 100);
-        const passed = calculatedScore >= module.passingScore;
+        // Forzar mínimo 80% para aprobar, respetando configuración mayor del admin
+        const effectivePassingScore = getEffectivePassingScore(module.passingScore);
+        const passed = calculatedScore >= effectivePassingScore;
 
         try {
             const session: Omit<QuizSession, 'id'> = {
@@ -272,6 +282,24 @@ export default function ModulePage() {
                         lastAttempt: Timestamp.now(),
                     }
                 });
+
+                // Validación en cascada: verificar si el curso y/o la ruta se completaron
+                try {
+                    const cascadeResult = await checkCascadeCompletion(
+                        user.uid,
+                        module.id,
+                        module.courseId
+                    );
+                    if (cascadeResult.courseCompleted) {
+                        console.log(`✅ Curso ${cascadeResult.completedCourseId} completado`);
+                    }
+                    if (cascadeResult.pathCompleted) {
+                        console.log(`🎓 Ruta ${cascadeResult.completedPathId} completada — Certificado disponible`);
+                        setToast({ message: '🎓 ¡Felicidades! Has completado la ruta. Tu certificado está disponible.', type: 'success' });
+                    }
+                } catch (cascadeError) {
+                    console.error('Error en validación en cascada:', cascadeError);
+                }
             }
 
             setScore(calculatedScore);
@@ -284,8 +312,9 @@ export default function ModulePage() {
 
 
     const handleStartQuiz = () => {
-        setToolsOpen(true);
-        setActiveToolTab('quiz');
+        // setToolsOpen(true); // No longer needed
+        // setActiveToolTab('quiz'); // No longer needed
+        setShowQuizModal(true);
         if (!questions.length) {
             generateQuiz();
         }
@@ -369,11 +398,11 @@ export default function ModulePage() {
 
                     <div className="flex items-center gap-3">
                         <button
-                            onClick={() => setToolsOpen(!toolsOpen)}
-                            className={`${styles.menuToggle} ${toolsOpen ? 'bg-purple-50 text-purple-600' : ''}`}
-                            title="Panel de Herramientas"
+                            onClick={() => setInfoOpen(!infoOpen)}
+                            className={`${styles.menuToggle} ${infoOpen ? 'bg-indigo-50 text-indigo-600' : ''}`}
+                            title="Información de la Lección"
                         >
-                            {toolsOpen ? <ChevronRight size={20} /> : <FileText size={20} />}
+                            {infoOpen ? <ChevronRight size={20} /> : <Info size={20} />}
                         </button>
                     </div>
                 </header>
@@ -386,205 +415,248 @@ export default function ModulePage() {
                             src={module.videoUrl}
                             controls
                             onTimeUpdate={handleTimeUpdate}
+                            onEnded={() => {
+                                // Cuando el video termina (100%), abrir quiz automáticamente
+                                if (canTakeQuiz) {
+                                    setShowQuizModal(true);
+                                }
+                            }}
                             className={styles.videoPlayer}
                         />
                     </div>
 
-                    {/* Información de la Lección (Debajo del Video) */}
-                    <div className={styles.lessonInfo}>
-                        <div className="flex justify-between items-start mb-4">
-                            <div>
-                                <h1 className={styles.lessonTitle}>{module.title}</h1>
-                                <p className={styles.lessonDescription}>{module.description}</p>
-                            </div>
-
-                            {/* CTA Principal si el panel está cerrado o para acción rápida */}
-                            <button
-                                onClick={handleStartQuiz}
-                                className="px-6 py-2 bg-black text-white rounded-full font-semibold text-sm hover:bg-gray-800 transition-colors flex items-center gap-2 shadow-sm whitespace-nowrap"
-                            >
-                                <Trophy size={16} />
-                                {userProgress[module.id]?.completed ? 'Intentar de nuevo' : 'Ir a Evaluación'}
-                            </button>
-                        </div>
-
-                        <div className={styles.videoStats}>
-                            <div className={styles.statItem}>
-                                <Clock size={16} />
-                                <span>Progreso: {Math.round(watchedPercentage)}%</span>
-                            </div>
-                            <div className={styles.statItem}>
-                                <Trophy size={16} className={canTakeQuiz ? 'text-green-500' : ''} />
-                                <span>Requisito Quiz: {module.requiredWatchPercentage}%</span>
-                            </div>
-                            {!canTakeQuiz && (
-                                <span className="text-xs text-orange-600 bg-orange-50 px-2 py-1 rounded border border-orange-100">
-                                    Sigue viendo para desbloquear el quiz
-                                </span>
-                            )}
-                        </div>
-                    </div>
+                    {/* Información de la Lección MOVIDA AL SIDEBAR */}
                 </div>
             </main>
 
-            {/* 3. Panel de Herramientas (Derecha - Quiz/Notas) */}
-            <aside className={`${styles.toolsPanel} ${toolsOpen ? '' : styles.toolsClosed}`}>
-                <div className={styles.toolsHeader}>
-                    <button
-                        className={`${styles.toolTab} ${activeToolTab === 'quiz' ? styles.activeTab : ''}`}
-                        onClick={() => setActiveToolTab('quiz')}
-                    >
-                        <Trophy size={16} className="inline mr-2" />
-                        Evaluación
-                    </button>
-                    <button
-                        className={`${styles.toolTab} ${activeToolTab === 'notes' ? styles.activeTab : ''}`}
-                        onClick={() => setActiveToolTab('notes')}
-                    >
-                        <Star size={16} className="inline mr-2" />
-                        Notas
+            {/* 3. Panel de Información (Derecha) */}
+            <aside className={`${styles.infoPanel} ${infoOpen ? '' : styles.infoClosed}`}>
+                <div className={styles.infoHeader}>
+                    <span className="text-sm font-bold text-gray-400 uppercase tracking-wider">Detalles de la Lección</span>
+                    <button onClick={() => setInfoOpen(false)} className="md:hidden text-gray-400">
+                        <X size={20} />
                     </button>
                 </div>
 
-                <div className={styles.toolsContent}>
-                    {/* CONTENIDO TAB: QUIZ */}
-                    {activeToolTab === 'quiz' && (
-                        <div className="h-full">
+                <div className={styles.infoContent}>
+                    <div>
+                        <h1 className={styles.sidebarTitle}>{module.title}</h1>
+                        <div className="flex items-center gap-2 mt-2">
+                            <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${userProgress[module.id]?.completed
+                                ? 'bg-green-100 text-green-700'
+                                : 'bg-yellow-100 text-yellow-700'
+                                }`}>
+                                {userProgress[module.id]?.completed ? 'Completado' : 'En Progreso'}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div className={styles.sidebarStats}>
+                        <div className={styles.sidebarStatItem}>
+                            <div className={styles.sidebarStatLabel}>
+                                <Clock size={16} className="text-indigo-500" />
+                                <span>Progreso Video</span>
+                            </div>
+                            <span className="font-bold text-gray-700">{Math.round(watchedPercentage)}%</span>
+                        </div>
+
+                        <div className={styles.sidebarStatItem}>
+                            <div className={styles.sidebarStatLabel}>
+                                <Trophy size={16} className={canTakeQuiz ? 'text-green-500' : 'text-gray-400'} />
+                                <span>Requisito Quiz</span>
+                            </div>
+                            <span>{module.requiredWatchPercentage}%</span>
+                        </div>
+                    </div>
+
+                    <div className={styles.sidebarDesc}>
+                        <p>{module.description}</p>
+                    </div>
+
+                    {!canTakeQuiz && (
+                        <div className="bg-orange-50 border border-orange-100 rounded-lg p-3 text-xs text-orange-700 flex items-start gap-2">
+                            <AlertCircle size={14} className="mt-0.5 flex-shrink-0" />
+                            <p>Debes ver al menos el {module.requiredWatchPercentage}% del video para habilitar la evaluación.</p>
+                        </div>
+                    )}
+
+                    <div className={styles.sidebarCta}>
+                        <button
+                            onClick={handleStartQuiz}
+                            className="w-full py-3 bg-gray-900 text-white rounded-xl font-bold text-sm hover:bg-black transition-colors flex items-center justify-center gap-2 shadow-lg"
+                        >
+                            <Trophy size={18} />
+                            {userProgress[module.id]?.completed ? 'Ver Resultados / Reintentar' : 'Iniciar Evaluación'}
+                        </button>
+                    </div>
+                </div>
+            </aside>
+
+            {/* NEW QUIZ MODAL */}
+            {showQuizModal && (
+                <div className={styles.quizOverlay}>
+                    <div className={styles.quizModal}>
+                        <div className={styles.modalHeader}>
+                            <div className="flex items-center gap-2">
+                                <span className="text-sm font-bold text-indigo-600 tracking-wider uppercase">Evaluación</span>
+                            </div>
+                            <button onClick={() => setShowQuizModal(false)} className={styles.modalCloseBtn}>
+                                <X size={24} />
+                            </button>
+                        </div>
+
+                        <div className={styles.modalContent}>
                             {/* ESTADO 1: INTRO / START */}
                             {!quizSession && !generatingQuiz && questions.length === 0 && (
-                                <div className={styles.quizStartView}>
-                                    <div className={styles.quizStartIcon}>
-                                        <Trophy size={32} />
+                                <div className={styles.modalIntro}>
+                                    <div className={styles.introIcon}>
+                                        <Trophy size={40} />
                                     </div>
-                                    <h3 className="text-lg font-bold text-gray-800">Evaluación de Conocimientos</h3>
-                                    <p className="text-sm text-gray-500 text-center mb-4">
-                                        Pon a prueba lo que aprendiste en este video. Necesitas un {module.passingScore}% para aprobar.
+                                    <h3 className={styles.introTitle}>¡Hora de demostrar lo que sabes!</h3>
+                                    <p className={styles.introDesc}>
+                                        Responde estas preguntas rápidas para validar tu conocimiento sobre "{module.title}".
+                                        Necesitas un <strong>{module.passingScore}%</strong> para aprobar.
                                     </p>
-                                    <button
-                                        onClick={handleStartQuiz}
-                                        disabled={!canTakeQuiz}
-                                        className={styles.startQuizBtn}
-                                    >
-                                        {!canTakeQuiz ? `Desbloquea al ${module.requiredWatchPercentage}%` : 'Comenzar Quiz Ahora'}
-                                    </button>
+
+                                    <div className="flex justify-center w-full">
+                                        <button
+                                            onClick={() => {
+                                                if (questions.length === 0) generateQuiz();
+                                            }}
+                                            disabled={!canTakeQuiz}
+                                            className={`${styles.startQuizBtn} max-w-sm`}
+                                        >
+                                            {!canTakeQuiz ? `Video al ${module.requiredWatchPercentage}% requerido` : 'Comenzar Evaluación'}
+                                        </button>
+                                    </div>
                                 </div>
                             )}
 
                             {/* ESTADO 2: GENERANDO */}
                             {generatingQuiz && (
-                                <div className={styles.quizStartView}>
-                                    <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-purple-600 mb-4"></div>
-                                    <p className="text-gray-600 font-medium">Generando preguntas con IA...</p>
+                                <div className={styles.modalIntro}>
+                                    <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-indigo-600 mb-6 mx-auto"></div>
+                                    <h3 className="text-xl font-bold text-gray-800 mb-2">Preparando tu examen...</h3>
+                                    <p className="text-gray-500">Nuestra IA está diseñando preguntas personalizadas para ti.</p>
                                 </div>
                             )}
 
                             {/* ESTADO 3: PREGUNTAS ACTIVAS */}
                             {!quizSession && questions.length > 0 && currentQuestion && (
-                                <div className={styles.quizContainer}>
-                                    <div className="flex justify-between text-xs font-semibold text-gray-400 mb-2 uppercase tracking-wide">
-                                        <span>Pregunta {currentQuestionIndex + 1}/{questions.length}</span>
-                                    </div>
-
-                                    <div className={styles.questionCard}>
-                                        <p className={styles.questionText}>{currentQuestion.text}</p>
-
-                                        <div className={styles.optionsList}>
-                                            {currentQuestion.options.map((option, index) => (
-                                                <button
-                                                    key={index}
-                                                    onClick={() => handleAnswerSelect(currentQuestion.id, index)}
-                                                    className={`${styles.optionBtn} ${answers.get(currentQuestion.id) === index ? styles.optionSelected : ''}`}
-                                                >
-                                                    <span className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-xs font-bold mr-2 text-gray-500 flex-shrink-0">
-                                                        {String.fromCharCode(65 + index)}
-                                                    </span>
-                                                    {option}
-                                                </button>
-                                            ))}
+                                <div className={styles.modalQuestionContainer}>
+                                    <div className={styles.questionProgress}>
+                                        <span>Pregunta {currentQuestionIndex + 1} de {questions.length}</span>
+                                        <div className={styles.progressBarTrack}>
+                                            <div
+                                                className={styles.progressBarFill}
+                                                style={{ width: `${((currentQuestionIndex + 1) / questions.length) * 100}%` }}
+                                            />
                                         </div>
                                     </div>
 
-                                    <div className={styles.navigationButtons}>
-                                        <button
-                                            onClick={handlePreviousQuestion}
-                                            disabled={currentQuestionIndex === 0}
-                                            className={styles.navBtn}
-                                        >
-                                            Anterior
-                                        </button>
-                                        {currentQuestionIndex < questions.length - 1 ? (
-                                            <button onClick={handleNextQuestion} className={`${styles.navBtn} ${styles.primaryNavBtn}`}>
-                                                Siguiente
-                                            </button>
-                                        ) : (
+                                    <h2 className={styles.modalQuestionText}>{currentQuestion.text}</h2>
+
+                                    <div className={styles.modalOptionsList}>
+                                        {currentQuestion.options.map((option, index) => (
                                             <button
-                                                onClick={handleSubmitQuiz}
-                                                disabled={!allAnswered}
-                                                className={`${styles.navBtn} ${styles.primaryNavBtn}`}
+                                                key={index}
+                                                onClick={() => handleAnswerSelect(currentQuestion.id, index)}
+                                                className={`${styles.modalOptionBtn} ${answers.get(currentQuestion.id) === index ? styles.modalOptionSelected : ''}`}
                                             >
-                                                Finalizar
+                                                <span className={styles.optionLetter}>
+                                                    {String.fromCharCode(65 + index)}
+                                                </span>
+                                                <span className="flex-1 font-medium">{option}</span>
+                                                {answers.get(currentQuestion.id) === index && (
+                                                    <CheckCircle size={20} className="text-indigo-600" />
+                                                )}
                                             </button>
-                                        )}
+                                        ))}
                                     </div>
                                 </div>
                             )}
 
                             {/* ESTADO 4: RESULTADOS */}
                             {quizSession && (
-                                <div className={styles.resultsView}>
+                                <div className={styles.modalResults}>
                                     <Confetti active={quizSession.passed} />
-                                    <div className={`${styles.scoreCircle} ${quizSession.passed ? styles.scorePassed : styles.scoreFailed}`}>
-                                        {score}%
+
+                                    <div className={styles.bigScore}>
+                                        {score}<span className="text-2xl text-gray-400">%</span>
                                     </div>
-                                    <h3 className="text-xl font-bold text-gray-900">
-                                        {quizSession.passed ? '¡Aprobado!' : 'No superado'}
+                                    <div className={styles.scoreLabel}>Tu Puntuación Final</div>
+
+                                    <h3 className={`${styles.resultTitle} ${quizSession.passed ? styles.passed : styles.failed}`}>
+                                        {quizSession.passed ? '¡Excelente Trabajo!' : 'Inténtalo de Nuevo'}
                                     </h3>
-                                    <p className="text-sm text-gray-500 mb-6">
+
+                                    <p className={styles.resultMessage}>
                                         {quizSession.passed
-                                            ? 'Has dominado este tema. Puedes continuar con el siguiente módulo.'
-                                            : 'Te recomendamos repasar el video antes de intentar nuevamente.'}
+                                            ? 'Has demostrado un gran dominio del tema. Estás listo para avanzar al siguiente nivel.'
+                                            : 'No te preocupes, el aprendizaje es un proceso. Repasa el video y vuelve a intentarlo.'}
                                     </p>
 
-                                    {!quizSession.passed && (
-                                        <button
-                                            onClick={() => {
-                                                setQuizSession(null);
-                                                setQuestions([]);
-                                                setAnswers(new Map());
-                                                setViewState('video'); // Reset logic visuals
-                                            }}
-                                            className={styles.startQuizBtn}
-                                        >
-                                            Reintentar Quiz
-                                        </button>
-                                    )}
-
-                                    {quizSession.passed && (
-                                        <button
-                                            onClick={() => {
-                                                // Find next module logic or just close
-                                                handleBack();
-                                            }}
-                                            className={styles.startQuizBtn}
-                                        >
-                                            Continuar Curso
-                                        </button>
-                                    )}
+                                    <div className={styles.resultActions}>
+                                        {!quizSession.passed ? (
+                                            <button
+                                                onClick={() => {
+                                                    setQuizSession(null);
+                                                    setQuestions([]);
+                                                    setAnswers(new Map());
+                                                    // Generate new quiz logic could be here if we want fresh questions
+                                                    generateQuiz();
+                                                }}
+                                                className={`${styles.modalNavBtn} ${styles.primaryBtn}`}
+                                            >
+                                                Reintentar Quiz
+                                            </button>
+                                        ) : (
+                                            <button
+                                                onClick={() => {
+                                                    setShowQuizModal(false);
+                                                    handleBack(); // Or specific logic to go to next module directly
+                                                }}
+                                                className={`${styles.modalNavBtn} ${styles.primaryBtn}`}
+                                            >
+                                                Siguiente Lección <ArrowRight size={18} className="inline ml-2" />
+                                            </button>
+                                        )}
+                                    </div>
                                 </div>
                             )}
                         </div>
-                    )}
 
-                    {/* CONTENIDO TAB: NOTAS */}
-                    {activeToolTab === 'notes' && (
-                        <div className="h-full flex flex-col items-center justify-center text-center text-gray-400">
-                            <FileText size={48} className="mb-4 opacity-20" />
-                            <p>Tus notas privadas irán aquí.</p>
-                            <span className="text-xs bg-gray-100 px-2 py-1 rounded mt-2">Próximamente</span>
-                        </div>
-                    )}
+                        {/* Footer only visible during active quiz to hold nav buttons */}
+                        {!quizSession && questions.length > 0 && !generatingQuiz && (
+                            <div className={styles.modalFooter}>
+                                <button
+                                    onClick={handlePreviousQuestion}
+                                    disabled={currentQuestionIndex === 0}
+                                    className={`${styles.modalNavBtn} ${styles.secondaryBtn}`}
+                                >
+                                    Anterior
+                                </button>
+                                {currentQuestionIndex < questions.length - 1 ? (
+                                    <button
+                                        onClick={handleNextQuestion}
+                                        className={`${styles.modalNavBtn} ${styles.primaryBtn}`}
+                                    >
+                                        Siguiente
+                                    </button>
+                                ) : (
+                                    <button
+                                        onClick={handleSubmitQuiz}
+                                        disabled={!allAnswered}
+                                        className={`${styles.modalNavBtn} ${styles.primaryBtn}`}
+                                    >
+                                        Finalizar Evaluación
+                                    </button>
+                                )}
+                            </div>
+                        )}
+                    </div>
                 </div>
-            </aside>
+            )}
 
             {toast && (
                 <Toast

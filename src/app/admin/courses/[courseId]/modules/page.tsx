@@ -507,7 +507,7 @@ export default function CourseModulesPage({ params }: { params: Promise<{ course
                                     </label>
                                     <Button
                                         type="button"
-                                        size="xs"
+                                        size="sm"
                                         variant="secondary"
                                         onClick={handleTranscribe}
                                         disabled={!formData.videoUrl || isTranscribing}

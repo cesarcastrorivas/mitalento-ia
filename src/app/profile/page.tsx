@@ -1,12 +1,12 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { doc, updateDoc } from 'firebase/firestore';
+import { doc, updateDoc, getDoc } from 'firebase/firestore';
 import { db, storage } from '@/lib/firebase';
 import styles from './page.module.css';
-import { Camera, Mail, Shield, Calendar, CheckCircle } from 'lucide-react';
+import { Camera, Mail, Shield, Calendar, CheckCircle, MessageSquare } from 'lucide-react';
 import Toast, { ToastType } from '@/components/Toast';
 
 export default function ProfilePage() {
@@ -15,6 +15,17 @@ export default function ProfilePage() {
     const [uploading, setUploading] = useState(false);
     const [photoURL, setPhotoURL] = useState(user?.photoURL || '');
     const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
+    const [feedback, setFeedback] = useState<string>('');
+
+    useEffect(() => {
+        if (user) {
+            getDoc(doc(db, 'users', user.uid)).then(snap => {
+                if (snap.exists()) {
+                    setFeedback(snap.data().supervisorFeedback || '');
+                }
+            });
+        }
+    }, [user]);
 
     if (!user) return null;
 
@@ -147,6 +158,28 @@ export default function ProfilePage() {
                         </div>
                     </div>
                 </div>
+
+                {/* Supervisor Feedback */}
+                {feedback && (
+                    <div className={styles.infoSection}>
+                        <h2 className={styles.sectionTitle}>
+                            <MessageSquare size={18} style={{ display: 'inline', marginRight: '0.5rem' }} />
+                            Retroalimentación del Supervisor
+                        </h2>
+                        <div style={{
+                            background: 'rgba(99, 102, 241, 0.05)',
+                            border: '1px solid rgba(99, 102, 241, 0.15)',
+                            borderRadius: '14px',
+                            padding: '1.25rem',
+                            color: '#374151',
+                            fontSize: '0.9rem',
+                            lineHeight: '1.6',
+                            whiteSpace: 'pre-wrap',
+                        }}>
+                            {feedback}
+                        </div>
+                    </div>
+                )}
 
                 {/* Paths Count */}
                 {user.assignedPathIds && user.assignedPathIds.length > 0 && (

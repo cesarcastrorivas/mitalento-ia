@@ -10,9 +10,11 @@ import { Input } from '@/components/ui/Input';
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [displayName, setDisplayName] = useState('');
+  const [isRegistering, setIsRegistering] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const { signIn, user } = useAuth();
+  const { signIn, register, user } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
@@ -29,18 +31,30 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      await signIn(email, password);
-    } catch (err: unknown) {
-      console.error('Login error:', err);
+      if (isRegistering) {
+        if (!displayName) {
+          throw new Error('El nombre es requerido para registrarse.');
+        }
+        await register(email, password, displayName);
+      } else {
+        await signIn(email, password);
+      }
+    } catch (err: any) {
+      console.error('Auth error:', err);
       const firebaseError = err as { code?: string; message?: string };
+
       if (firebaseError.code === 'auth/user-not-found') {
         setError('Usuario no encontrado. Verifica el email.');
       } else if (firebaseError.code === 'auth/wrong-password' || firebaseError.code === 'auth/invalid-credential') {
         setError('Contraseña incorrecta.');
+      } else if (firebaseError.code === 'auth/email-already-in-use') {
+        setError('Este correo ya está registrado.');
+      } else if (firebaseError.code === 'auth/weak-password') {
+        setError('La contraseña debe tener al menos 6 caracteres.');
       } else if (firebaseError.code === 'auth/invalid-email') {
         setError('Email inválido.');
       } else {
-        setError(`Error: ${firebaseError.code || firebaseError.message || 'Error desconocido'}`);
+        setError(`Error: ${err.message || firebaseError.code || 'Error desconocido'}`);
       }
     } finally {
       setLoading(false);
@@ -71,6 +85,16 @@ export default function LoginPage() {
         <Card className="!rounded-[32px] !bg-white/70 !backdrop-blur-2xl !shadow-[0_20px_40px_-12px_rgba(0,0,0,0.1)] !border-white/50 space-y-8 p-8" hover={false}>
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-5">
+              {isRegistering && (
+                <Input
+                  label="Nombre completo"
+                  type="text"
+                  placeholder="Juan Pérez"
+                  value={displayName}
+                  onChange={(e) => setDisplayName(e.target.value)}
+                  required
+                />
+              )}
               <Input
                 label="Correo electrónico"
                 type="email"
@@ -102,8 +126,21 @@ export default function LoginPage() {
               isLoading={loading}
               style={{ background: 'linear-gradient(135deg, var(--primary-700) 0%, var(--primary-900) 100%)', color: 'white' }}
             >
-              Iniciar Sesión
+              {isRegistering ? 'Crear cuenta' : 'Iniciar Sesión'}
             </Button>
+
+            <div className="text-center">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsRegistering(!isRegistering);
+                  setError('');
+                }}
+                className="text-sm text-primary-600 hover:text-primary-700 font-medium transition-colors"
+              >
+                {isRegistering ? '¿Ya tienes cuenta? Inicia sesión' : '¿No tienes cuenta? Regístrate'}
+              </button>
+            </div>
           </form>
 
           <p className="text-center text-xs text-gray-400 font-medium">

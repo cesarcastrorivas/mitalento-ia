@@ -1,159 +1,163 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import {
-    collection,
-    query,
-    getDocs,
-    addDoc,
-    updateDoc,
-    deleteDoc,
-    doc,
-    orderBy,
-    Timestamp
-} from 'firebase/firestore';
+import { useState, useEffect } from 'react';
+import { FIXED_PATHS } from '@/lib/constants';
 import { db } from '@/lib/firebase';
-import { LearningPath } from '@/types';
+import { LearningPath, CertificationLevel } from '@/types';
 import { useAuth } from '@/contexts/AuthContext';
 import Link from 'next/link';
 import {
-    Plus,
+    collection,
+    query,
+    orderBy,
+    getDocs,
+    doc,
+    setDoc,
+    deleteDoc,
+    Timestamp
+} from 'firebase/firestore';
+import {
     BookOpen,
-    Pencil,
-    Trash2,
     Search,
     Filter,
-    LayoutGrid,
-    List as ListIcon
+    Plus,
+    Edit2,
+    Trash2,
+    XCircle,
+    Shield
 } from 'lucide-react';
-import { Modal } from '@/components/ui/Modal';
-import { Input } from '@/components/ui/Input';
-import { TextArea } from '@/components/ui/TextArea';
-import { Switch } from '@/components/ui/Switch';
-import { EmojiPicker } from '@/components/ui/EmojiPicker';
-import { Button } from '@/components/ui/Button';
 
 export default function PathsPage() {
     const { user } = useAuth();
-    const [paths, setPaths] = useState<LearningPath[]>([]);
+    const [dynamicPaths, setDynamicPaths] = useState<LearningPath[]>([]);
     const [loading, setLoading] = useState(true);
+
+    // UI States
+    const [searchTerm, setSearchTerm] = useState('');
     const [showModal, setShowModal] = useState(false);
     const [editingPath, setEditingPath] = useState<LearningPath | null>(null);
-    const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-    const [searchTerm, setSearchTerm] = useState('');
-    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [saving, setSaving] = useState(false);
 
+    // Form Data
     const [formData, setFormData] = useState({
         title: '',
         description: '',
-        icon: '🎓',
-        order: 1,
+        icon: '📚',
+        order: 99,
         isActive: true,
+        certificationLevel: 'none' as CertificationLevel,
     });
 
     useEffect(() => {
-        loadPaths();
+        loadDynamicPaths();
     }, []);
 
-    const loadPaths = async () => {
+    const loadDynamicPaths = async () => {
         try {
+            setLoading(true);
             const q = query(collection(db, 'learning_paths'), orderBy('order', 'asc'));
             const snapshot = await getDocs(q);
-            const pathsData = snapshot.docs.map(doc => ({
+            const loaded = snapshot.docs.map(doc => ({
                 id: doc.id,
                 ...doc.data()
             } as LearningPath));
-            setPaths(pathsData);
+            setDynamicPaths(loaded);
         } catch (error) {
-            console.error('Error loading paths:', error);
+            console.error('Error loading dynamic paths:', error);
         } finally {
             setLoading(false);
         }
     };
 
-    const handleSubmit = async () => {
-        if (!formData.title || !formData.description) return;
-        setIsSubmitting(true);
+    const handleOpenModal = (path?: LearningPath) => {
+        if (path) {
+            setEditingPath(path);
+            setFormData({
+                title: path.title,
+                description: path.description,
+                icon: path.icon || '📚',
+                order: path.order || 99,
+                isActive: path.isActive,
+                certificationLevel: path.certificationLevel || 'none',
+            });
+        } else {
+            setEditingPath(null);
+            setFormData({
+                title: '',
+                description: '',
+                icon: '📚',
+                order: Math.max(...[...FIXED_PATHS, ...dynamicPaths].map(p => p.order || 0)) + 1,
+                isActive: true,
+                certificationLevel: 'none',
+            });
+        }
+        setShowModal(true);
+    };
+
+    const handleCloseModal = () => {
+        setShowModal(false);
+        setEditingPath(null);
+    };
+
+    const handleSavePath = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!user) return;
 
         try {
+            setSaving(true);
+            const pathData = {
+                ...formData,
+                updatedAt: Timestamp.now(),
+                updatedBy: user.uid,
+            };
+
             if (editingPath) {
-                await updateDoc(doc(db, 'learning_paths', editingPath.id), {
-                    ...formData,
-                });
+                await setDoc(doc(db, 'learning_paths', editingPath.id), pathData, { merge: true });
             } else {
-                if (!user?.uid) {
-                    alert('Error: No hay usuario autenticado para crear la ruta');
-                    return;
-                }
-                const newOrder = paths.length > 0 ? Math.max(...paths.map(p => p.order)) + 1 : 1;
-                await addDoc(collection(db, 'learning_paths'), {
-                    ...formData,
-                    order: formData.order || newOrder,
+                const newId = `path-${Date.now()}`;
+                await setDoc(doc(db, 'learning_paths', newId), {
+                    ...pathData,
                     createdAt: Timestamp.now(),
                     createdBy: user.uid,
                 });
             }
 
-            setShowModal(false);
-            resetForm();
-            loadPaths();
-        } catch (error: any) {
+            await loadDynamicPaths();
+            handleCloseModal();
+        } catch (error) {
             console.error('Error saving path:', error);
-            alert(`Error al guardar la ruta: ${error.message || 'Error desconocido'}`);
+            alert('Error guardando la ruta');
         } finally {
-            setIsSubmitting(false);
+            setSaving(false);
         }
     };
 
-    const handleEdit = (path: LearningPath) => {
-        setEditingPath(path);
-        setFormData({
-            title: path.title,
-            description: path.description,
-            icon: path.icon || '🎓',
-            order: path.order,
-            isActive: path.isActive,
-        });
-        setShowModal(true);
-    };
-
-    const handleDelete = async (pathId: string) => {
-        if (!confirm('¿Estás seguro de eliminar esta ruta? Se perderán las asociaciones con cursos.')) return;
+    const handleDeletePath = async (pathId: string) => {
+        if (!confirm('¿Estás seguro de eliminar esta ruta especializada? Los cursos alojados en ella quedarán huérfanos.')) return;
 
         try {
             await deleteDoc(doc(db, 'learning_paths', pathId));
-            loadPaths();
+            await loadDynamicPaths();
         } catch (error) {
             console.error('Error deleting path:', error);
-            alert('Error al eliminar la ruta');
+            alert('Error eliminando la ruta');
         }
     };
 
-    const resetForm = () => {
-        setFormData({
-            title: '',
-            description: '',
-            icon: '🎓',
-            order: paths.length + 1,
-            isActive: true,
-        });
-        setEditingPath(null);
-    };
+    // Fusión de rutas fijas y dinámicas
+    const allPaths = [...FIXED_PATHS, ...dynamicPaths].sort((a, b) => (a.order || 99) - (b.order || 99));
 
-    const openNewPathModal = () => {
-        resetForm();
-        setShowModal(true);
-    };
-
-    const filteredPaths = paths.filter(path =>
+    const filteredPaths = allPaths.filter(path =>
         path.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         path.description.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
+    const isFixedPath = (pathId: string) => FIXED_PATHS.some(fp => fp.id === pathId);
+
     if (loading) {
         return (
-            <div className="flex items-center justify-center min-h-[50vh]">
-                <div className="w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
+            <div className="flex justify-center items-center min-h-[400px]">
+                <div className="w-12 h-12 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
             </div>
         );
     }
@@ -164,27 +168,15 @@ export default function PathsPage() {
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
                 <div>
                     <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Rutas de Aprendizaje</h1>
-                    <p className="text-slate-500 mt-2 text-lg">Gestiona los caminos profesionales y sus contenidos</p>
+                    <p className="text-slate-500 mt-2 text-lg">Define el mapa de conocimientos para tu equipo.</p>
                 </div>
-                <div className="flex items-center gap-3">
-                    <div className="hidden md:flex bg-white rounded-lg border border-slate-200 p-1 shadow-sm">
-                        <button
-                            onClick={() => setViewMode('grid')}
-                            className={`p-2 rounded-md transition-all ${viewMode === 'grid' ? 'bg-slate-100 text-slate-900 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
-                        >
-                            <LayoutGrid size={20} />
-                        </button>
-                        <button
-                            onClick={() => setViewMode('list')}
-                            className={`p-2 rounded-md transition-all ${viewMode === 'list' ? 'bg-slate-100 text-slate-900 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
-                        >
-                            <ListIcon size={20} />
-                        </button>
-                    </div>
-                    <Button onClick={openNewPathModal} leftIcon={<Plus size={20} />} className="shadow-lg shadow-purple-500/25">
-                        Nueva Ruta
-                    </Button>
-                </div>
+                <button
+                    onClick={() => handleOpenModal()}
+                    className="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 text-white font-medium hover:bg-indigo-700 rounded-xl transition-all shadow-sm hover:shadow-indigo-200"
+                >
+                    <Plus size={20} />
+                    <span>Nueva Ruta Especializada</span>
+                </button>
             </div>
 
             {/* Filters */}
@@ -206,227 +198,249 @@ export default function PathsPage() {
                 </button>
             </div>
 
-            {/* Grid View */}
-            {viewMode === 'grid' && (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {filteredPaths.map((path) => (
-                        <div key={path.id} className="group card-premium relative overflow-hidden flex flex-col h-full bg-white">
-                            <div className="absolute top-4 right-4 z-10">
-                            </div>
+            {/* List View - Premium UI */}
+            <div className="grid grid-cols-1 gap-6">
+                {filteredPaths.map((path) => {
+                    const esFija = isFixedPath(path.id);
 
-                            <div className="p-6 flex-1">
-                                <div className="flex items-start gap-4 mb-4">
-                                    <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-50 to-indigo-50 flex items-center justify-center text-3xl shadow-inner border border-white/50 group-hover:scale-110 transition-transform duration-300">
-                                        {path.icon}
+                    // Determinar estilos visuales basados en el nivel
+                    let levelStyles = {
+                        bg: 'bg-slate-50',
+                        text: 'text-slate-700',
+                        border: 'border-slate-200',
+                        iconBg: 'bg-slate-100',
+                        label: 'Sin Nivel'
+                    };
+
+                    if (path.certificationLevel === 'fundamental') {
+                        levelStyles = {
+                            bg: 'bg-emerald-50',
+                            text: 'text-emerald-700',
+                            border: 'border-emerald-200',
+                            iconBg: 'bg-emerald-50 text-emerald-600',
+                            label: 'Fundamental'
+                        };
+                    } else if (path.certificationLevel === 'professional') {
+                        levelStyles = {
+                            bg: 'bg-amber-500',
+                            text: 'text-white',
+                            border: 'border-amber-600',
+                            iconBg: 'bg-amber-100 text-amber-600',
+                            label: 'Profesional'
+                        };
+                    } else if (path.certificationLevel === 'elite') {
+                        levelStyles = {
+                            bg: 'bg-rose-50',
+                            text: 'text-rose-700',
+                            border: 'border-rose-200',
+                            iconBg: 'bg-rose-50 text-rose-600',
+                            label: 'Élite'
+                        };
+                    }
+
+                    return (
+                        <div
+                            key={path.id}
+                            className="group relative bg-white rounded-2xl p-6 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] hover:shadow-[0_8px_30px_-4px_rgba(0,0,0,0.1)] border border-slate-200 transition-all duration-300 overflow-hidden"
+                        >
+                            {/* Decorative gradient blob */}
+                            <div className={`absolute -right-24 -top-24 w-48 h-48 rounded-full blur-3xl opacity-20 transition-opacity group-hover:opacity-40 pointer-events-none ${levelStyles.bg.replace('bg-', 'bg-').replace('-50', '-400').replace('-500', '-400')}`}></div>
+
+                            <div className="flex flex-col md:flex-row items-start md:items-center gap-6 relative z-10">
+                                {/* Icon Container */}
+                                <div className={`shrink-0 w-16 h-16 rounded-2xl flex items-center justify-center text-3xl shadow-sm border border-white/50 ${levelStyles.iconBg}`}>
+                                    {path.icon}
+                                </div>
+
+                                {/* Main Content */}
+                                <div className="flex-1 min-w-0">
+                                    <div className="flex items-center gap-3 mb-1">
+                                        <h3 className="text-xl font-bold text-slate-900 group-hover:text-indigo-600 transition-colors">
+                                            {path.title}
+                                        </h3>
+                                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border ${levelStyles.bg} ${levelStyles.text} ${levelStyles.border}`}>
+                                            {levelStyles.label}
+                                        </span>
+                                        {esFija && (
+                                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 text-[10px] font-bold tracking-wider uppercase">
+                                                <Shield size={10} />
+                                                Obligatoria
+                                            </span>
+                                        )}
                                     </div>
-                                    <div className="flex-1 min-w-0 pt-1">
-                                        <h3 className="font-bold text-lg text-slate-900 truncate">{path.title}</h3>
-                                        <div className="flex items-center gap-2 mt-1.5">
-                                            <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium border ${path.isActive
-                                                ? 'bg-emerald-50 text-emerald-700 border-emerald-100'
-                                                : 'bg-slate-50 text-slate-600 border-slate-100'
-                                                }`}>
+                                    <p className="text-slate-500 text-sm leading-relaxed mb-4 md:mb-0 max-w-3xl">
+                                        {path.description}
+                                    </p>
+                                </div>
+
+                                {/* Meta & Actions */}
+                                <div className="flex items-center gap-4 w-full md:w-auto mt-4 md:mt-0 pt-4 md:pt-0 border-t md:border-t-0 border-slate-100 shrink-0">
+                                    <div className="flex flex-col gap-1.5 items-start md:items-end w-full md:w-auto mr-4">
+                                        <div className="flex items-center gap-4">
+                                            <span className="text-sm font-medium text-slate-500">
+                                                Orden: {path.order}
+                                            </span>
+                                            <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${path.isActive ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-slate-50 text-slate-600 border-slate-100'}`}>
                                                 <span className={`w-1.5 h-1.5 rounded-full ${path.isActive ? 'bg-emerald-500' : 'bg-slate-400'}`}></span>
                                                 {path.isActive ? 'Activa' : 'Inactiva'}
                                             </span>
                                         </div>
                                     </div>
-                                </div>
 
-                                <p className="text-sm text-slate-600 mb-2 line-clamp-3 leading-relaxed">
-                                    {path.description}
-                                </p>
-                            </div>
+                                    {!esFija && (
+                                        <div className="flex items-center gap-1 mr-2 border-r border-slate-200 pr-3">
+                                            <button
+                                                onClick={() => handleOpenModal(path)}
+                                                className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                                                title="Editar Ruta"
+                                            >
+                                                <Edit2 size={18} />
+                                            </button>
+                                            <button
+                                                onClick={() => handleDeletePath(path.id)}
+                                                className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                                title="Eliminar Ruta"
+                                            >
+                                                <Trash2 size={18} />
+                                            </button>
+                                        </div>
+                                    )}
 
-                            <div className="p-4 border-t border-slate-100 bg-slate-50/50 flex items-center gap-3">
-                                <Link
-                                    href={`/admin/paths/${path.id}`}
-                                    className="flex-1 flex items-center justify-center py-2 px-4 bg-white hover:bg-purple-600 text-slate-700 hover:text-white rounded-lg text-sm font-medium transition-all border border-slate-200 hover:border-purple-600 shadow-sm group/btn"
-                                >
-                                    <BookOpen size={16} className="mr-2 text-slate-400 group-hover/btn:text-white/80 transition-colors" />
-                                    Gestionar
-                                </Link>
-                                <div className="flex items-center border-l border-slate-200 pl-3 gap-1">
-                                    <button
-                                        onClick={(e) => { e.preventDefault(); handleEdit(path); }}
-                                        className="p-2 text-slate-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
-                                        title="Editar"
-                                    >
-                                        <Pencil size={18} />
-                                    </button>
-                                    <button
-                                        onClick={(e) => { e.preventDefault(); handleDelete(path.id); }}
-                                        className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                                        title="Eliminar"
-                                    >
-                                        <Trash2 size={18} />
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    ))}
-
-                    {/* Add New Card */}
-                    <button
-                        onClick={openNewPathModal}
-                        className="flex flex-col items-center justify-center p-8 rounded-2xl border-2 border-dashed border-slate-200 hover:border-purple-300 hover:bg-purple-50/50 transition-all group h-full min-h-[300px]"
-                    >
-                        <div className="w-16 h-16 rounded-full bg-slate-50 group-hover:bg-purple-100 flex items-center justify-center text-slate-400 group-hover:text-purple-600 transition-colors mb-4 shadow-sm">
-                            <Plus size={32} />
-                        </div>
-                        <span className="text-base font-semibold text-slate-600 group-hover:text-purple-700">Crear Nueva Ruta</span>
-                        <span className="text-sm text-slate-400 mt-1">Define un nuevo camino de aprendizaje</span>
-                    </button>
-                </div>
-            )}
-
-            {/* List View */}
-            {viewMode === 'list' && (
-                <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
-                    {filteredPaths.map((path, index) => (
-                        <div key={path.id} className={`flex items-center p-5 hover:bg-slate-50 transition-colors ${index !== filteredPaths.length - 1 ? 'border-b border-slate-100' : ''}`}>
-                            <div className="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center text-2xl mr-5">
-                                {path.icon}
-                            </div>
-                            <div className="flex-1 min-w-0 grid grid-cols-12 gap-6 items-center">
-                                <div className="col-span-5">
-                                    <h3 className="font-semibold text-slate-900 truncate text-base">{path.title}</h3>
-                                    <p className="text-sm text-slate-500 truncate mt-0.5">{path.description}</p>
-                                </div>
-                                <div className="col-span-2">
-                                    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${path.isActive
-                                        ? 'bg-emerald-50 text-emerald-700 border-emerald-100'
-                                        : 'bg-slate-50 text-slate-600 border-slate-100'
-                                        }`}>
-                                        <span className={`w-1.5 h-1.5 rounded-full ${path.isActive ? 'bg-emerald-500' : 'bg-slate-400'}`}></span>
-                                        {path.isActive ? 'Activa' : 'Inactiva'}
-                                    </span>
-                                </div>
-                                <div className="col-span-2 text-sm text-slate-500 font-medium">
-                                    Orden: {path.order}
-                                </div>
-                                <div className="col-span-3 flex items-center justify-end gap-2">
                                     <Link
                                         href={`/admin/paths/${path.id}`}
-                                        className="p-2 text-slate-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
-                                        title="Ver Cursos"
+                                        className="shrink-0 px-5 py-2.5 bg-indigo-600 text-white font-medium hover:bg-indigo-700 hover:shadow-lg hover:shadow-indigo-200/50 rounded-xl transition-all flex items-center gap-2"
+                                        title="Gestionar Cursos en esta Ruta"
                                     >
-                                        <BookOpen size={20} />
+                                        <BookOpen size={18} />
+                                        <span>Gestionar</span>
                                     </Link>
-                                    <button
-                                        onClick={() => handleEdit(path)}
-                                        className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
-                                    >
-                                        <Pencil size={20} />
-                                    </button>
-                                    <button
-                                        onClick={() => handleDelete(path.id)}
-                                        className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                                    >
-                                        <Trash2 size={20} />
-                                    </button>
                                 </div>
                             </div>
                         </div>
-                    ))}
-                    {filteredPaths.length === 0 && (
-                        <div className="p-12 text-center text-slate-500">
-                            <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-300">
-                                <Search size={32} />
-                            </div>
-                            <h3 className="text-lg font-medium text-slate-900">No se encontraron rutas</h3>
-                            <p className="text-slate-500 mt-1">Intenta con otros términos de búsqueda.</p>
+                    );
+                })}
+                {filteredPaths.length === 0 && (
+                    <div className="p-16 text-center text-slate-500 bg-white border border-slate-200 rounded-2xl shadow-sm">
+                        <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-5 text-slate-300">
+                            <Search size={40} />
                         </div>
-                    )}
+                        <h3 className="text-xl font-semibold text-slate-900">No se encontraron rutas</h3>
+                        <p className="text-slate-500 mt-2">Intenta con otros términos de búsqueda.</p>
+                    </div>
+                )}
+            </div>
+
+            {/* Modal para Crear/Editar Ruta Opcional */}
+            {showModal && (
+                <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in">
+                    <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]">
+                        <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                            <h2 className="text-xl font-bold text-slate-800">
+                                {editingPath ? 'Editar Ruta Especializada' : 'Nueva Ruta Especializada'}
+                            </h2>
+                            <button
+                                onClick={handleCloseModal}
+                                className="text-slate-400 hover:text-slate-600 transition-colors"
+                            >
+                                <XCircle size={24} />
+                            </button>
+                        </div>
+
+                        <div className="p-6 overflow-y-auto">
+                            <form id="path-form" onSubmit={handleSavePath} className="space-y-5">
+                                <div>
+                                    <label className="block text-sm font-semibold text-slate-700 mb-1.5">Título de la Ruta</label>
+                                    <input
+                                        type="text"
+                                        required
+                                        className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all outline-none"
+                                        value={formData.title}
+                                        onChange={e => setFormData({ ...formData, title: e.target.value })}
+                                        placeholder="Ej: Marketing Digital Avanzado"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-semibold text-slate-700 mb-1.5">Descripción</label>
+                                    <textarea
+                                        required
+                                        rows={3}
+                                        className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all outline-none resize-none"
+                                        value={formData.description}
+                                        onChange={e => setFormData({ ...formData, description: e.target.value })}
+                                        placeholder="Breve descripción de los objetivos de esta especialización..."
+                                    />
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-5">
+                                    <div>
+                                        <label className="block text-sm font-semibold text-slate-700 mb-1.5">Icono (Emoji)</label>
+                                        <input
+                                            type="text"
+                                            className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all outline-none text-center text-xl"
+                                            value={formData.icon}
+                                            onChange={e => setFormData({ ...formData, icon: e.target.value })}
+                                            placeholder="📚"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-semibold text-slate-700 mb-1.5">Orden de Visualización</label>
+                                        <input
+                                            type="number"
+                                            required
+                                            min="4"
+                                            className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all outline-none"
+                                            value={formData.order}
+                                            onChange={e => setFormData({ ...formData, order: Number(e.target.value) })}
+                                        />
+
+                                    </div>
+                                </div>
+
+
+
+                                <div className="flex items-center gap-3 pt-2">
+                                    <label className="relative inline-flex items-center cursor-pointer">
+                                        <input
+                                            type="checkbox"
+                                            className="sr-only peer"
+                                            checked={formData.isActive}
+                                            onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
+                                        />
+                                        <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
+                                        <span className="ml-3 text-sm font-medium text-slate-700">Ruta Activa y Visible</span>
+                                    </label>
+                                </div>
+                            </form>
+                        </div>
+
+                        <div className="p-6 border-t border-slate-100 bg-slate-50 flex items-center justify-end gap-3 rounded-b-2xl">
+                            <button
+                                type="button"
+                                onClick={handleCloseModal}
+                                className="px-5 py-2.5 text-slate-600 font-medium hover:bg-slate-200/50 rounded-xl transition-colors"
+                            >
+                                Cancelar
+                            </button>
+                            <button
+                                type="submit"
+                                form="path-form"
+                                disabled={saving}
+                                className="px-5 py-2.5 bg-indigo-600 text-white font-medium hover:bg-indigo-700 rounded-xl transition-all shadow-sm hover:shadow-indigo-200 disabled:opacity-70 disabled:cursor-not-allowed flex items-center gap-2"
+                            >
+                                {saving ? (
+                                    <>
+                                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                                        <span>Guardando...</span>
+                                    </>
+                                ) : (
+                                    <span>Guardar Ruta</span>
+                                )}
+                            </button>
+                        </div>
+                    </div>
                 </div>
             )}
-
-            {/* Premium Modal */}
-            <Modal
-                isOpen={showModal}
-                onClose={() => setShowModal(false)}
-                title={editingPath ? 'Editar Ruta de Aprendizaje' : 'Nueva Ruta de Aprendizaje'}
-                subtitle="Define los detalles básicos para este camino profesional."
-                maxWidth="2xl"
-                footer={
-                    <>
-                        <Button variant="ghost" onClick={() => setShowModal(false)}>
-                            Cancelar
-                        </Button>
-                        <Button onClick={handleSubmit} isLoading={isSubmitting}>
-                            {editingPath ? 'Guardar Cambios' : 'Crear Ruta'}
-                        </Button>
-                    </>
-                }
-            >
-                <div className="space-y-6">
-                    {/* Header: Title & Order */}
-                    <div className="flex flex-col md:flex-row gap-5">
-                        <div className="flex-1">
-                            <Input
-                                label="Título de la Ruta"
-                                value={formData.title}
-                                onChange={e => setFormData({ ...formData, title: e.target.value })}
-                                placeholder="Ej: Asesor Inmobiliario"
-                                required
-                            />
-                        </div>
-                        <div className="md:w-32">
-                            <Input
-                                label="Orden"
-                                type="number"
-                                value={formData.order}
-                                onChange={e => setFormData({ ...formData, order: parseInt(e.target.value) || 0 })}
-                                placeholder="1"
-                                min={1}
-                            />
-                        </div>
-                    </div>
-
-                    {/* Description */}
-                    <TextArea
-                        label="Descripción"
-                        value={formData.description}
-                        onChange={e => setFormData({ ...formData, description: e.target.value })}
-                        placeholder="Describe el objetivo y alcance de esta ruta..."
-                        rows={3}
-                        required
-                    />
-
-                    {/* Bottom Grid: Icon & Config */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
-                        {/* Left: Icon Picker */}
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium text-slate-700 block">Icono Representativo</label>
-                            <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 h-full flex items-center justify-center min-h-[140px]">
-                                <EmojiPicker
-                                    value={formData.icon}
-                                    onChange={(emoji) => setFormData({ ...formData, icon: emoji })}
-                                />
-                            </div>
-                        </div>
-
-                        {/* Right: Configuration Box */}
-                        <div className="bg-slate-50 p-5 rounded-xl border border-slate-100 h-full flex flex-col justify-center">
-                            <h3 className="text-sm font-bold text-slate-900 mb-4 flex items-center gap-2">
-                                <LayoutGrid size={16} className="text-slate-400" />
-                                Configuración
-                            </h3>
-
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <p className="text-sm font-medium text-slate-700">Ruta Activa</p>
-                                    <p className="text-xs text-slate-500 mt-0.5">Controla la visibilidad.</p>
-                                </div>
-                                <Switch
-                                    checked={formData.isActive}
-                                    onChange={(checked) => setFormData({ ...formData, isActive: checked })}
-                                />
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </Modal>
         </div>
     );
 }

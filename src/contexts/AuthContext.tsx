@@ -19,6 +19,7 @@ interface AuthContextType {
     signIn: (email: string, password: string) => Promise<void>;
     signOut: () => Promise<void>;
     createUser: (email: string, password: string, displayName: string, role: UserRole) => Promise<void>;
+    register: (email: string, password: string, displayName: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -108,8 +109,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         await firebaseSignOut(secondaryAuth);
     };
 
+    const register = async (email: string, password: string, displayName: string) => {
+        // Registro público (self-registration)
+        const credential = await createUserWithEmailAndPassword(auth, email, password);
+
+        // Crear documento en Firestore
+        const newUser: User = {
+            uid: credential.user.uid,
+            email,
+            displayName,
+            role: 'student', // Por defecto todos son estudiantes
+            createdAt: Timestamp.now(),
+            createdBy: 'self',
+            isActive: true,
+        };
+
+        await setDoc(doc(db, 'users', credential.user.uid), newUser);
+    };
+
     return (
-        <AuthContext.Provider value={{ user, firebaseUser, loading, signIn, signOut, createUser }}>
+        <AuthContext.Provider value={{ user, firebaseUser, loading, signIn, signOut, createUser, register }}>
             {children}
         </AuthContext.Provider>
     );

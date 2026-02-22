@@ -3,6 +3,12 @@ import { Timestamp } from 'firebase/firestore';
 // Roles de usuario
 export type UserRole = 'admin' | 'student';
 
+// Nivel de certificación Urbanity Academy
+export type CertificationLevel = 'none' | 'fundamental' | 'professional' | 'elite';
+
+// Semáforo actitudinal
+export type AttitudinalSemaphore = 'green' | 'yellow' | 'red';
+
 // Usuario
 export interface User {
     uid: string;
@@ -14,6 +20,10 @@ export interface User {
     isActive: boolean;
     photoURL?: string; // URL de la foto de perfil del estudiante
     assignedPathIds?: string[]; // IDs de los caminos asignados al usuario
+    certificationLevel?: CertificationLevel;
+    attitudinalStatus?: AttitudinalSemaphore | 'pending';
+    completedCourses?: string[]; // IDs de cursos completados (todos sus módulos aprobados)
+    completedPaths?: string[];   // IDs de rutas completadas (todos sus cursos aprobados)
 }
 
 // Camino de aprendizaje (Learning Path)
@@ -24,6 +34,7 @@ export interface LearningPath {
     icon?: string;
     order: number;
     isActive: boolean;
+    certificationLevel?: CertificationLevel; // Nivel que otorga esta ruta al completarse
     createdAt: Timestamp;
     createdBy: string;
 }
@@ -108,4 +119,58 @@ export interface QuizState {
     answers: Map<string, number>;
     isCompleted: boolean;
     showResults: boolean;
+}
+
+// ═══════════════════════════════════════════════════
+// Urbanity Academy — Certificación Intensiva 3 Días
+// ═══════════════════════════════════════════════════
+
+// Evaluación actitudinal (Día 1 - Filtro Psicológico)
+export interface AttitudinalEvaluation {
+    id: string;
+    userId: string;
+    responses: { question: string; answer: string }[];
+    aiAnalysis: string;
+    semaphore: AttitudinalSemaphore;
+    supervisorApproved?: boolean;
+    supervisorNotes?: string;
+    createdAt: Timestamp;
+}
+
+// Plan de acción 30-60-90 (Día 3)
+export interface ActionPlan {
+    id: string;
+    userId: string;
+    targetIncome: number;
+    callsPerDay: number;
+    appointmentsPerWeek: number;
+    closingsPerMonth: number;
+    plan30: string;
+    plan60: string;
+    plan90: string;
+    createdAt: Timestamp;
+}
+
+// Certificado digital verificable
+export interface Certificate {
+    id: string;
+    userId: string;
+    userName: string;
+    level: CertificationLevel;
+    pathId?: string;    // ID de la ruta que generó este certificado
+    pathTitle?: string; // Título de la ruta
+    score: number;
+    verificationCode: string;
+    isActive: boolean;
+    issuedAt: Timestamp;
+}
+
+// Entrada del leaderboard
+export interface LeaderboardEntry {
+    userId: string;
+    displayName: string;
+    photoURL?: string;
+    totalScore: number;
+    certificationLevel: CertificationLevel;
+    completedAt: Timestamp;
 }

@@ -1,9 +1,10 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { collection, query, getDocs, orderBy } from 'firebase/firestore';
+import { collection, getDocs } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import { Module, User, LearningPath } from '@/types';
+import { Course, User } from '@/types';
+import { FIXED_PATHS } from '@/lib/constants';
 import Link from 'next/link';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -36,22 +37,22 @@ export default function AdminDashboard() {
 
     const loadDashboardData = async () => {
         try {
-            // Cargar Rutas
-            const pathsQuery = query(collection(db, 'learning_paths'), orderBy('order', 'asc'));
-            const pathsSnapshot = await getDocs(pathsQuery);
-            const paths = pathsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as LearningPath));
+            // Usar rutas fijas
+            const paths = FIXED_PATHS;
+            const existingPathIds = new Set(paths.map(p => p.id));
 
-            // Cargar Cursos (para stats)
+            // Cargar Cursos y filtrar solo los que pertenecen a las rutas fijas
             const coursesSnapshot = await getDocs(collection(db, 'courses'));
+            const allCourses = coursesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Course));
+            const validCourses = allCourses.filter(course => existingPathIds.has(course.pathId));
 
             // Cargar usuarios
-            const usersQuery = query(collection(db, 'users'));
-            const usersSnapshot = await getDocs(usersQuery);
+            const usersSnapshot = await getDocs(collection(db, 'users'));
             const users = usersSnapshot.docs.map(doc => doc.data() as User);
 
             setStats({
                 totalModules: paths.length,
-                activeModules: coursesSnapshot.size,
+                activeModules: validCourses.length,
                 totalUsers: users.length,
                 totalStudents: users.filter(u => u.role === 'student').length,
             });

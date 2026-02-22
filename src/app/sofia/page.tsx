@@ -2,10 +2,8 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { Send, Bot, User as UserIcon, Sparkles, Loader2, ArrowLeft } from 'lucide-react';
-import styles from './page.module.css'; // We'll create this or use inline styles if valid
-import { Button } from '@/components/ui/Button';
-import Link from 'next/link';
+import { Send, Bot, User as UserIcon, Sparkles, Loader2 } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
 
 interface Message {
     role: 'user' | 'model';
@@ -20,6 +18,7 @@ export default function SofiaPage() {
     const [input, setInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
+    const textareaRef = useRef<HTMLTextAreaElement>(null);
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -28,6 +27,14 @@ export default function SofiaPage() {
     useEffect(() => {
         scrollToBottom();
     }, [messages]);
+
+    // Auto-resize textarea
+    useEffect(() => {
+        if (textareaRef.current) {
+            textareaRef.current.style.height = 'auto';
+            textareaRef.current.style.height = Math.min(textareaRef.current.scrollHeight, 120) + 'px';
+        }
+    }, [input]);
 
     const handleSendMessage = async () => {
         if (!input.trim() || isLoading) return;
@@ -70,135 +77,161 @@ export default function SofiaPage() {
     };
 
     return (
-        <div className="flex flex-col h-[calc(100vh-80px)] max-w-4xl mx-auto px-4 py-6">
-            {/* Header */}
-            <header className="flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-[var(--primary-600)] to-[var(--primary-800)] flex items-center justify-center text-white shadow-lg shadow-[rgba(124,58,237,0.2)]">
-                    <Sparkles size={20} />
-                </div>
-                <div>
-                    <div className="flex items-center gap-2">
-                        <h1 className="text-xl font-bold text-[var(--text-primary)]">SofIA</h1>
-                        <span className="flex h-2 w-2 relative">
-                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                            <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
-                        </span>
+        <div className="flex flex-col h-[calc(100vh-80px)] max-w-3xl mx-auto px-3 py-4 font-sans">
+
+            {/* ── Header ── */}
+            <header className="flex items-center gap-3.5 mb-6 px-1">
+                <div className="relative">
+                    <div
+                        className="w-12 h-12 rounded-2xl flex items-center justify-center shadow-md"
+                        style={{ background: 'linear-gradient(135deg, #6366F1 0%, #A855F7 100%)' }}
+                    >
+                        <span className="text-white text-lg font-bold">S</span>
                     </div>
+                    <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-500 rounded-full border-2 border-white" />
+                </div>
+                <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                        <h1 className="text-xl font-bold text-gray-900">SofIA</h1>
+                        <span className="px-2 py-0.5 rounded-md bg-indigo-600 text-white text-[9px] font-semibold uppercase tracking-wide">Pro</span>
+                    </div>
+                    <p className="text-xs text-gray-500 font-medium mt-0.5">Asistente de IA · En línea</p>
                 </div>
             </header>
 
-            {/* Chat Area */}
-            <div
-                className="flex-1 overflow-hidden flex flex-col relative"
-                style={{
-                    background: 'rgba(255, 255, 255, 0.70)',
-                    backdropFilter: 'blur(12px)',
-                    borderRadius: '2rem',
-                    border: '1px solid rgba(255, 255, 255, 0.5)',
-                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03)'
-                }}
-            >
-                <div className="absolute inset-0 bg-gradient-to-b from-[var(--primary-50)]/30 to-transparent pointer-events-none" />
+            {/* ── Chat Container ── */}
+            <div className="flex-1 overflow-hidden flex flex-col rounded-3xl bg-white shadow-md">
 
-                {/* Messages List */}
-                <div className="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar relative z-10">
+                {/* Messages */}
+                <div className="flex-1 overflow-y-auto px-6 py-6 space-y-4 scroll-smooth" style={{ scrollbarWidth: 'thin' }}>
                     {messages.map((msg, index) => (
                         <div
                             key={index}
-                            className={`flex gap-4 ${msg.role === 'user' ? 'flex-row-reverse' : ''} animate-in fade-in slide-in-from-bottom-2 duration-300`}
+                            className={`flex items-end gap-2.5 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}
+                            style={{ animation: `fadeSlideIn 0.35s ease-out ${index * 0.05}s both` }}
                         >
-                            <div className={`
-                                w-8 h-8 rounded-full flex items-center justify-center shrink-0 mt-1 shadow-sm
-                                ${msg.role === 'user'
-                                    ? 'bg-[var(--primary-100)] text-[var(--primary-700)]'
-                                    : 'bg-[var(--primary-600)] text-white'
-                                }
-                            `}>
-                                {msg.role === 'user' ? <UserIcon size={16} /> : <Bot size={16} />}
-                            </div>
+                            {/* Avatar */}
+                            {msg.role === 'model' ? (
+                                <div
+                                    className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 shadow-sm"
+                                    style={{ background: 'linear-gradient(135deg, #6366F1 0%, #A855F7 100%)' }}
+                                >
+                                    <Bot size={14} className="text-white" />
+                                </div>
+                            ) : (
+                                <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 bg-gray-300 text-gray-600">
+                                    <UserIcon size={14} />
+                                </div>
+                            )}
 
+                            {/* Bubble */}
                             <div
-                                className={`
-                                    max-w-[80%] rounded-2xl px-5 py-3.5 text-[16px] leading-relaxed shadow-sm
-                                    ${msg.role === 'user'
-                                        ? 'text-white rounded-tr-sm'
-                                        : 'text-[var(--text-primary)] rounded-tl-sm'
-                                    }
-                                `}
+                                className={`max-w-[75%] px-4 py-2.5 text-sm leading-relaxed ${msg.role === 'user'
+                                    ? 'rounded-2xl rounded-br-sm text-white'
+                                    : 'rounded-2xl rounded-bl-sm text-gray-800'
+                                    }`}
                                 style={{
-                                    backgroundColor: msg.role === 'user' ? 'var(--primary-600)' : '#F8F9FC',
-                                    border: 'none'
+                                    background: msg.role === 'user'
+                                        ? 'linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)'
+                                        : '#F5F5F5',
+                                    boxShadow: msg.role === 'user'
+                                        ? '0 1px 3px rgba(99, 102, 241, 0.2)'
+                                        : 'none',
                                 }}
                             >
-                                {msg.content}
+                                <ReactMarkdown
+                                    components={{
+                                        // @ts-ignore
+                                        strong: ({ node, ...props }) => (
+                                            <strong className={`font-semibold ${msg.role === 'user' ? 'text-white' : 'text-indigo-600'}`} {...props} />
+                                        ),
+                                        // @ts-ignore
+                                        ul: ({ node, ...props }) => <ul className="list-disc pl-4 space-y-0.5 my-1" {...props} />,
+                                        // @ts-ignore
+                                        ol: ({ node, ...props }) => <ol className="list-decimal pl-4 space-y-0.5 my-1" {...props} />,
+                                        // @ts-ignore
+                                        li: ({ node, ...props }) => <li className="pl-0.5" {...props} />,
+                                        // @ts-ignore
+                                        p: ({ node, ...props }) => <p className="mb-1 last:mb-0" {...props} />,
+                                    }}
+                                >
+                                    {msg.content}
+                                </ReactMarkdown>
                             </div>
                         </div>
                     ))}
 
+                    {/* Skeleton loading */}
                     {isLoading && (
-                        <div className="flex gap-4 animate-in fade-in slide-in-from-bottom-2">
-                            <div className="w-8 h-8 rounded-full bg-[var(--primary-600)] text-white flex items-center justify-center shrink-0 mt-1 shadow-sm">
-                                <Bot size={16} />
-                            </div>
+                        <div className="flex items-end gap-2.5" style={{ animation: 'fadeSlideIn 0.3s ease-out both' }}>
                             <div
-                                className="rounded-2xl rounded-tl-sm p-4 shadow-sm flex items-center gap-2"
-                                style={{ backgroundColor: '#F8F9FC', border: 'none' }}
+                                className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 shadow-sm"
+                                style={{ background: 'linear-gradient(135deg, #6366F1 0%, #A855F7 100%)' }}
                             >
-                                <span className="w-2 h-2 bg-[var(--primary-400)] rounded-full animate-bounce [animation-delay:-0.3s]"></span>
-                                <span className="w-2 h-2 bg-[var(--primary-400)] rounded-full animate-bounce [animation-delay:-0.15s]"></span>
-                                <span className="w-2 h-2 bg-[var(--primary-400)] rounded-full animate-bounce"></span>
+                                <Bot size={14} className="text-white" />
+                            </div>
+                            <div className="rounded-2xl rounded-bl-sm px-4 py-3 bg-gray-100 w-44">
+                                <div className="space-y-2 animate-pulse">
+                                    <div className="h-2 bg-gray-300/70 rounded-full w-[90%]" />
+                                    <div className="h-2 bg-gray-300/50 rounded-full w-full" />
+                                    <div className="h-2 bg-gray-300/50 rounded-full w-[65%]" />
+                                </div>
                             </div>
                         </div>
                     )}
+
                     <div ref={messagesEndRef} />
                 </div>
 
-                {/* Input Area */}
-                <div className="p-4 bg-white/40 backdrop-blur-md relative z-20">
-                    <div className="flex gap-2 items-end max-w-3xl mx-auto">
-                        <div
-                            className="relative flex-1 bg-white/80 hover:bg-white transition-all duration-300 rounded-[1.5rem]"
-                            style={{
-                                boxShadow: '0 2px 12px rgba(0,0,0,0.05)',
-                                border: '1px solid rgba(229, 231, 235, 0.5)',
-                                padding: '0px',
-                                outline: 'none !important'
-                            }}
-                        >
-                            <textarea
-                                value={input}
-                                onChange={(e) => setInput(e.target.value)}
-                                onKeyDown={handleKeyDown}
-                                placeholder="Escribe tu pregunta aquí..."
-                                className="w-full max-h-[120px] min-h-[56px] py-4 px-5 bg-transparent text-[16px] text-[var(--text-primary)] placeholder:text-gray-400 resize-none custom-scrollbar focus:ring-0 focus:outline-none focus:border-none active:outline-none active:border-none"
-                                style={{
-                                    outline: 'none !important',
-                                    border: 'none !important',
-                                    boxShadow: 'none !important',
-                                    backgroundColor: 'transparent !important'
-                                }}
-                                rows={1}
-                            />
-                        </div>
-                        <Button
+                {/* ── Input Area ── */}
+                <div className="border-t border-gray-100 px-4 py-3.5 bg-gray-50/40">
+                    <div className="flex items-center gap-2 bg-white rounded-2xl border border-gray-200 pl-4 pr-1.5 py-1.5 focus-within:border-indigo-400 focus-within:ring-2 focus-within:ring-indigo-500/10 transition-all duration-200">
+                        <textarea
+                            ref={textareaRef}
+                            value={input}
+                            onChange={(e) => setInput(e.target.value)}
+                            onKeyDown={handleKeyDown}
+                            placeholder="Escribe tu mensaje..."
+                            className="flex-1 text-sm text-gray-800 placeholder:text-gray-400 resize-none focus:outline-none bg-transparent leading-relaxed"
+                            rows={1}
+                            style={{ maxHeight: '120px' }}
+                        />
+                        <button
                             onClick={handleSendMessage}
                             disabled={!input.trim() || isLoading}
                             className={`
-                                !h-[56px] !w-[56px] !p-0 rounded-full flex items-center justify-center shrink-0 transition-all duration-300
+                                w-9 h-9 rounded-xl flex items-center justify-center shrink-0 transition-all duration-200
                                 ${!input.trim() || isLoading
-                                    ? 'opacity-40 scale-90 cursor-not-allowed bg-gray-200 text-gray-400'
-                                    : '!bg-[var(--primary-600)] hover:!bg-[var(--primary-700)] text-white shadow-lg shadow-[rgba(124,58,237,0.3)] hover:scale-105 active:scale-95'
+                                    ? 'bg-gray-100 text-gray-300 cursor-not-allowed'
+                                    : 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm hover:shadow-md active:scale-95'
                                 }
                             `}
                         >
-                            {isLoading ? <Loader2 size={24} className="animate-spin" /> : <Send size={24} className="ml-0.5 mt-0.5" />}
-                        </Button>
+                            {isLoading
+                                ? <Loader2 size={16} className="animate-spin" />
+                                : <Send size={16} />
+                            }
+                        </button>
                     </div>
-                    <p className="text-center text-[10px] text-[var(--text-muted)] mt-2 opacity-60">
-                        SofIA puede cometer errores. Verifica la información importante.
+                    <p className="text-center text-[10px] text-gray-400 mt-2.5 tracking-wide">
+                        SofIA Pro · Gemini 2.0 Flash
                     </p>
                 </div>
             </div>
+
+            {/* Keyframe animation */}
+            <style jsx>{`
+                @keyframes fadeSlideIn {
+                    from {
+                        opacity: 0;
+                        transform: translateY(8px);
+                    }
+                    to {
+                        opacity: 1;
+                        transform: translateY(0);
+                    }
+                }
+            `}</style>
         </div>
     );
 }

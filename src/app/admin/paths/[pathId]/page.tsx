@@ -16,6 +16,7 @@ import {
 } from 'firebase/firestore';
 import { db, storage } from '@/lib/firebase';
 import { Course, LearningPath } from '@/types';
+import { FIXED_PATHS } from '@/lib/constants';
 import { useAuth } from '@/contexts/AuthContext';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -50,6 +51,7 @@ export default function PathCoursesPage({ params }: { params: Promise<{ pathId: 
     const [showModal, setShowModal] = useState(false);
     const [editingCourse, setEditingCourse] = useState<Course | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [formErrors, setFormErrors] = useState<{ title?: string; description?: string }>({});
 
     const [formData, setFormData] = useState({
         title: '',
@@ -91,8 +93,8 @@ export default function PathCoursesPage({ params }: { params: Promise<{ pathId: 
                     setUploadProgress(progress);
                 },
                 (error) => {
-                    console.error('Upload error:', error);
-                    alert('Error al subir la imagen');
+                    console.error('Upload error:', error.code, error.message);
+                    alert(`Error al subir la imagen: ${error.code || error.message}`);
                     setIsUploading(false);
                 },
                 async () => {
@@ -110,10 +112,10 @@ export default function PathCoursesPage({ params }: { params: Promise<{ pathId: 
     const loadData = async () => {
         try {
             setLoading(true);
-            // Cargar datos de la ruta
-            const pathDoc = await getDoc(doc(db, 'learning_paths', pathId));
-            if (pathDoc.exists()) {
-                setPath({ id: pathDoc.id, ...pathDoc.data() } as LearningPath);
+            // Cargar datos de la ruta desde las fijas
+            const pathData = FIXED_PATHS.find(p => p.id === pathId);
+            if (pathData) {
+                setPath(pathData);
             } else {
                 alert('Ruta no encontrada');
                 router.push('/admin/paths');
@@ -140,7 +142,17 @@ export default function PathCoursesPage({ params }: { params: Promise<{ pathId: 
     };
 
     const handleSubmit = async () => {
-        if (!formData.title || !formData.description) return;
+        // Validar campos requeridos
+        const errors: { title?: string; description?: string } = {};
+        if (!formData.title.trim()) errors.title = 'El título es obligatorio';
+        if (!formData.description.trim()) errors.description = 'La descripción es obligatoria';
+
+        if (Object.keys(errors).length > 0) {
+            setFormErrors(errors);
+            return;
+        }
+
+        setFormErrors({});
         setIsSubmitting(true);
 
         try {
@@ -161,8 +173,9 @@ export default function PathCoursesPage({ params }: { params: Promise<{ pathId: 
             resetForm();
             loadData();
         } catch (error: unknown) {
-            console.error('Error saving course:', error);
-            alert('Error al guardar el curso');
+            const firebaseError = error as { code?: string; message?: string };
+            console.error('Error saving course:', firebaseError.code, firebaseError.message);
+            alert(`Error al guardar el curso: ${firebaseError.code || firebaseError.message || 'Error desconocido'}`);
         } finally {
             setIsSubmitting(false);
         }
@@ -203,6 +216,7 @@ export default function PathCoursesPage({ params }: { params: Promise<{ pathId: 
             isOptional: false,
         });
         setEditingCourse(null);
+        setFormErrors({});
     };
 
     const openNewCourseModal = () => {
@@ -364,10 +378,14 @@ export default function PathCoursesPage({ params }: { params: Promise<{ pathId: 
                                 <Input
                                     label="Título del Curso"
                                     value={formData.title}
-                                    onChange={e => setFormData({ ...formData, title: e.target.value })}
+                                    onChange={e => {
+                                        setFormData({ ...formData, title: e.target.value });
+                                        if (formErrors.title) setFormErrors(prev => ({ ...prev, title: undefined }));
+                                    }}
                                     placeholder="Ej: Fundamentos de Ventas"
                                     required
                                 />
+                                {formErrors.title && <p className="text-red-500 text-xs mt-1">{formErrors.title}</p>}
                             </div>
                             <div className="md:w-32">
                                 <Input
@@ -380,14 +398,20 @@ export default function PathCoursesPage({ params }: { params: Promise<{ pathId: 
                             </div>
                         </div>
 
-                        <TextArea
-                            label="Descripción"
-                            value={formData.description}
-                            onChange={e => setFormData({ ...formData, description: e.target.value })}
-                            placeholder="Describe qué aprenderán los estudiantes..."
-                            rows={3}
-                            required
-                        />
+                        <div>
+                            <TextArea
+                                label="Descripción"
+                                value={formData.description}
+                                onChange={e => {
+                                    setFormData({ ...formData, description: e.target.value });
+                                    if (formErrors.description) setFormErrors(prev => ({ ...prev, description: undefined }));
+                                }}
+                                placeholder="Describe qué aprenderán los estudiantes..."
+                                rows={3}
+                                required
+                            />
+                            {formErrors.description && <p className="text-red-500 text-xs mt-1">{formErrors.description}</p>}
+                        </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
                             {/* Image Upload Section */}

@@ -4,12 +4,14 @@ import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import styles from './StudentNavBar.module.css';
-import { Home, BarChart3, User, LogOut, Sparkles } from 'lucide-react';
+import { Home, User, LogOut, Sparkles, Trophy, Target, GraduationCap } from 'lucide-react';
 
 const navItems = [
     { href: '/dashboard', label: 'Inicio', icon: Home },
+    { href: '/certificacion', label: 'Certif.', icon: GraduationCap },
     { href: '/sofia', label: 'SofIA', icon: Sparkles },
-    { href: '/profile', label: 'Perfil', icon: User },
+    { href: '/leaderboard', label: 'Ranking', icon: Trophy },
+    { href: '/action-plan', label: 'Plan', icon: Target },
 ];
 
 export default function StudentNavBar() {
@@ -17,7 +19,7 @@ export default function StudentNavBar() {
     const { user, signOut } = useAuth();
 
     // Don't show on module player pages or admin
-    if (pathname.startsWith('/modules/') || pathname.startsWith('/admin') || pathname === '/') {
+    if (pathname.startsWith('/modules/') || pathname.startsWith('/admin') || pathname.startsWith('/verify/') || pathname.startsWith('/evaluacion-actitudinal') || pathname.startsWith('/compromiso') || pathname === '/') {
         return null;
     }
 

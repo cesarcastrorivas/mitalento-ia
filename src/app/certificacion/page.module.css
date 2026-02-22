@@ -1,0 +1,384 @@
+.page {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%);
+    padding: 2rem 1rem;
+    padding-bottom: 6rem;
+}
+
+.container {
+    max-width: 720px;
+    margin: 0 auto;
+}
+
+.header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.headerIcon {
+    width: 64px;
+    height: 64px;
+    border-radius: 20px;
+    background: linear-gradient(135deg, #f59e0b, #ef4444);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem;
+    box-shadow: 0 8px 32px rgba(245, 158, 11, 0.3);
+}
+
+.title {
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: #fff;
+    margin: 0 0 0.5rem;
+    letter-spacing: -0.02em;
+}
+
+.subtitle {
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 0.88rem;
+    margin: 0;
+}
+
+/* Overall progress bar */
+.overallProgress {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    padding: 1.25rem;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.overallLabel {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.8rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.overallBarTrack {
+    flex: 1;
+    height: 8px;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.overallBarFill {
+    height: 100%;
+    border-radius: 4px;
+    background: linear-gradient(90deg, #6366f1, #8b5cf6, #a855f7);
+    transition: width 0.6s ease;
+}
+
+.overallPercent {
+    color: #a5b4fc;
+    font-size: 0.95rem;
+    font-weight: 700;
+    min-width: 40px;
+    text-align: right;
+}
+
+/* Day cards */
+.dayCard {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 20px;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s;
+}
+
+.dayCard::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+}
+
+.dayCard.fundamental::before {
+    background: linear-gradient(90deg, #10b981, #34d399);
+}
+
+.dayCard.professional::before {
+    background: linear-gradient(90deg, #f59e0b, #fbbf24);
+}
+
+.dayCard.elite::before {
+    background: linear-gradient(90deg, #ef4444, #f97316);
+}
+
+.dayCard.locked {
+    opacity: 0.5;
+    filter: grayscale(0.4);
+}
+
+.dayHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+}
+
+.dayBadge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.3rem 0.75rem;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.dayBadge.fundamental {
+    background: rgba(16, 185, 129, 0.15);
+    color: #34d399;
+}
+
+.dayBadge.professional {
+    background: rgba(245, 158, 11, 0.15);
+    color: #fbbf24;
+}
+
+.dayBadge.elite {
+    background: rgba(239, 68, 68, 0.15);
+    color: #f87171;
+}
+
+.dayStatus {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.78rem;
+    font-weight: 600;
+}
+
+.statusCompleted {
+    color: #10b981;
+}
+
+.statusInProgress {
+    color: #f59e0b;
+}
+
+.statusLocked {
+    color: rgba(255, 255, 255, 0.3);
+}
+
+.dayTitle {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #e0e7ff;
+    margin: 0 0 0.25rem;
+}
+
+.daySubtitle {
+    color: rgba(255, 255, 255, 0.4);
+    font-size: 0.82rem;
+    margin: 0 0 1rem;
+}
+
+/* Module list within day */
+.moduleList {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.moduleItem {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    padding: 0.6rem 0.75rem;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 10px;
+    font-size: 0.82rem;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.moduleIcon {
+    flex-shrink: 0;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.moduleCompleted {
+    color: #10b981;
+}
+
+.modulePending {
+    color: rgba(255, 255, 255, 0.2);
+}
+
+/* Day progress bar */
+.dayProgress {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.dayBarTrack {
+    flex: 1;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.06);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.dayBarFill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.4s ease;
+}
+
+.dayBarFill.fundamental {
+    background: #10b981;
+}
+
+.dayBarFill.professional {
+    background: #f59e0b;
+}
+
+.dayBarFill.elite {
+    background: #ef4444;
+}
+
+.dayPercent {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.5);
+    min-width: 35px;
+    text-align: right;
+}
+
+/* Day actions */
+.dayActions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.dayActionBtn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.55rem 1rem;
+    border: none;
+    border-radius: 10px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-decoration: none;
+}
+
+.dayActionBtn.primary {
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    color: white;
+}
+
+.dayActionBtn.secondary {
+    background: rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.dayActionBtn:hover {
+    transform: translateY(-1px);
+}
+
+.dayActionBtn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Lock overlay */
+.lockOverlay {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.75rem;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 12px;
+    color: rgba(255, 255, 255, 0.35);
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+/* Quick actions bar */
+.quickActions {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.quickActionCard {
+    flex: 1;
+    min-width: 140px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 14px;
+    padding: 1rem;
+    text-align: center;
+    text-decoration: none;
+    transition: all 0.2s;
+    cursor: pointer;
+}
+
+.quickActionCard:hover {
+    background: rgba(255, 255, 255, 0.08);
+    transform: translateY(-2px);
+}
+
+.quickActionIcon {
+    font-size: 1.5rem;
+    margin-bottom: 0.4rem;
+}
+
+.quickActionLabel {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.78rem;
+    font-weight: 600;
+}
+
+.loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 60vh;
+    gap: 1rem;
+}
+
+.spinner {
+    width: 32px;
+    height: 32px;
+    border: 3px solid rgba(255, 255, 255, 0.1);
+    border-top-color: #6366f1;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}

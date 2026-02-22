@@ -13,8 +13,9 @@ import {
     GraduationCap,
     Menu,
     X,
-
-    Bot
+    Bot,
+    Award,
+    TrendingUp
 } from 'lucide-react';
 
 export default function AdminLayout({
@@ -122,11 +123,13 @@ export default function AdminLayout({
                             <NavLink href="/admin/paths" icon={<Map size={18} />} text="Rutas y Cursos" active={pathname.startsWith('/admin/paths')} />
                             <NavLink href="/admin/users" icon={<Users size={18} />} text="Usuarios" active={pathname.startsWith('/admin/users')} />
                             <NavLink href="/admin/sofia" icon={<Bot size={18} />} text="SofIA Knowledge" active={pathname.startsWith('/admin/sofia')} />
+                            <NavLink href="/admin/certifications" icon={<Award size={18} />} text="Certificaciones" active={pathname.startsWith('/admin/certifications')} />
                         </div>
 
                         <div className="space-y-1">
                             <p className="px-3 text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest mb-2">Analítica</p>
                             <NavLink href="/admin/reports" icon={<BarChart3 size={18} />} text="Reportes" active={pathname.startsWith('/admin/reports')} />
+                            <NavLink href="/admin/reportes-certificacion" icon={<TrendingUp size={18} />} text="Reportes Cert." active={pathname.startsWith('/admin/reportes-certificacion')} />
                         </div>
                     </div>
 

@@ -94,7 +94,7 @@ export default function PathDetailsPage({ params }: { params: Promise<{ pathId: 
                     totalModules,
                     completedModules,
                     progress,
-                    isLocked: false // Forzamos desbloqueo por ahora para UX de demo
+                    isLocked: isLocked, // Bloqueo secuencial real activado
                 };
             });
 

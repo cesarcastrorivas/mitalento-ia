@@ -16,6 +16,9 @@ export default function StudentLayout({
     const pathname = usePathname();
 
     const isPreview = pathname?.includes('/modules/preview');
+    // Also check if we are in a module detail view (e.g., /modules/123) but NOT the index page /modules
+    // Assuming /modules/[id] should be fullscreen
+    const isModuleDetail = pathname !== '/modules' && pathname?.startsWith('/modules/');
 
     useEffect(() => {
         if (loading) return;
@@ -50,6 +53,15 @@ export default function StudentLayout({
 
     if (!user) {
         return null; // El useEffect redirigirá
+    }
+
+    // Hide NavBar for module detail pages to allow fullscreen player
+    if (isModuleDetail) {
+        return (
+            <main style={{ height: '100vh', overflow: 'hidden' }}>
+                {children}
+            </main>
+        );
     }
 
     return (

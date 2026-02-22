@@ -26,7 +26,12 @@ import {
     CheckCircle,
     XCircle,
     Map,
-    MoreVertical
+    MoreVertical,
+    UserCircle,
+    Mail,
+    Lock,
+    Shield,
+    UserPlus
 } from 'lucide-react';
 
 export default function UsersPage() {
@@ -38,14 +43,15 @@ export default function UsersPage() {
     const [showModal, setShowModal] = useState(false);
     const [creating, setCreating] = useState(false);
 
+    // States for specialized path assignment
+    const [showPathModal, setShowPathModal] = useState(false);
+    const [selectedUserPath, setSelectedUserPath] = useState<User | null>(null);
+    const [tempAssignedPaths, setTempAssignedPaths] = useState<string[]>([]);
+    const [savingPaths, setSavingPaths] = useState(false);
+
     // Estado para búsqueda y filtros
     const [searchTerm, setSearchTerm] = useState('');
     const [roleFilter, setRoleFilter] = useState<UserRole | 'all'>('all');
-
-    // Estado para modal de asignación
-    const [showAssignModal, setShowAssignModal] = useState(false);
-    const [assigningUser, setAssigningUser] = useState<User | null>(null);
-    const [selectedPathIds, setSelectedPathIds] = useState<string[]>([]);
 
     const [formData, setFormData] = useState({
         email: '',
@@ -79,15 +85,14 @@ export default function UsersPage() {
             });
             setUsers(usersData);
 
-            // Cargar rutas activas
+            // Cargar Rutas Dinámicas (Especializadas) de Firestore para el modal
             const pathsQ = query(collection(db, 'learning_paths'));
             const pathsSnapshot = await getDocs(pathsQ);
-            const pathsData = pathsSnapshot.docs.map(doc => ({
+            const loadedPaths = pathsSnapshot.docs.map(doc => ({
                 id: doc.id,
                 ...doc.data()
             } as LearningPath));
-            setPaths(pathsData);
-
+            setPaths(loadedPaths);
         } catch (error) {
             console.error('Error loading data:', error);
         } finally {
@@ -136,8 +141,7 @@ export default function UsersPage() {
                 role: formData.role,
                 createdAt: Timestamp.now(),
                 createdBy: currentUser?.uid,
-                isActive: true,
-                assignedPathIds: []
+                isActive: true
             };
 
             await setDoc(doc(db, 'users', credential.user.uid), newUser);
@@ -153,6 +157,38 @@ export default function UsersPage() {
             alert('Error al crear usuario: ' + (error.message || 'Desconocido'));
         } finally {
             setCreating(false);
+        }
+    };
+
+    const handleOpenPathModal = (user: User) => {
+        setSelectedUserPath(user);
+        setTempAssignedPaths(user.assignedPathIds || []);
+        setShowPathModal(true);
+    };
+
+    const handleTogglePath = (pathId: string) => {
+        if (tempAssignedPaths.includes(pathId)) {
+            setTempAssignedPaths(tempAssignedPaths.filter(id => id !== pathId));
+        } else {
+            setTempAssignedPaths([...tempAssignedPaths, pathId]);
+        }
+    };
+
+    const handleAssignPaths = async () => {
+        if (!selectedUserPath) return;
+
+        try {
+            setSavingPaths(true);
+            await updateDoc(doc(db, 'users', selectedUserPath.uid), {
+                assignedPathIds: tempAssignedPaths
+            });
+            setShowPathModal(false);
+            loadData(); // Reload to get updated user list
+        } catch (error) {
+            console.error('Error assigning paths:', error);
+            alert('Error actualizando las rutas: ' + (error as Error).message);
+        } finally {
+            setSavingPaths(false);
         }
     };
 
@@ -176,43 +212,6 @@ export default function UsersPage() {
             setUsers(users.filter(u => u.uid !== uid));
         } catch (error) {
             console.error('Error deleting user:', error);
-        }
-    };
-
-    const handleOpenAssignModal = (user: User) => {
-        setAssigningUser(user);
-        setSelectedPathIds(user.assignedPathIds || []);
-        setShowAssignModal(true);
-    };
-
-    const handleSaveAssignments = async () => {
-        if (!assigningUser) return;
-
-        try {
-            await updateDoc(doc(db, 'users', assigningUser.uid), {
-                assignedPathIds: selectedPathIds
-            });
-
-            // Actualizar estado local
-            setUsers(users.map(u =>
-                u.uid === assigningUser.uid
-                    ? { ...u, assignedPathIds: selectedPathIds }
-                    : u
-            ));
-
-            setShowAssignModal(false);
-            setAssigningUser(null);
-        } catch (error) {
-            console.error('Error saving assignments:', error);
-            alert('Error al asignar rutas');
-        }
-    };
-
-    const togglePathSelection = (pathId: string) => {
-        if (selectedPathIds.includes(pathId)) {
-            setSelectedPathIds(selectedPathIds.filter(id => id !== pathId));
-        } else {
-            setSelectedPathIds([...selectedPathIds, pathId]);
         }
     };
 
@@ -266,7 +265,13 @@ export default function UsersPage() {
                         </select>
                     </div>
 
-                    <button onClick={() => setShowModal(true)} className={styles.primaryBtn}>
+                    <button
+                        onClick={() => {
+                            setFormData({ email: '', password: '', displayName: '', role: 'student' });
+                            setShowModal(true);
+                        }}
+                        className={styles.primaryBtn}
+                    >
                         <Plus size={20} />
                         Nuevo Usuario
                     </button>
@@ -287,7 +292,7 @@ export default function UsersPage() {
                         <div className={styles.tableHeader}>
                             <span>Usuario</span>
                             <span>Rol</span>
-                            <span>Rutas Asignadas</span>
+                            <span>Acceso</span>
                             <span>Estado</span>
                             <span className="text-right">Acciones</span>
                         </div>
@@ -311,12 +316,13 @@ export default function UsersPage() {
                                     </div>
 
                                     {/* Columna Rutas */}
-                                    <div className="text-sm text-gray-500">
-                                        {user.role === 'admin' ? (
-                                            <span className="italic">Acceso total</span>
-                                        ) : (
-                                            <span className="font-medium text-gray-700">
-                                                {user.assignedPathIds?.length || 0} ruta(s)
+                                    <div className="text-sm text-gray-500 flex flex-col items-start gap-1">
+                                        <span className="inline-flex items-center gap-1 text-[10px] uppercase font-bold tracking-wider text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md">
+                                            3 Obligatorias
+                                        </span>
+                                        {user.assignedPathIds && user.assignedPathIds.length > 0 && (
+                                            <span className="inline-flex items-center gap-1 text-[10px] uppercase font-bold tracking-wider text-indigo-600 bg-indigo-50 border border-indigo-100 px-2 py-0.5 rounded-md mt-1">
+                                                +{user.assignedPathIds.length} Especializaciones
                                             </span>
                                         )}
                                     </div>
@@ -329,15 +335,13 @@ export default function UsersPage() {
                                     </div>
 
                                     <div className={styles.actions}>
-                                        {user.role !== 'admin' && (
-                                            <button
-                                                onClick={() => handleOpenAssignModal(user)}
-                                                className={styles.actionBtn}
-                                                title="Asignar Rutas"
-                                            >
-                                                <Map size={18} />
-                                            </button>
-                                        )}
+                                        <button
+                                            onClick={() => handleOpenPathModal(user)}
+                                            className={styles.actionBtn}
+                                            title="Asignar Especializaciones"
+                                        >
+                                            <Map size={18} />
+                                        </button>
 
                                         <button
                                             onClick={() => handleToggleActive(user)}
@@ -366,139 +370,218 @@ export default function UsersPage() {
 
             {/* Modal para crear usuario */}
             {showModal && (
-                <div className={styles.modalOverlay} onClick={() => setShowModal(false)}>
-                    <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
-                        <div className={styles.modalHeader}>
-                            <h2>Nuevo Usuario</h2>
-                            <button onClick={() => setShowModal(false)} className={styles.closeBtn}>
-                                <XCircle size={20} />
+                <div
+                    className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-50 flex items-center justify-center p-4 animate-fade-in"
+                    onClick={() => setShowModal(false)}
+                >
+                    <div
+                        className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh] ring-1 ring-slate-900/5 transition-all"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-white">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-xl bg-indigo-50 border border-indigo-100 text-indigo-600 flex items-center justify-center">
+                                    <UserPlus size={20} />
+                                </div>
+                                <div>
+                                    <h2 className="text-xl font-bold text-slate-800 tracking-tight">Nuevo Usuario</h2>
+                                    <p className="text-xs text-slate-500 font-medium mt-0.5">Otorga accesos a la plataforma</p>
+                                </div>
+                            </div>
+                            <button
+                                onClick={() => setShowModal(false)}
+                                className="w-8 h-8 flex items-center justify-center rounded-full text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors"
+                            >
+                                <XCircle size={22} />
                             </button>
                         </div>
 
-                        <form onSubmit={handleCreateUser} className={styles.form}>
-                            <div className="flex flex-col gap-2">
-                                <label className="text-sm font-semibold text-gray-700">Nombre completo</label>
-                                <input
-                                    type="text"
-                                    className={styles.searchInput} // Reusing input style
-                                    value={formData.displayName}
-                                    onChange={(e) => setFormData(prev => ({ ...prev, displayName: e.target.value }))}
-                                    placeholder="Ej: Juan Pérez"
-                                    required
-                                />
-                            </div>
+                        <div className="p-6 overflow-y-auto bg-slate-50/30">
+                            <form id="create-user-form" onSubmit={handleCreateUser} className="space-y-5">
+                                <div>
+                                    <label className="block text-sm font-semibold text-slate-700 mb-1.5 ml-1">Nombre completo</label>
+                                    <div className="relative">
+                                        <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                                            <UserCircle size={18} />
+                                        </div>
+                                        <input
+                                            type="text"
+                                            className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all outline-none shadow-sm placeholder:text-slate-400"
+                                            value={formData.displayName}
+                                            onChange={(e) => setFormData(prev => ({ ...prev, displayName: e.target.value }))}
+                                            placeholder="Ej: Juan Pérez"
+                                            required
+                                        />
+                                    </div>
+                                </div>
 
-                            <div className="flex flex-col gap-2">
-                                <label className="text-sm font-semibold text-gray-700">Correo electrónico</label>
-                                <input
-                                    type="email"
-                                    className={styles.searchInput}
-                                    value={formData.email}
-                                    onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                                    placeholder="ejemplo@empresa.com"
-                                    required
-                                />
-                            </div>
+                                <div>
+                                    <label className="block text-sm font-semibold text-slate-700 mb-1.5 ml-1">Correo electrónico</label>
+                                    <div className="relative">
+                                        <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                                            <Mail size={18} />
+                                        </div>
+                                        <input
+                                            type="email"
+                                            className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all outline-none shadow-sm placeholder:text-slate-400"
+                                            value={formData.email}
+                                            onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                                            placeholder="ejemplo@empresa.com"
+                                            required
+                                        />
+                                    </div>
+                                </div>
 
-                            <div className="flex flex-col gap-2">
-                                <label className="text-sm font-semibold text-gray-700">Contraseña</label>
-                                <input
-                                    type="password"
-                                    className={styles.searchInput}
-                                    value={formData.password}
-                                    onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
-                                    placeholder="Mínimo 6 caracteres"
-                                    minLength={6}
-                                    required
-                                />
-                            </div>
+                                <div>
+                                    <label className="block text-sm font-semibold text-slate-700 mb-1.5 ml-1">Contraseña</label>
+                                    <div className="relative">
+                                        <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                                            <Lock size={18} />
+                                        </div>
+                                        <input
+                                            type="password"
+                                            className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all outline-none shadow-sm placeholder:text-slate-400"
+                                            value={formData.password}
+                                            onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
+                                            placeholder="Mínimo 6 caracteres"
+                                            minLength={6}
+                                            required
+                                        />
+                                    </div>
+                                </div>
 
-                            <div className="flex flex-col gap-2">
-                                <label className="text-sm font-semibold text-gray-700">Rol</label>
-                                <select
-                                    className={styles.filterSelect} // Reusing select style
-                                    value={formData.role}
-                                    onChange={(e) => setFormData(prev => ({ ...prev, role: e.target.value as UserRole }))}
-                                    style={{ width: '100%' }}
-                                >
-                                    <option value="student">Estudiante</option>
-                                    <option value="admin">Administrador</option>
-                                </select>
-                            </div>
+                                <div>
+                                    <label className="block text-sm font-semibold text-slate-700 mb-1.5 ml-1">Rol de Acceso</label>
+                                    <div className="relative">
+                                        <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                                            <Shield size={18} />
+                                        </div>
+                                        <select
+                                            className="w-full pl-10 pr-10 py-2.5 bg-white border border-slate-200 rounded-xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all outline-none text-slate-700 shadow-sm appearance-none"
+                                            value={formData.role}
+                                            onChange={(e) => setFormData(prev => ({ ...prev, role: e.target.value as UserRole }))}
+                                            style={{ backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`, backgroundPosition: `right 0.5rem center`, backgroundRepeat: `no-repeat`, backgroundSize: `1.5em 1.5em` }}
+                                        >
+                                            <option value="student">Estudiante / Usuario</option>
+                                            <option value="admin">Administrador del Sistema</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
 
-                            <div className={styles.formActions}>
-                                <button
-                                    type="button"
-                                    onClick={() => setShowModal(false)}
-                                    className="px-4 py-2 border border-gray-300 rounded-lg text-gray-600 hover:bg-gray-50 transition"
-                                >
-                                    Cancelar
-                                </button>
-                                <button
-                                    type="submit"
-                                    className={styles.primaryBtn}
-                                    disabled={creating}
-                                >
-                                    {creating ? 'Creando...' : 'Crear Usuario'}
-                                </button>
-                            </div>
-                        </form>
+                        <div className="p-6 border-t border-slate-100 bg-slate-50 flex items-center justify-end gap-3 rounded-b-2xl">
+                            <button
+                                type="button"
+                                onClick={() => setShowModal(false)}
+                                className="px-5 py-2.5 text-slate-600 font-medium hover:bg-slate-200/50 rounded-xl transition-colors"
+                            >
+                                Cancelar
+                            </button>
+                            <button
+                                type="submit"
+                                form="create-user-form"
+                                disabled={creating}
+                                className="px-5 py-2.5 bg-indigo-600 text-white font-medium hover:bg-indigo-700 rounded-xl transition-all shadow-sm hover:shadow-indigo-200 disabled:opacity-70 disabled:cursor-not-allowed flex items-center gap-2"
+                            >
+                                {creating ? (
+                                    <>
+                                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                                        <span>Creando...</span>
+                                    </>
+                                ) : (
+                                    <span>Crear Usuario</span>
+                                )}
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}
 
-            {/* Modal Asignar Rutas */}
-            {showAssignModal && assigningUser && (
-                <div className={styles.modalOverlay} onClick={() => setShowAssignModal(false)}>
-                    <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+            {/* Modal para asignar rutas especializadas */}
+            {showPathModal && selectedUserPath && (
+                <div className={styles.modalOverlay} onClick={() => setShowPathModal(false)}>
+                    <div className={`${styles.modal} max-w-2xl`} onClick={(e) => e.stopPropagation()}>
                         <div className={styles.modalHeader}>
-                            <h2>Asignar Rutas a {assigningUser.displayName}</h2>
-                            <button onClick={() => setShowAssignModal(false)} className={styles.closeBtn}>
+                            <div>
+                                <h2 className="text-xl font-bold text-slate-800">Especializaciones Adicionales</h2>
+                                <p className="text-sm text-slate-500 mt-1">
+                                    Asignando rutas a <strong>{selectedUserPath.displayName}</strong>
+                                </p>
+                            </div>
+                            <button onClick={() => setShowPathModal(false)} className={styles.closeBtn}>
                                 <XCircle size={20} />
                             </button>
                         </div>
 
                         <div className="p-6">
-                            <p className="mb-4 text-sm text-gray-500">
-                                Selecciona las rutas de aprendizaje asignadas a este usuario:
-                            </p>
+                            <div className="bg-indigo-50 border border-indigo-100 rounded-xl p-4 mb-6">
+                                <p className="text-sm text-indigo-800 flex items-start gap-2">
+                                    <span className="text-lg leading-none">💡</span>
+                                    <span>
+                                        Este usuario ya cuenta con acceso automático a las <strong>3 rutas obligatorias</strong> del sistema.
+                                        Aquí puedes habilitarle acceso a rutas especializadas adicionales.
+                                    </span>
+                                </p>
+                            </div>
 
-                            <div className="max-h-60 overflow-y-auto flex flex-col gap-3 bg-gray-50 p-4 rounded-xl border border-gray-100">
-                                {paths.map(path => (
-                                    <label key={path.id} className="flex items-center p-3 bg-white border border-gray-200 rounded-lg cursor-pointer hover:border-indigo-200 transition">
-                                        <input
-                                            type="checkbox"
-                                            checked={selectedPathIds.includes(path.id)}
-                                            onChange={() => togglePathSelection(path.id)}
-                                            className="w-5 h-5 text-indigo-600 rounded focus:ring-indigo-500"
-                                        />
-                                        <span className="ml-3 text-xl">{path.icon}</span>
-                                        <div className="ml-3">
-                                            <strong className="block text-gray-800 text-sm">{path.title}</strong>
-                                            <span className={`text-xs ${path.isActive ? 'text-green-600' : 'text-red-500'}`}>
-                                                {path.isActive ? 'Activa' : 'Inactiva'}
-                                            </span>
-                                        </div>
-                                    </label>
-                                ))}
-                                {paths.length === 0 && (
-                                    <p className="text-center text-gray-500 text-sm py-4">No hay rutas creadas en el sistema.</p>
+                            <div className="space-y-3 max-h-[40vh] overflow-y-auto pr-2 custom-scrollbar">
+                                {paths.length === 0 ? (
+                                    <div className="text-center p-6 text-slate-500 border border-slate-200 border-dashed rounded-xl">
+                                        No hay rutas especializadas disponibles. Créalas desde la vista de "Rutas".
+                                    </div>
+                                ) : (
+                                    paths.map((path) => {
+                                        const isAssigned = tempAssignedPaths.includes(path.id);
+                                        return (
+                                            <div
+                                                key={path.id}
+                                                className={`flex items-center gap-4 p-4 rounded-xl border transition-all cursor-pointer ${isAssigned
+                                                    ? 'border-indigo-500 bg-indigo-50/50'
+                                                    : 'border-slate-200 hover:border-indigo-300 hover:bg-slate-50'
+                                                    }`}
+                                                onClick={() => handleTogglePath(path.id)}
+                                            >
+                                                <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-xl shrink-0 ${isAssigned ? 'bg-indigo-100' : 'bg-slate-100'
+                                                    }`}>
+                                                    {path.icon || '📚'}
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                    <h4 className={`font-semibold ${isAssigned ? 'text-indigo-900' : 'text-slate-900'} truncate`}>
+                                                        {path.title}
+                                                    </h4>
+                                                    <p className={`text-sm ${isAssigned ? 'text-indigo-700/70' : 'text-slate-500'} truncate`}>
+                                                        {path.description}
+                                                    </p>
+                                                </div>
+                                                <div className="shrink-0">
+                                                    <div className={`w-6 h-6 rounded-md border flex items-center justify-center transition-colors ${isAssigned
+                                                        ? 'bg-indigo-500 border-indigo-500 text-white'
+                                                        : 'border-slate-300 bg-white'
+                                                        }`}>
+                                                        {isAssigned && <CheckCircle size={14} strokeWidth={3} />}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        );
+                                    })
                                 )}
                             </div>
                         </div>
 
-                        <div className={styles.formActions} style={{ padding: '0 1.5rem 1.5rem' }}>
+                        <div className="p-6 border-t border-slate-100 bg-slate-50 flex items-center justify-end gap-3 rounded-b-2xl">
                             <button
-                                onClick={() => setShowAssignModal(false)}
-                                className="px-4 py-2 border border-gray-300 rounded-lg text-gray-600 hover:bg-gray-50 transition"
+                                onClick={() => setShowPathModal(false)}
+                                className="px-5 py-2.5 text-slate-600 font-medium hover:bg-slate-200/50 rounded-xl transition-colors"
                             >
                                 Cancelar
                             </button>
                             <button
-                                onClick={handleSaveAssignments}
-                                className={styles.primaryBtn}
+                                onClick={handleAssignPaths}
+                                disabled={savingPaths}
+                                className="px-5 py-2.5 bg-indigo-600 text-white font-medium hover:bg-indigo-700 rounded-xl transition-all shadow-sm flex items-center gap-2"
                             >
-                                Guardar Asignaciones
+                                {savingPaths ? 'Guardando...' : 'Guardar Especializaciones'}
                             </button>
                         </div>
                     </div>

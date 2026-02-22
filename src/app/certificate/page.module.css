@@ -1,0 +1,238 @@
+.page {
+    min-height: 100vh;
+    background: linear-gradient(180deg, #0f0f23, #1a1a3e);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+}
+
+.certificate {
+    background: white;
+    border-radius: 24px;
+    padding: 3rem;
+    max-width: 660px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+.certificate::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 6px;
+    background: linear-gradient(90deg, #f59e0b, #f97316, #ef4444, #ec4899, #8b5cf6, #6366f1);
+}
+
+.logo {
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.orgName {
+    font-size: 0.75rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: #6b7280;
+    margin-bottom: 2rem;
+}
+
+.certTitle {
+    font-size: 1.5rem;
+    font-weight: 900;
+    color: #111827;
+    margin-bottom: 0.25rem;
+}
+
+.levelBadge {
+    display: inline-block;
+    padding: 0.4rem 1.25rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 2rem;
+}
+
+.levelBadge.fundamental {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(59, 130, 246, 0.05));
+    color: #2563eb;
+    border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+.levelBadge.professional {
+    background: linear-gradient(135deg, rgba(168, 85, 247, 0.1), rgba(168, 85, 247, 0.05));
+    color: #7c3aed;
+    border: 1px solid rgba(168, 85, 247, 0.2);
+}
+
+.levelBadge.elite {
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(245, 158, 11, 0.05));
+    color: #d97706;
+    border: 1px solid rgba(245, 158, 11, 0.2);
+}
+
+.userName {
+    font-size: 2rem;
+    font-weight: 900;
+    color: #111827;
+    letter-spacing: -0.03em;
+    margin-bottom: 0.5rem;
+}
+
+.certText {
+    font-size: 0.85rem;
+    color: #6b7280;
+    line-height: 1.7;
+    margin-bottom: 2rem;
+    max-width: 450px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.scoreBox {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1.25rem;
+    background: #f3f4f6;
+    border-radius: 12px;
+    margin-bottom: 2rem;
+}
+
+.scoreValue {
+    font-size: 1.5rem;
+    font-weight: 900;
+    color: #111827;
+}
+
+.scoreLabel {
+    font-size: 0.7rem;
+    color: #6b7280;
+    font-weight: 600;
+}
+
+.qrContainer {
+    margin-bottom: 1.5rem;
+}
+
+.qrImage {
+    border-radius: 12px;
+    border: 1px solid #e5e7eb;
+}
+
+.verifyCode {
+    font-size: 0.7rem;
+    color: #9ca3af;
+    font-family: monospace;
+    margin-top: 0.5rem;
+}
+
+.issuedDate {
+    font-size: 0.75rem;
+    color: #9ca3af;
+}
+
+.actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    margin-top: 2rem;
+}
+
+.copyBtn {
+    padding: 0.6rem 1.25rem;
+    border: 2px solid #e5e7eb;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: #374151;
+    background: white;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.copyBtn:hover {
+    border-color: #6366f1;
+    color: #6366f1;
+}
+
+.generateBtn {
+    padding: 0.6rem 1.25rem;
+    border: none;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 0.85rem;
+    color: white;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
+}
+
+.generateBtn:hover {
+    transform: translateY(-1px);
+}
+
+.generateBtn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* No certificate state */
+.noCert {
+    text-align: center;
+    color: white;
+}
+
+.noCertIcon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+}
+
+.noCertTitle {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.noCertText {
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 0.85rem;
+}
+
+.loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    color: white;
+}
+
+.spinner {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 3px solid rgba(255, 255, 255, 0.1);
+    border-top-color: #6366f1;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
