@@ -9,7 +9,7 @@ import { Home, User, LogOut, Sparkles, Trophy, Target, GraduationCap } from 'luc
 const navItems = [
     { href: '/dashboard', label: 'Inicio', icon: Home },
     { href: '/certificacion', label: 'Certif.', icon: GraduationCap },
-    { href: '/sofia', label: 'SofIA', icon: Sparkles },
+    { href: '/sofia', label: 'Bally IA', icon: Sparkles },
     { href: '/leaderboard', label: 'Ranking', icon: Trophy },
     { href: '/action-plan', label: 'Plan', icon: Target },
 ];

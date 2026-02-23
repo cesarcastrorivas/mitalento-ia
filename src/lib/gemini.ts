@@ -10,9 +10,9 @@ const apiKey = process.env.GEMINI_API_KEY || '';
 const genAI = new GoogleGenerativeAI(apiKey);
 const fileManager = new GoogleAIFileManager(apiKey);
 
-// Gemini 2.0 Flash - Modelo más reciente y estable
+// Gemini 3.0 Flash Preview - As requested
 export const geminiModel = genAI.getGenerativeModel({
-    model: 'gemini-2.0-flash',
+    model: 'gemini-3-flash-preview',
 });
 
 export interface Question {
@@ -40,7 +40,7 @@ async function downloadFile(url: string, suffix: string): Promise<string> {
     if (!response.ok) throw new Error(`Failed to fetch video: ${response.statusText}`);
     if (!response.body) throw new Error('No response body');
 
-    // @ts-ignore - ReadableStream to NodeJS.Readable compat
+    // @ts-expect-error - ReadableStream to NodeJS.Readable compat
     await pipeline(Readable.fromWeb(response.body), fs.createWriteStream(tempFilePath));
 
     return tempFilePath;

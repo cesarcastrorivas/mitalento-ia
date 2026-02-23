@@ -27,7 +27,7 @@ export default function SofiaKnowledgeBase() {
                 setContent(docSnap.data().content || '');
             } else {
                 // Default content
-                setContent('Eres SofIA, la asistente de Inteligencia Artificial de Urbanity (Mi Talento). Tu objetivo es ayudar a los estudiantes...');
+                setContent('Eres Bally IA, la asistente de Inteligencia Artificial de Urbanity (Mi Talento). Tu objetivo es ayudar a los estudiantes...');
             }
         } catch (error) {
             console.error('Error loading knowledge base:', error);
@@ -67,7 +67,7 @@ export default function SofiaKnowledgeBase() {
             borderColor: 'border-red-200',
             gradient: 'from-red-500 to-red-600',
             percent: 10,
-            message: 'Muy poca información. SofIA alucinará casi seguro.'
+            message: 'Muy poca información. Bally IA alucinará casi seguro.'
         };
         if (length < 10000) return {
             label: 'Bajo',
@@ -94,7 +94,7 @@ export default function SofiaKnowledgeBase() {
             borderColor: 'border-purple-200',
             gradient: 'from-purple-500 to-indigo-600',
             percent: 100,
-            message: 'Máxima precisión. SofIA tiene abundante contexto.'
+            message: 'Máxima precisión. Bally IA tiene abundante contexto.'
         };
     };
 
@@ -115,10 +115,10 @@ export default function SofiaKnowledgeBase() {
                     <div className="p-2 bg-[var(--primary-100)] text-[var(--primary-700)] rounded-lg">
                         <Bot size={24} />
                     </div>
-                    <h1 className="text-display text-[var(--text-primary)] tracking-tight">Base de Conocimiento SofIA</h1>
+                    <h1 className="text-display text-[var(--text-primary)] tracking-tight">Base de Conocimiento Bally IA</h1>
                 </div>
                 <p className="text-[var(--text-secondary)]">
-                    Define la información y el contexto que SofIA utilizará para responder a los estudiantes.
+                    Define la información y el contexto que Bally IA utilizará para responder a los estudiantes.
                 </p>
             </header>
 
@@ -126,7 +126,80 @@ export default function SofiaKnowledgeBase() {
                 {/* Editor Column */}
                 <div className="lg:col-span-2 space-y-4">
 
-                    {/* Thermometer / Health Indicator - Premium UI */}
+
+
+                    <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex flex-col h-[800px] relative transition-all duration-200 hover:shadow-md">
+
+                        {/* Editor Toolbar / Header */}
+                        <div className="bg-gray-50 border-b border-gray-100 p-3 flex items-center justify-between flex-shrink-0">
+                            <div className="flex items-center gap-3">
+                                <div className="flex gap-1.5 px-2">
+                                    <div className="w-3 h-3 rounded-full bg-red-400/80"></div>
+                                    <div className="w-3 h-3 rounded-full bg-amber-400/80"></div>
+                                    <div className="w-3 h-3 rounded-full bg-green-400/80"></div>
+                                </div>
+                                <div className="h-4 w-px bg-gray-300 mx-2"></div>
+                                <span className="text-xs font-semibold text-gray-500 uppercase tracking-widest flex items-center gap-1.5">
+                                    <Sparkles size={12} className="text-purple-500" />
+                                    Editor de Sistema
+                                </span>
+                            </div>
+                            <div className="flex gap-2">
+                                <span className="text-[10px] font-medium text-gray-400 bg-white border border-gray-200 px-2 py-1 rounded-md shadow-sm">
+                                    Markdown Soportado
+                                </span>
+                            </div>
+                        </div>
+
+                        {/* Editor Area */}
+                        <div className="relative flex-grow bg-white group">
+                            <textarea
+                                value={content}
+                                onChange={(e) => setContent(e.target.value)}
+                                className="w-full h-full p-8 resize-none outline-none text-gray-800 leading-8 font-mono text-[13px] bg-transparent focus:bg-gray-50/30 transition-colors custom-scrollbar z-10 relative selection:bg-purple-100 selection:text-purple-900"
+                                placeholder="# Identidad del Asistente..."
+                                spellCheck={false}
+                            />
+
+                            {/* Subtle line numbers decoration (Visual only, simple guide) */}
+                            <div className="absolute top-8 left-3 bottom-8 w-6 flex flex-col items-center pt-1 gap-[2rem] opacity-20 pointer-events-none select-none hidden sm:flex">
+                                <span className="text-[10px] font-mono">1</span>
+                                <span className="text-[10px] font-mono">5</span>
+                                <span className="text-[10px] font-mono">10</span>
+                                <span className="text-[10px] font-mono">15</span>
+                                <span className="text-[10px] font-mono">20</span>
+                            </div>
+                        </div>
+
+                        {/* Sticky Action Footer */}
+                        <div className="p-4 bg-white/80 backdrop-blur-md border-t border-gray-100 flex justify-between items-center absolute bottom-0 left-0 right-0 z-20">
+                            <div className="text-xs text-gray-400 font-medium pl-2">
+                                {saving ? 'Guardando cambios...' : 'Cambios sin guardar'}
+                            </div>
+                            <Button
+                                onClick={handleSave}
+                                disabled={saving}
+                                className="!px-8 !py-2.5 !rounded-lg shadow-lg shadow-purple-500/20 !bg-gray-900 hover:!bg-gray-800 !text-white transition-all transform active:scale-95 flex items-center gap-2 group"
+                            >
+                                {saving ? (
+                                    <>
+                                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                        <span>Guardando...</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <Save size={16} className="group-hover:text-purple-300 transition-colors" />
+                                        <span>Guardar Configuración</span>
+                                    </>
+                                )}
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Sidebar Help */}
+                <div className="space-y-6">
+                    {/* Thermometer / Health Indicator - Premium UI (Moved to Sidebar) */}
                     <div className={`p-4 rounded-xl border ${health.borderColor} bg-white shadow-sm transition-all duration-300`}>
                         <div className="flex items-center justify-between mb-3">
                             <div className="flex items-center gap-2">
@@ -213,77 +286,6 @@ export default function SofiaKnowledgeBase() {
                         </div>
                     </div>
 
-                    <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex flex-col h-[800px] relative transition-all duration-200 hover:shadow-md">
-
-                        {/* Editor Toolbar / Header */}
-                        <div className="bg-gray-50 border-b border-gray-100 p-3 flex items-center justify-between flex-shrink-0">
-                            <div className="flex items-center gap-3">
-                                <div className="flex gap-1.5 px-2">
-                                    <div className="w-3 h-3 rounded-full bg-red-400/80"></div>
-                                    <div className="w-3 h-3 rounded-full bg-amber-400/80"></div>
-                                    <div className="w-3 h-3 rounded-full bg-green-400/80"></div>
-                                </div>
-                                <div className="h-4 w-px bg-gray-300 mx-2"></div>
-                                <span className="text-xs font-semibold text-gray-500 uppercase tracking-widest flex items-center gap-1.5">
-                                    <Sparkles size={12} className="text-purple-500" />
-                                    Editor de Sistema
-                                </span>
-                            </div>
-                            <div className="flex gap-2">
-                                <span className="text-[10px] font-medium text-gray-400 bg-white border border-gray-200 px-2 py-1 rounded-md shadow-sm">
-                                    Markdown Soportado
-                                </span>
-                            </div>
-                        </div>
-
-                        {/* Editor Area */}
-                        <div className="relative flex-grow bg-white group">
-                            <textarea
-                                value={content}
-                                onChange={(e) => setContent(e.target.value)}
-                                className="w-full h-full p-8 resize-none outline-none text-gray-800 leading-8 font-mono text-[13px] bg-transparent focus:bg-gray-50/30 transition-colors custom-scrollbar z-10 relative selection:bg-purple-100 selection:text-purple-900"
-                                placeholder="# Identidad del Asistente..."
-                                spellCheck={false}
-                            />
-
-                            {/* Subtle line numbers decoration (Visual only, simple guide) */}
-                            <div className="absolute top-8 left-3 bottom-8 w-6 flex flex-col items-center pt-1 gap-[2rem] opacity-20 pointer-events-none select-none hidden sm:flex">
-                                <span className="text-[10px] font-mono">1</span>
-                                <span className="text-[10px] font-mono">5</span>
-                                <span className="text-[10px] font-mono">10</span>
-                                <span className="text-[10px] font-mono">15</span>
-                                <span className="text-[10px] font-mono">20</span>
-                            </div>
-                        </div>
-
-                        {/* Sticky Action Footer */}
-                        <div className="p-4 bg-white/80 backdrop-blur-md border-t border-gray-100 flex justify-between items-center absolute bottom-0 left-0 right-0 z-20">
-                            <div className="text-xs text-gray-400 font-medium pl-2">
-                                {saving ? 'Guardando cambios...' : 'Cambios sin guardar'}
-                            </div>
-                            <Button
-                                onClick={handleSave}
-                                disabled={saving}
-                                className="!px-8 !py-2.5 !rounded-lg shadow-lg shadow-purple-500/20 !bg-gray-900 hover:!bg-gray-800 !text-white transition-all transform active:scale-95 flex items-center gap-2 group"
-                            >
-                                {saving ? (
-                                    <>
-                                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                                        <span>Guardando...</span>
-                                    </>
-                                ) : (
-                                    <>
-                                        <Save size={16} className="group-hover:text-purple-300 transition-colors" />
-                                        <span>Guardar Configuración</span>
-                                    </>
-                                )}
-                            </Button>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Sidebar Help */}
-                <div className="space-y-6">
                     <div className="bg-gradient-to-br from-[var(--primary-50)] to-white p-6 rounded-2xl border border-[var(--primary-100)] shadow-sm">
                         <h3 className="font-bold text-[var(--primary-800)] mb-4 flex items-center gap-2">
                             <AlertCircle size={18} />
@@ -309,17 +311,7 @@ export default function SofiaKnowledgeBase() {
                         </ul>
                     </div>
 
-                    <div className="bg-white p-6 rounded-2xl border border-[rgba(0,0,0,0.05)] shadow-sm hidden lg:block">
-                        <h3 className="font-bold text-[var(--text-primary)] mb-3 text-sm uppercase tracking-wide">Estado del Sistema</h3>
-                        <div className="flex items-center gap-2 text-sm text-[var(--text-secondary)] mb-2">
-                            <div className="w-2 h-2 rounded-full bg-[var(--success)] animate-pulse" />
-                            <span>Sistema Operativo</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-sm text-[var(--text-secondary)]">
-                            <div className="w-2 h-2 rounded-full bg-blue-500" />
-                            <span>Modelo: Gemini 2.0 Flash</span>
-                        </div>
-                    </div>
+
                 </div>
             </div>
 

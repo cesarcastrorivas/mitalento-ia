@@ -1,11 +1,16 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { collection, query, where, getDocs, doc, updateDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import { User, AttitudinalEvaluation, CertificationLevel } from '@/types';
-import { Award, Check, X, MessageSquare, Loader2 } from 'lucide-react';
+import { User, CertificationLevel } from '@/types';
+import { Award, Check, X, MessageSquare, Loader2, Eye } from 'lucide-react';
 import styles from './page.module.css';
+
+interface EvalResponse {
+    question: string;
+    answer: string;
+}
 
 interface StudentRow {
     uid: string;
@@ -17,6 +22,7 @@ interface StudentRow {
     evaluationId?: string;
     commitment: boolean;
     supervisorFeedback?: string;
+    responses: EvalResponse[];
 }
 
 const LEVEL_LABELS: Record<string, string> = {
@@ -26,6 +32,13 @@ const LEVEL_LABELS: Record<string, string> = {
     elite: 'Élite',
 };
 
+const SEMAPHORE_LABELS: Record<string, string> = {
+    green: '🟢 Aprobado',
+    yellow: '🟡 Revisión',
+    red: '🔴 No Apto',
+    pending: '⏳ Pendiente',
+};
+
 type TabFilter = 'all' | 'green' | 'yellow' | 'red' | 'pending';
 
 export default function AdminCertificationsPage() {
@@ -33,6 +46,9 @@ export default function AdminCertificationsPage() {
     const [loading, setLoading] = useState(true);
     const [levelFilter, setLevelFilter] = useState<string>('all');
     const [tabFilter, setTabFilter] = useState<TabFilter>('all');
+
+    // Review modal (ver respuestas)
+    const [reviewTarget, setReviewTarget] = useState<StudentRow | null>(null);
 
     // Feedback modal
     const [feedbackTarget, setFeedbackTarget] = useState<StudentRow | null>(null);
@@ -45,33 +61,40 @@ export default function AdminCertificationsPage() {
 
     const loadStudents = async () => {
         try {
-            const usersQuery = query(collection(db, 'users'), where('role', '==', 'student'));
-            const usersSnap = await getDocs(usersQuery);
+            // Parallel fetching for performance
+            const [usersSnap, evalsSnap, sessionsSnap, commitmentsSnap] = await Promise.all([
+                getDocs(query(collection(db, 'users'), where('role', '==', 'student'))),
+                getDocs(collection(db, 'attitudinal_evaluations')),
+                getDocs(collection(db, 'quiz_sessions')),
+                getDocs(collection(db, 'commitments')),
+            ]);
 
-            const evalsSnap = await getDocs(collection(db, 'attitudinal_evaluations'));
-            const evals = new Map<string, { id: string; semaphore: string }>();
+            // Index evaluations by userId
+            const evals = new Map<string, { id: string; semaphore: string; responses: EvalResponse[] }>();
             evalsSnap.docs.forEach(d => {
                 const data = d.data();
-                evals.set(data.userId, { id: d.id, semaphore: data.semaphore });
+                evals.set(data.userId, {
+                    id: d.id,
+                    semaphore: data.semaphore,
+                    responses: data.responses || [],
+                });
             });
 
-            const sessionsSnap = await getDocs(collection(db, 'quiz_sessions'));
+            // Index quiz scores by userId
             const userScores = new Map<string, { total: number; count: number }>();
             sessionsSnap.docs.forEach(d => {
                 const data = d.data();
-                if (!userScores.has(data.userId)) {
-                    userScores.set(data.userId, { total: 0, count: 0 });
-                }
-                const entry = userScores.get(data.userId)!;
+                const entry = userScores.get(data.userId) || { total: 0, count: 0 };
                 entry.total += data.score;
                 entry.count += 1;
+                userScores.set(data.userId, entry);
             });
 
-            // Get commitments
-            const commitmentsSnap = await getDocs(collection(db, 'commitments'));
+            // Index commitments
             const commitments = new Set<string>();
             commitmentsSnap.docs.forEach(d => commitments.add(d.data().userId));
 
+            // Build rows
             const rows: StudentRow[] = usersSnap.docs.map(d => {
                 const data = d.data() as User;
                 const evalData = evals.get(d.id);
@@ -86,6 +109,7 @@ export default function AdminCertificationsPage() {
                     evaluationId: evalData?.id,
                     commitment: commitments.has(d.id),
                     supervisorFeedback: (data as any).supervisorFeedback || '',
+                    responses: evalData?.responses || [],
                 };
             });
 
@@ -97,40 +121,44 @@ export default function AdminCertificationsPage() {
         }
     };
 
-    const handleApprove = async (studentUid: string, evalId?: string) => {
+    const handleApprove = async (student: StudentRow) => {
         try {
-            await updateDoc(doc(db, 'users', studentUid), {
+            await updateDoc(doc(db, 'users', student.uid), {
                 attitudinalStatus: 'green',
                 certificationLevel: 'fundamental',
             });
-            if (evalId) {
-                await updateDoc(doc(db, 'attitudinal_evaluations', evalId), {
+            if (student.evaluationId) {
+                await updateDoc(doc(db, 'attitudinal_evaluations', student.evaluationId), {
+                    semaphore: 'green',
                     supervisorApproved: true,
                 });
             }
             setStudents(prev => prev.map(s =>
-                s.uid === studentUid
+                s.uid === student.uid
                     ? { ...s, attitudinalStatus: 'green', certificationLevel: 'fundamental' as CertificationLevel }
                     : s
             ));
+            setReviewTarget(null);
         } catch (error) {
             console.error('Error approving:', error);
         }
     };
 
-    const handleReject = async (studentUid: string, evalId?: string) => {
+    const handleReject = async (student: StudentRow) => {
         try {
-            await updateDoc(doc(db, 'users', studentUid), {
+            await updateDoc(doc(db, 'users', student.uid), {
                 attitudinalStatus: 'red',
             });
-            if (evalId) {
-                await updateDoc(doc(db, 'attitudinal_evaluations', evalId), {
+            if (student.evaluationId) {
+                await updateDoc(doc(db, 'attitudinal_evaluations', student.evaluationId), {
+                    semaphore: 'red',
                     supervisorApproved: false,
                 });
             }
             setStudents(prev => prev.map(s =>
-                s.uid === studentUid ? { ...s, attitudinalStatus: 'red' } : s
+                s.uid === student.uid ? { ...s, attitudinalStatus: 'red' } : s
             ));
+            setReviewTarget(null);
         } catch (error) {
             console.error('Error rejecting:', error);
         }
@@ -160,25 +188,33 @@ export default function AdminCertificationsPage() {
     };
 
     // Apply filters
-    const filtered = students.filter(s => {
-        if (tabFilter !== 'all' && s.attitudinalStatus !== tabFilter) return false;
-        if (levelFilter !== 'all' && s.certificationLevel !== levelFilter) return false;
-        return true;
-    });
+    const filtered = useMemo(() =>
+        students.filter(s => {
+            if (tabFilter !== 'all' && s.attitudinalStatus !== tabFilter) return false;
+            if (levelFilter !== 'all' && s.certificationLevel !== levelFilter) return false;
+            return true;
+        }),
+        [students, tabFilter, levelFilter]
+    );
 
-    // Stats
-    const totalStudents = students.length;
-    const greens = students.filter(s => s.attitudinalStatus === 'green').length;
-    const yellows = students.filter(s => s.attitudinalStatus === 'yellow').length;
-    const reds = students.filter(s => s.attitudinalStatus === 'red').length;
-    const pendings = students.filter(s => s.attitudinalStatus === 'pending').length;
+    // Stats (single pass)
+    const stats = useMemo(() => {
+        const counts = { total: 0, green: 0, yellow: 0, red: 0, pending: 0 };
+        students.forEach(s => {
+            counts.total++;
+            if (s.attitudinalStatus in counts) {
+                (counts as any)[s.attitudinalStatus]++;
+            }
+        });
+        return counts;
+    }, [students]);
 
     const TABS: { key: TabFilter; label: string; count: number }[] = [
-        { key: 'all', label: 'Todos', count: totalStudents },
-        { key: 'green', label: '🟢 Aprobados', count: greens },
-        { key: 'yellow', label: '🟡 Revisión', count: yellows },
-        { key: 'red', label: '🔴 No Aptos', count: reds },
-        { key: 'pending', label: '⏳ Pendientes', count: pendings },
+        { key: 'all', label: 'Todos', count: stats.total },
+        { key: 'green', label: '🟢 Aprobados', count: stats.green },
+        { key: 'yellow', label: '🟡 Revisión', count: stats.yellow },
+        { key: 'red', label: '🔴 No Aptos', count: stats.red },
+        { key: 'pending', label: '⏳ Pendientes', count: stats.pending },
     ];
 
     return (
@@ -188,26 +224,26 @@ export default function AdminCertificationsPage() {
                     <Award size={24} /> Panel de Certificaciones
                 </h1>
                 <p className={styles.subtitle}>
-                    Gestiona evaluaciones actitudinales y niveles de certificación
+                    Revisa las evaluaciones actitudinales y gestiona niveles de certificación
                 </p>
             </div>
 
             {/* Stats */}
             <div className={styles.statsBar}>
                 <div className={styles.statCard}>
-                    <div className={styles.statValue}>{totalStudents}</div>
+                    <div className={styles.statValue}>{stats.total}</div>
                     <div className={styles.statLabel}>Total Estudiantes</div>
                 </div>
                 <div className={styles.statCard}>
-                    <div className={styles.statValue} style={{ color: '#10b981' }}>{greens}</div>
+                    <div className={styles.statValue} style={{ color: '#10b981' }}>{stats.green}</div>
                     <div className={styles.statLabel}>🟢 Aprobados</div>
                 </div>
                 <div className={styles.statCard}>
-                    <div className={styles.statValue} style={{ color: '#f59e0b' }}>{yellows}</div>
+                    <div className={styles.statValue} style={{ color: '#f59e0b' }}>{stats.yellow}</div>
                     <div className={styles.statLabel}>🟡 En Revisión</div>
                 </div>
                 <div className={styles.statCard}>
-                    <div className={styles.statValue} style={{ color: '#ef4444' }}>{reds}</div>
+                    <div className={styles.statValue} style={{ color: '#ef4444' }}>{stats.red}</div>
                     <div className={styles.statLabel}>🔴 No Aptos</div>
                 </div>
             </div>
@@ -271,10 +307,7 @@ export default function AdminCertificationsPage() {
                                         <td style={{ color: '#6b7280' }}>{s.email}</td>
                                         <td>
                                             <span className={`${styles.semaphoreIndicator} ${styles[s.attitudinalStatus] || styles.pending}`}>
-                                                {s.attitudinalStatus === 'green' && '🟢 Aprobado'}
-                                                {s.attitudinalStatus === 'yellow' && '🟡 Revisión'}
-                                                {s.attitudinalStatus === 'red' && '🔴 No Apto'}
-                                                {s.attitudinalStatus === 'pending' && '⏳ Pendiente'}
+                                                {SEMAPHORE_LABELS[s.attitudinalStatus] || '⏳ Pendiente'}
                                             </span>
                                         </td>
                                         <td style={{ fontWeight: 700 }}>{s.avgScore}%</td>
@@ -286,16 +319,26 @@ export default function AdminCertificationsPage() {
                                         <td>{s.commitment ? '✅' : '❌'}</td>
                                         <td>
                                             <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
+                                                {/* Ver Respuestas — only if the user has submitted eval */}
+                                                {s.responses.length > 0 && (
+                                                    <button
+                                                        onClick={() => setReviewTarget(s)}
+                                                        className={styles.viewBtn}
+                                                        title="Ver respuestas de evaluación"
+                                                    >
+                                                        <Eye size={12} /> Ver
+                                                    </button>
+                                                )}
                                                 {(s.attitudinalStatus === 'yellow' || s.attitudinalStatus === 'pending') && (
                                                     <>
                                                         <button
-                                                            onClick={() => handleApprove(s.uid, s.evaluationId)}
+                                                            onClick={() => s.responses.length > 0 ? setReviewTarget(s) : handleApprove(s)}
                                                             className={styles.approveBtn}
                                                         >
                                                             <Check size={12} /> Aprobar
                                                         </button>
                                                         <button
-                                                            onClick={() => handleReject(s.uid, s.evaluationId)}
+                                                            onClick={() => s.responses.length > 0 ? setReviewTarget(s) : handleReject(s)}
                                                             className={styles.rejectBtn}
                                                         >
                                                             <X size={12} /> Rechazar
@@ -320,7 +363,75 @@ export default function AdminCertificationsPage() {
                 )}
             </div>
 
-            {/* Feedback Modal */}
+            {/* ========== REVIEW MODAL (Ver Respuestas) ========== */}
+            {reviewTarget && (
+                <div className={styles.modalOverlay} onClick={() => setReviewTarget(null)}>
+                    <div className={styles.reviewModal} onClick={e => e.stopPropagation()}>
+                        <div className={styles.reviewModalHeader}>
+                            <div>
+                                <h3 className={styles.modalTitle}>
+                                    <Eye size={20} /> Evaluación Actitudinal
+                                </h3>
+                                <p className={styles.modalSubtitle}>
+                                    Candidato: <strong>{reviewTarget.displayName}</strong> — {reviewTarget.email}
+                                </p>
+                            </div>
+                            <button onClick={() => setReviewTarget(null)} className={styles.closeBtn}>
+                                <X size={20} />
+                            </button>
+                        </div>
+
+                        <div className={styles.responsesContainer}>
+                            {reviewTarget.responses.length === 0 ? (
+                                <p className={styles.noResponses}>Este candidato aún no ha completado su evaluación actitudinal.</p>
+                            ) : (
+                                reviewTarget.responses.map((r, i) => (
+                                    <div key={i} className={styles.responseCard}>
+                                        <div className={styles.responseQuestion}>
+                                            <span className={styles.questionBadge}>P{i + 1}</span>
+                                            {r.question}
+                                        </div>
+                                        <div className={styles.responseAnswer}>
+                                            {r.answer}
+                                        </div>
+                                    </div>
+                                ))
+                            )}
+                        </div>
+
+                        {/* Action buttons inside the review modal */}
+                        {(reviewTarget.attitudinalStatus === 'pending' || reviewTarget.attitudinalStatus === 'yellow') && (
+                            <div className={styles.reviewActions}>
+                                <button
+                                    onClick={() => handleApprove(reviewTarget)}
+                                    className={styles.reviewApproveBtn}
+                                >
+                                    <Check size={16} /> Aprobar Candidato
+                                </button>
+                                <button
+                                    onClick={() => handleReject(reviewTarget)}
+                                    className={styles.reviewRejectBtn}
+                                >
+                                    <X size={16} /> Rechazar Candidato
+                                </button>
+                            </div>
+                        )}
+
+                        {reviewTarget.attitudinalStatus === 'green' && (
+                            <div className={styles.reviewStatusBanner} style={{ background: 'rgba(16,185,129,0.08)', color: '#059669' }}>
+                                🟢 Este candidato ya fue aprobado.
+                            </div>
+                        )}
+                        {reviewTarget.attitudinalStatus === 'red' && (
+                            <div className={styles.reviewStatusBanner} style={{ background: 'rgba(239,68,68,0.08)', color: '#dc2626' }}>
+                                🔴 Este candidato fue rechazado.
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
+
+            {/* ========== FEEDBACK MODAL ========== */}
             {feedbackTarget && (
                 <div className={styles.modalOverlay} onClick={() => setFeedbackTarget(null)}>
                     <div className={styles.modal} onClick={e => e.stopPropagation()}>

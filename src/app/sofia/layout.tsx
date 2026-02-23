@@ -21,7 +21,7 @@ export default function SofiaLayout({
     }, [user, loading, router]);
 
     if (loading || !user) {
-        return <LoadingScreen message="Conectando con SofIA..." />;
+        return <LoadingScreen message="Conectando con Bally IA..." />;
     }
 
     return (

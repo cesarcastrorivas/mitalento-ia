@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
-import { Brain, ArrowRight, ArrowLeft, Send, Loader2 } from 'lucide-react';
+import { Brain, ArrowRight, ArrowLeft, Send, CheckCircle } from 'lucide-react';
 import { db } from '@/lib/firebase';
 import { collection, addDoc, updateDoc, doc, Timestamp } from 'firebase/firestore';
 import styles from './page.module.css';
@@ -16,21 +16,13 @@ const QUESTIONS = [
     '¿Cuáles son tus metas profesionales y de ingresos en los próximos 6 meses? ¿Cómo planeas alcanzarlas?',
 ];
 
-interface EvalResult {
-    semaphore: 'green' | 'yellow' | 'red';
-    analysis: string;
-    strengths: string[];
-    concerns: string[];
-    recommendation: string;
-}
-
 export default function EvaluacionActitudinalPage() {
     const { user } = useAuth();
     const router = useRouter();
     const [currentQuestion, setCurrentQuestion] = useState(0);
     const [answers, setAnswers] = useState<string[]>(new Array(QUESTIONS.length).fill(''));
-    const [isAnalyzing, setIsAnalyzing] = useState(false);
-    const [result, setResult] = useState<EvalResult | null>(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isSubmitted, setIsSubmitted] = useState(false);
     const [error, setError] = useState('');
 
     const handleAnswer = (value: string) => {
@@ -62,129 +54,70 @@ export default function EvaluacionActitudinalPage() {
             return;
         }
 
-        setIsAnalyzing(true);
+        setIsSubmitting(true);
         setError('');
 
         try {
-            const response = await fetch('/api/attitudinal-eval', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    userId: user.uid,
-                    responses: QUESTIONS.map((q, i) => ({
-                        question: q,
-                        answer: answers[i],
-                    })),
-                }),
-            });
-
-            const data = await response.json();
-
-            if (data.error) {
-                throw new Error(data.error);
-            }
-
-            // Save to Firestore (Client-side)
+            // Save to Firestore directly
             const evalData = {
                 userId: user.uid,
                 responses: QUESTIONS.map((q, i) => ({
                     question: q,
                     answer: answers[i],
                 })),
-                aiAnalysis: data.analysis,
-                semaphore: data.semaphore,
-                strengths: data.strengths || [],
-                concerns: data.concerns || [],
-                recommendation: data.recommendation || '',
+                semaphore: 'pending', // Siempre pendiente para revisión humana
+                aiAnalysis: 'Evaluación manual requerida.',
+                strengths: [],
+                concerns: [],
+                recommendation: '',
                 supervisorApproved: null,
                 createdAt: Timestamp.now(),
             };
 
-            try {
-                await addDoc(collection(db, 'attitudinal_evaluations'), evalData);
-            } catch (firestoreError: any) {
-                console.error('Error saving evaluation:', firestoreError);
-                throw new Error(`Error al guardar evaluación: ${firestoreError.message}`);
-            }
+            await addDoc(collection(db, 'attitudinal_evaluations'), evalData);
 
             // Update user's attitudinal status
-            try {
-                await updateDoc(doc(db, 'users', user.uid), {
-                    attitudinalStatus: data.semaphore,
-                });
-            } catch (userError: any) {
-                console.error('Error updating user status:', userError);
-                // Optionally we can ignore this error or show a warning, but let's report it for now to debug
-                throw new Error(`Error al actualizar estado de usuario: ${userError.message}`);
-            }
-
-            setResult({
-                semaphore: data.semaphore,
-                analysis: data.analysis,
-                strengths: data.strengths || [],
-                concerns: data.concerns || [],
-                recommendation: data.recommendation,
+            await updateDoc(doc(db, 'users', user.uid), {
+                attitudinalStatus: 'pending',
             });
+
+            setIsSubmitted(true);
         } catch (err: any) {
-            setError(err.message || 'Error al procesar la evaluación');
+            console.error('Error al enviar:', err);
+            setError('Ocurrió un error al enviar tu evaluación. Por favor intenta de nuevo.');
         } finally {
-            setIsAnalyzing(false);
+            setIsSubmitting(false);
         }
     };
 
     const allAnswered = answers.every(a => a.trim().length >= 20);
     const isLastQuestion = currentQuestion === QUESTIONS.length - 1;
 
-    const SEMAPHORE_CONFIG = {
-        green: { emoji: '🟢', label: '¡Perfil Aprobado!', color: '#10b981' },
-        yellow: { emoji: '🟡', label: 'En Revisión por Supervisor', color: '#f59e0b' },
-        red: { emoji: '🔴', label: 'Perfil No Apto', color: '#ef4444' },
-    };
-
-    // Results view
-    if (result) {
-        const config = SEMAPHORE_CONFIG[result.semaphore];
+    // Results/Success view
+    if (isSubmitted) {
         return (
             <div className={styles.page}>
                 <div className={styles.container}>
                     <div className={styles.resultsCard}>
-                        <div className={`${styles.semaphore} ${styles[result.semaphore]}`}>
-                            {config.emoji}
+                        <div className={`${styles.semaphore} ${styles.pending}`}>
+                            ⏳
                         </div>
-                        <h2 className={styles.resultTitle}>{config.label}</h2>
-                        <p className={styles.resultAnalysis}>{result.analysis}</p>
-
-                        {result.strengths.length > 0 && (
-                            <div className={styles.resultTags}>
-                                {result.strengths.map((s, i) => (
-                                    <span key={i} className={styles.tagStrength}>✅ {s}</span>
-                                ))}
-                            </div>
-                        )}
-
-                        {result.concerns.length > 0 && (
-                            <div className={styles.resultTags}>
-                                {result.concerns.map((c, i) => (
-                                    <span key={i} className={styles.tagConcern}>⚠️ {c}</span>
-                                ))}
-                            </div>
-                        )}
-
+                        <h2 className={styles.resultTitle}>¡Evaluación Enviada!</h2>
                         <p className={styles.resultMessage}>
-                            {result.semaphore === 'green'
-                                ? 'Tu evaluación ha sido registrada exitosamente. Puedes continuar con tu certificación.'
-                                : result.semaphore === 'yellow'
-                                    ? 'Tu evaluación será revisada por un supervisor. Te notificaremos el resultado.'
-                                    : 'Lamentablemente no cumples con el perfil requerido en este momento.'}
+                            Tus respuestas han sido recibidas exitosamente y están siendo analizadas.
+                            <br /><br />
+                            <strong>El equipo de Gerencia Comercial revisará detenidamente tu perfil.</strong>
+                            <br />Te notificaremos el resultado en cuanto se complete la evaluación.
                         </p>
 
-                        <div style={{ marginTop: '1.5rem' }}>
+                        <div style={{ marginTop: '2rem' }}>
                             <button
                                 onClick={() => router.push('/dashboard')}
                                 className={styles.btnPrimary}
                                 style={{ margin: '0 auto' }}
                             >
-                                Volver al Dashboard
+                                <CheckCircle size={18} />
+                                Entendido, volver al Inicio
                             </button>
                         </div>
                     </div>
@@ -193,17 +126,17 @@ export default function EvaluacionActitudinalPage() {
         );
     }
 
-    // Analyzing view
-    if (isAnalyzing) {
+    // Submitting view
+    if (isSubmitting) {
         return (
             <div className={styles.page}>
                 <div className={styles.container}>
                     <div className={styles.card}>
                         <div className={styles.analyzing}>
                             <div className={styles.analyzingSpinner} />
-                            <h3 className={styles.analyzingTitle}>Analizando tu perfil...</h3>
+                            <h3 className={styles.analyzingTitle}>Enviando respuestas...</h3>
                             <p className={styles.analyzingText}>
-                                Nuestra IA está evaluando tus respuestas para determinar tu perfil actitudinal.
+                                Por favor espera mientras guardamos tu información.
                             </p>
                         </div>
                     </div>
@@ -221,7 +154,7 @@ export default function EvaluacionActitudinalPage() {
                     </div>
                     <h1 className={styles.title}>Evaluación Actitudinal</h1>
                     <p className={styles.subtitle}>
-                        Responde con sinceridad. Esta evaluación determina tu alineación con los valores y cultura de Urbanity.
+                        Responde con sinceridad y detalle. El gerente comercial evaluará estas respuestas para determinar tu perfil.
                     </p>
                 </div>
 
@@ -247,7 +180,7 @@ export default function EvaluacionActitudinalPage() {
                         className={styles.textarea}
                         value={answers[currentQuestion]}
                         onChange={(e) => handleAnswer(e.target.value)}
-                        placeholder="Escribe tu respuesta aquí con honestidad y detalle..."
+                        placeholder="Escribe tu respuesta aquí con honestidad y mayor detalle posible (Mínimo 20 caracteres)..."
                         maxLength={1000}
                     />
                     <div className={styles.charCount}>
@@ -295,3 +228,4 @@ export default function EvaluacionActitudinalPage() {
         </div>
     );
 }
+

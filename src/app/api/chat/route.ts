@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
         } catch (error) {
             console.error('Error fetching knowledge base:', error);
             // Fallback to basic instruction if DB fails
-            systemInstruction = 'Eres SofIA, una asistente inteligente útil.';
+            systemInstruction = 'Eres Bally IA, una asistente inteligente útil.';
         }
 
         // 2. Construct Chat Prompt
@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
         // We will construct a text prompt with history.
 
         let prompt = `INSTRUCCIONES DEL SISTEMA:
-${systemInstruction || 'Eres SofIA, una asistente inteligente, amigable y experta.'}
+${systemInstruction || 'Eres Bally IA, una asistente inteligente, amigable y experta.'}
 
 IMPORTANTE: TU PERSONALIDAD Y FORMATO DE RESPUESTA
 1.  **Tono Cercano y Amigable**: Háblame como si fuéramos amigos cercanos chateando por WhatsApp. Usa un lenguaje natural, cálido y empático.
@@ -64,11 +64,11 @@ SIGUE ESTE FORMATO SIEMPRE.
 
         if (Array.isArray(history)) {
             history.forEach((msg: any) => {
-                prompt += `${msg.role === 'user' ? 'Usuario' : 'SofIA'}: ${msg.content}\n`;
+                prompt += `${msg.role === 'user' ? 'Usuario' : 'Bally IA'}: ${msg.content}\n`;
             });
         }
 
-        prompt += `\nUsuario: ${message}\nSofIA:`;
+        prompt += `\nUsuario: ${message}\nBally IA:`;
 
         // 3. Call Gemini
         const result = await geminiModel.generateContent(prompt);

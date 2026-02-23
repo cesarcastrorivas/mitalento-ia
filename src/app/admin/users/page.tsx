@@ -31,7 +31,9 @@ import {
     Mail,
     Lock,
     Shield,
-    UserPlus
+    UserPlus,
+    Save,
+    AlertTriangle
 } from 'lucide-react';
 
 export default function UsersPage() {
@@ -48,6 +50,17 @@ export default function UsersPage() {
     const [selectedUserPath, setSelectedUserPath] = useState<User | null>(null);
     const [tempAssignedPaths, setTempAssignedPaths] = useState<string[]>([]);
     const [savingPaths, setSavingPaths] = useState(false);
+
+    // Estados para modal de edición
+    const [showEditModal, setShowEditModal] = useState(false);
+    const [editingUser, setEditingUser] = useState<User | null>(null);
+    const [editFormData, setEditFormData] = useState({
+        displayName: '',
+        email: '',
+        password: '',
+        role: 'student' as UserRole,
+    });
+    const [savingEdit, setSavingEdit] = useState(false);
 
     // Estado para búsqueda y filtros
     const [searchTerm, setSearchTerm] = useState('');
@@ -199,8 +212,54 @@ export default function UsersPage() {
             });
             // Actualizar localmente para snappiness
             setUsers(users.map(u => u.uid === user.uid ? { ...u, isActive: !u.isActive } : u));
+            // Si estamos en el modal, actualizar también el editingUser
+            if (editingUser && editingUser.uid === user.uid) {
+                setEditingUser({ ...editingUser, isActive: !editingUser.isActive });
+            }
         } catch (error) {
             console.error('Error updating user:', error);
+        }
+    };
+
+    const handleOpenEditModal = (user: User) => {
+        setEditingUser(user);
+        setEditFormData({
+            displayName: user.displayName || '',
+            email: user.email || '',
+            password: '',
+            role: user.role,
+        });
+        setShowEditModal(true);
+    };
+
+    const handleSaveEdit = async () => {
+        if (!editingUser) return;
+        try {
+            setSavingEdit(true);
+            const updateData: Record<string, any> = {
+                displayName: editFormData.displayName,
+                email: editFormData.email,
+                role: editFormData.role,
+            };
+            // Solo guardar contraseña si se proporcionó una nueva
+            if (editFormData.password.trim()) {
+                updateData.password = editFormData.password;
+            }
+            await updateDoc(doc(db, 'users', editingUser.uid), updateData);
+            // Actualizar localmente
+            setUsers(users.map(u => u.uid === editingUser.uid ? {
+                ...u,
+                displayName: editFormData.displayName,
+                email: editFormData.email,
+                role: editFormData.role,
+            } : u));
+            setShowEditModal(false);
+            setEditingUser(null);
+        } catch (error) {
+            console.error('Error updating user:', error);
+            alert('Error al actualizar usuario: ' + (error as Error).message);
+        } finally {
+            setSavingEdit(false);
         }
     };
 
@@ -344,11 +403,11 @@ export default function UsersPage() {
                                         </button>
 
                                         <button
-                                            onClick={() => handleToggleActive(user)}
+                                            onClick={() => handleOpenEditModal(user)}
                                             className={styles.actionBtn}
-                                            title={user.isActive ? 'Desactivar' : 'Activar'}
+                                            title="Editar usuario"
                                         >
-                                            {user.isActive ? <XCircle size={18} /> : <CheckCircle size={18} />}
+                                            <Edit2 size={18} />
                                         </button>
 
                                         {user.uid !== currentUser?.uid && (
@@ -582,6 +641,181 @@ export default function UsersPage() {
                                 className="px-5 py-2.5 bg-indigo-600 text-white font-medium hover:bg-indigo-700 rounded-xl transition-all shadow-sm flex items-center gap-2"
                             >
                                 {savingPaths ? 'Guardando...' : 'Guardar Especializaciones'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Modal para editar usuario */}
+            {showEditModal && editingUser && (
+                <div
+                    className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-50 flex items-center justify-center p-4 animate-fade-in"
+                    onClick={() => setShowEditModal(false)}
+                >
+                    <div
+                        className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh] ring-1 ring-slate-900/5 transition-all"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        {/* Header */}
+                        <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-white">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 text-white flex items-center justify-center font-bold text-lg shadow-md">
+                                    {editingUser.displayName?.charAt(0).toUpperCase() || '?'}
+                                </div>
+                                <div>
+                                    <h2 className="text-xl font-bold text-slate-800 tracking-tight">Editar Usuario</h2>
+                                    <p className="text-xs text-slate-500 font-medium mt-0.5">Modificar datos de {editingUser.displayName}</p>
+                                </div>
+                            </div>
+                            <button
+                                onClick={() => setShowEditModal(false)}
+                                className="w-8 h-8 flex items-center justify-center rounded-full text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors"
+                            >
+                                <XCircle size={22} />
+                            </button>
+                        </div>
+
+                        {/* Body */}
+                        <div className="p-6 overflow-y-auto bg-slate-50/30 space-y-5">
+                            {/* Nombre */}
+                            <div>
+                                <label className="block text-sm font-semibold text-slate-700 mb-1.5 ml-1">Nombre completo</label>
+                                <div className="relative">
+                                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                                        <UserCircle size={18} />
+                                    </div>
+                                    <input
+                                        type="text"
+                                        className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all outline-none shadow-sm placeholder:text-slate-400"
+                                        value={editFormData.displayName}
+                                        onChange={(e) => setEditFormData(prev => ({ ...prev, displayName: e.target.value }))}
+                                        placeholder="Nombre del usuario"
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Email */}
+                            <div>
+                                <label className="block text-sm font-semibold text-slate-700 mb-1.5 ml-1">Correo electrónico</label>
+                                <div className="relative">
+                                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                                        <Mail size={18} />
+                                    </div>
+                                    <input
+                                        type="email"
+                                        className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all outline-none shadow-sm placeholder:text-slate-400"
+                                        value={editFormData.email}
+                                        onChange={(e) => setEditFormData(prev => ({ ...prev, email: e.target.value }))}
+                                        placeholder="correo@ejemplo.com"
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Contraseña */}
+                            <div>
+                                <label className="block text-sm font-semibold text-slate-700 mb-1.5 ml-1">Nueva contraseña</label>
+                                <div className="relative">
+                                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                                        <Lock size={18} />
+                                    </div>
+                                    <input
+                                        type="password"
+                                        className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all outline-none shadow-sm placeholder:text-slate-400"
+                                        value={editFormData.password}
+                                        onChange={(e) => setEditFormData(prev => ({ ...prev, password: e.target.value }))}
+                                        placeholder="Dejar vacío para no cambiar"
+                                    />
+                                </div>
+                                <p className="text-xs text-slate-400 mt-1.5 ml-1">Solo completa si deseas cambiar la contraseña actual</p>
+                            </div>
+
+                            {/* Rol */}
+                            <div>
+                                <label className="block text-sm font-semibold text-slate-700 mb-1.5 ml-1">Rol de Acceso</label>
+                                <div className="relative">
+                                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                                        <Shield size={18} />
+                                    </div>
+                                    <select
+                                        className="w-full pl-10 pr-10 py-2.5 bg-white border border-slate-200 rounded-xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all outline-none text-slate-700 shadow-sm appearance-none"
+                                        value={editFormData.role}
+                                        onChange={(e) => setEditFormData(prev => ({ ...prev, role: e.target.value as UserRole }))}
+                                        style={{ backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`, backgroundPosition: `right 0.5rem center`, backgroundRepeat: `no-repeat`, backgroundSize: `1.5em 1.5em` }}
+                                    >
+                                        <option value="student">Estudiante / Usuario</option>
+                                        <option value="admin">Administrador del Sistema</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            {/* Separador */}
+                            <div className="border-t border-slate-200 pt-4 mt-2">
+                                <div className={`rounded-xl p-4 transition-all ${editingUser.isActive
+                                        ? 'bg-amber-50 border border-amber-200'
+                                        : 'bg-emerald-50 border border-emerald-200'
+                                    }`}>
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-3">
+                                            <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${editingUser.isActive
+                                                    ? 'bg-amber-100 text-amber-600'
+                                                    : 'bg-emerald-100 text-emerald-600'
+                                                }`}>
+                                                <AlertTriangle size={18} />
+                                            </div>
+                                            <div>
+                                                <p className="text-sm font-semibold text-slate-800">
+                                                    {editingUser.isActive ? 'Desactivar usuario' : 'Reactivar usuario'}
+                                                </p>
+                                                <p className="text-xs text-slate-500 mt-0.5">
+                                                    {editingUser.isActive
+                                                        ? 'El alumno no podrá acceder, pero sus datos se conservarán'
+                                                        : 'El alumno recuperará el acceso a la plataforma'
+                                                    }
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <button
+                                            type="button"
+                                            onClick={() => handleToggleActive(editingUser)}
+                                            className={`relative w-12 h-7 rounded-full transition-all duration-300 focus:outline-none focus:ring-4 ${editingUser.isActive
+                                                    ? 'bg-emerald-500 focus:ring-emerald-500/20'
+                                                    : 'bg-slate-300 focus:ring-slate-300/20'
+                                                }`}
+                                        >
+                                            <span className={`absolute top-0.5 left-0.5 w-6 h-6 bg-white rounded-full shadow-md transition-transform duration-300 ${editingUser.isActive ? 'translate-x-5' : 'translate-x-0'
+                                                }`} />
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Footer */}
+                        <div className="p-6 border-t border-slate-100 bg-slate-50 flex items-center justify-end gap-3 rounded-b-2xl">
+                            <button
+                                type="button"
+                                onClick={() => setShowEditModal(false)}
+                                className="px-5 py-2.5 text-slate-600 font-medium hover:bg-slate-200/50 rounded-xl transition-colors"
+                            >
+                                Cancelar
+                            </button>
+                            <button
+                                onClick={handleSaveEdit}
+                                disabled={savingEdit}
+                                className="px-5 py-2.5 bg-indigo-600 text-white font-medium hover:bg-indigo-700 rounded-xl transition-all shadow-sm hover:shadow-indigo-200 disabled:opacity-70 disabled:cursor-not-allowed flex items-center gap-2"
+                            >
+                                {savingEdit ? (
+                                    <>
+                                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                                        <span>Guardando...</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <Save size={18} />
+                                        <span>Guardar Cambios</span>
+                                    </>
+                                )}
                             </button>
                         </div>
                     </div>

@@ -452,3 +452,197 @@
     opacity: 0.5;
     cursor: not-allowed;
 }
+
+/* View Responses Button */
+.viewBtn {
+    padding: 0.35rem 0.65rem;
+    border: 1px solid #818cf8;
+    border-radius: 8px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: #6366f1;
+    background: rgba(99, 102, 241, 0.06);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    transition: all 0.15s;
+}
+
+.viewBtn:hover {
+    background: rgba(99, 102, 241, 0.15);
+    border-color: #6366f1;
+}
+
+/* Review Modal (wider for responses) */
+.reviewModal {
+    background: white;
+    border-radius: 20px;
+    max-width: 680px;
+    width: 100%;
+    max-height: 85vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 24px 48px rgba(0, 0, 0, 0.18);
+    animation: modalIn 0.25s ease-out;
+}
+
+@keyframes modalIn {
+    from {
+        opacity: 0;
+        transform: translateY(12px) scale(0.97);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.reviewModalHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 1.5rem 1.75rem 1rem;
+    border-bottom: 1px solid #f3f4f6;
+}
+
+.closeBtn {
+    padding: 0.4rem;
+    border: none;
+    background: #f3f4f6;
+    border-radius: 10px;
+    color: #6b7280;
+    cursor: pointer;
+    transition: all 0.15s;
+    flex-shrink: 0;
+}
+
+.closeBtn:hover {
+    background: #e5e7eb;
+    color: #111827;
+}
+
+/* Responses Container */
+.responsesContainer {
+    padding: 1.25rem 1.75rem;
+    overflow-y: auto;
+    flex: 1;
+}
+
+.noResponses {
+    text-align: center;
+    color: #9ca3af;
+    padding: 2rem 0;
+    font-size: 0.9rem;
+}
+
+.responseCard {
+    margin-bottom: 1.25rem;
+    border: 1px solid #f3f4f6;
+    border-radius: 14px;
+    overflow: hidden;
+    transition: border-color 0.2s;
+}
+
+.responseCard:hover {
+    border-color: #e0e0e0;
+}
+
+.responseQuestion {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6rem;
+    padding: 0.85rem 1rem;
+    background: #fafbfc;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #374151;
+    line-height: 1.45;
+}
+
+.questionBadge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #6366f1, #818cf8);
+    color: white;
+    font-size: 0.65rem;
+    font-weight: 800;
+    flex-shrink: 0;
+    margin-top: 1px;
+}
+
+.responseAnswer {
+    padding: 0.85rem 1rem;
+    font-size: 0.85rem;
+    color: #111827;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    background: white;
+}
+
+/* Review Modal Action Buttons */
+.reviewActions {
+    display: flex;
+    gap: 0.75rem;
+    padding: 1rem 1.75rem 1.5rem;
+    border-top: 1px solid #f3f4f6;
+}
+
+.reviewApproveBtn {
+    flex: 1;
+    padding: 0.7rem 1rem;
+    border: none;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: white;
+    background: linear-gradient(135deg, #10b981, #059669);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    transition: all 0.15s;
+}
+
+.reviewApproveBtn:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+}
+
+.reviewRejectBtn {
+    flex: 1;
+    padding: 0.7rem 1rem;
+    border: none;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: white;
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    transition: all 0.15s;
+}
+
+.reviewRejectBtn:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+}
+
+/* Status Banner in Review Modal */
+.reviewStatusBanner {
+    margin: 0 1.75rem 1.5rem;
+    padding: 0.75rem 1rem;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-align: center;
+}
