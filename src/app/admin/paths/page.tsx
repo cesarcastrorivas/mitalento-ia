@@ -163,76 +163,73 @@ export default function PathsPage() {
     }
 
     return (
-        <div className="space-y-8 animate-fade-in">
+        <div className="space-y-8 animate-fade-in pb-12">
             {/* Header with Actions */}
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
                 <div>
                     <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Rutas de Aprendizaje</h1>
-                    <p className="text-slate-500 mt-2 text-lg">Define el mapa de conocimientos para tu equipo.</p>
+                    <p className="text-slate-500 mt-2 text-base font-medium">Define el mapa de conocimientos para tu equipo.</p>
                 </div>
-                <button
-                    onClick={() => handleOpenModal()}
-                    className="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 text-white font-medium hover:bg-indigo-700 rounded-xl transition-all shadow-sm hover:shadow-indigo-200"
-                >
-                    <Plus size={20} />
-                    <span>Nueva Ruta Especializada</span>
-                </button>
             </div>
 
-            {/* Filters */}
-            <div className="flex items-center gap-4 bg-white p-2 text-sm rounded-2xl border border-slate-200 shadow-sm">
-                <div className="flex-1 flex items-center gap-3 px-4">
-                    <Search size={20} className="text-slate-400" />
+            {/* Search & Actions */}
+            <div className="flex flex-col md:flex-row items-center gap-4">
+                <div className="flex-1 w-full relative">
+                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                        <Search size={20} className="text-slate-400" />
+                    </div>
                     <input
                         type="text"
                         placeholder="Buscar rutas..."
-                        className="flex-1 bg-transparent border-none focus:ring-0 text-base placeholder:text-slate-400 py-2 outline-none"
+                        className="w-full pl-11 pr-4 py-3 bg-white/70 backdrop-blur-md border border-slate-200/80 rounded-full focus:ring-4 focus:ring-[#135bec]/10 focus:border-[#135bec] text-sm text-slate-800 placeholder:text-slate-400 outline-none transition-all shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)]"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
                 </div>
-                <div className="w-[1px] h-8 bg-slate-200"></div>
-                <button className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 rounded-xl transition-colors">
-                    <Filter size={18} />
-                    <span>Filtros</span>
+                <button
+                    onClick={() => handleOpenModal()}
+                    className="flex items-center justify-center w-full md:w-auto gap-2 px-6 py-3 bg-[#135bec] text-white font-semibold hover:bg-[#0f4ac0] rounded-full transition-all duration-300 shadow-[0_4px_14px_0_rgba(19,91,236,0.25)] hover:shadow-[0_6px_20px_0_rgba(19,91,236,0.35)] active:scale-95 shrink-0"
+                >
+                    <Plus size={20} strokeWidth={2.5} />
+                    <span>Nueva Ruta Especializada</span>
                 </button>
             </div>
 
             {/* List View - Premium UI */}
-            <div className="grid grid-cols-1 gap-6">
+            <div className="grid grid-cols-1 gap-5">
                 {filteredPaths.map((path) => {
                     const esFija = isFixedPath(path.id);
 
                     // Determinar estilos visuales basados en el nivel
                     let levelStyles = {
                         bg: 'bg-slate-50',
-                        text: 'text-slate-700',
+                        text: 'text-slate-600',
                         border: 'border-slate-200',
-                        iconBg: 'bg-slate-100',
+                        iconBg: 'bg-slate-50',
                         label: 'Sin Nivel'
                     };
 
                     if (path.certificationLevel === 'fundamental') {
                         levelStyles = {
-                            bg: 'bg-emerald-50',
+                            bg: 'bg-emerald-50/80',
                             text: 'text-emerald-700',
-                            border: 'border-emerald-200',
+                            border: 'border-emerald-200/60',
                             iconBg: 'bg-emerald-50 text-emerald-600',
                             label: 'Fundamental'
                         };
                     } else if (path.certificationLevel === 'professional') {
                         levelStyles = {
-                            bg: 'bg-amber-500',
-                            text: 'text-white',
-                            border: 'border-amber-600',
+                            bg: 'bg-amber-50/80',
+                            text: 'text-amber-700',
+                            border: 'border-amber-200/60',
                             iconBg: 'bg-amber-100 text-amber-600',
                             label: 'Profesional'
                         };
                     } else if (path.certificationLevel === 'elite') {
                         levelStyles = {
-                            bg: 'bg-rose-50',
+                            bg: 'bg-rose-50/80',
                             text: 'text-rose-700',
-                            border: 'border-rose-200',
+                            border: 'border-rose-200/60',
                             iconBg: 'bg-rose-50 text-rose-600',
                             label: 'Élite'
                         };
@@ -241,79 +238,76 @@ export default function PathsPage() {
                     return (
                         <div
                             key={path.id}
-                            className="group relative bg-white rounded-2xl p-6 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] hover:shadow-[0_8px_30px_-4px_rgba(0,0,0,0.1)] border border-slate-200 transition-all duration-300 overflow-hidden"
+                            className="group relative bg-white rounded-[24px] p-6 shadow-[0_4px_24px_-8px_rgba(0,0,0,0.06)] hover:shadow-[0_12px_40px_-12px_rgba(0,0,0,0.12)] border border-slate-100 transition-all duration-400 ease-out"
                         >
-                            {/* Decorative gradient blob */}
-                            <div className={`absolute -right-24 -top-24 w-48 h-48 rounded-full blur-3xl opacity-20 transition-opacity group-hover:opacity-40 pointer-events-none ${levelStyles.bg.replace('bg-', 'bg-').replace('-50', '-400').replace('-500', '-400')}`}></div>
-
-                            <div className="flex flex-col md:flex-row items-start md:items-center gap-6 relative z-10">
+                            <div className="flex flex-col md:flex-row items-start md:items-center gap-6 relative z-10 w-full">
                                 {/* Icon Container */}
-                                <div className={`shrink-0 w-16 h-16 rounded-2xl flex items-center justify-center text-3xl shadow-sm border border-white/50 ${levelStyles.iconBg}`}>
+                                <div className={`shrink-0 w-16 h-16 rounded-[18px] flex items-center justify-center text-3xl transition-transform duration-300 group-hover:scale-105 ${levelStyles.iconBg}`}>
                                     {path.icon}
                                 </div>
 
                                 {/* Main Content */}
-                                <div className="flex-1 min-w-0">
-                                    <div className="flex items-center gap-3 mb-1">
-                                        <h3 className="text-xl font-bold text-slate-900 group-hover:text-indigo-600 transition-colors">
+                                <div className="flex-1 min-w-0 flex flex-col justify-center">
+                                    <div className="flex items-center gap-3 mb-1.5 flex-wrap">
+                                        <h3 className="text-[1.15rem] font-bold text-slate-800 tracking-tight leading-tight">
                                             {path.title}
                                         </h3>
-                                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border ${levelStyles.bg} ${levelStyles.text} ${levelStyles.border}`}>
+                                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wide uppercase border ${levelStyles.bg} ${levelStyles.text} ${levelStyles.border}`}>
                                             {levelStyles.label}
                                         </span>
                                         {esFija && (
-                                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 text-[10px] font-bold tracking-wider uppercase">
-                                                <Shield size={10} />
+                                            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-slate-100/80 text-slate-500 text-[10px] font-bold tracking-wide uppercase border border-slate-200/60">
+                                                <Shield size={10} className="text-slate-400" />
                                                 Obligatoria
                                             </span>
                                         )}
                                     </div>
-                                    <p className="text-slate-500 text-sm leading-relaxed mb-4 md:mb-0 max-w-3xl">
+                                    <p className="text-slate-500 text-sm leading-relaxed mb-4 md:mb-0 max-w-2xl line-clamp-2">
                                         {path.description}
                                     </p>
                                 </div>
 
                                 {/* Meta & Actions */}
-                                <div className="flex items-center gap-4 w-full md:w-auto mt-4 md:mt-0 pt-4 md:pt-0 border-t md:border-t-0 border-slate-100 shrink-0">
-                                    <div className="flex flex-col gap-1.5 items-start md:items-end w-full md:w-auto mr-4">
-                                        <div className="flex items-center gap-4">
-                                            <span className="text-sm font-medium text-slate-500">
-                                                Orden: {path.order}
-                                            </span>
-                                            <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${path.isActive ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-slate-50 text-slate-600 border-slate-100'}`}>
-                                                <span className={`w-1.5 h-1.5 rounded-full ${path.isActive ? 'bg-emerald-500' : 'bg-slate-400'}`}></span>
-                                                {path.isActive ? 'Activa' : 'Inactiva'}
-                                            </span>
+                                <div className="flex flex-col md:flex-row items-start md:items-center gap-5 w-full md:w-auto mt-4 md:mt-0 pt-4 md:pt-0 border-t md:border-t-0 border-slate-100 shrink-0">
+                                    <div className="flex items-center gap-4">
+                                        <span className="text-xs font-semibold text-slate-400 uppercase tracking-wide">
+                                            Orden: {path.order}
+                                        </span>
+                                        <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wide ${path.isActive ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-50 text-slate-500'}`}>
+                                            <span className={`w-1.5 h-1.5 rounded-full ${path.isActive ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' : 'bg-slate-400'}`}></span>
+                                            {path.isActive ? 'Activa' : 'Inactiva'}
                                         </div>
                                     </div>
 
-                                    {!esFija && (
-                                        <div className="flex items-center gap-1 mr-2 border-r border-slate-200 pr-3">
-                                            <button
-                                                onClick={() => handleOpenModal(path)}
-                                                className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
-                                                title="Editar Ruta"
-                                            >
-                                                <Edit2 size={18} />
-                                            </button>
-                                            <button
-                                                onClick={() => handleDeletePath(path.id)}
-                                                className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                                                title="Eliminar Ruta"
-                                            >
-                                                <Trash2 size={18} />
-                                            </button>
-                                        </div>
-                                    )}
+                                    <div className="flex items-center gap-3 w-full md:w-auto justify-end">
+                                        {!esFija && (
+                                            <div className="flex items-center gap-1 mr-1">
+                                                <button
+                                                    onClick={() => handleOpenModal(path)}
+                                                    className="p-2.5 text-slate-400 hover:text-[#135bec] hover:bg-[#135bec]/5 rounded-xl transition-all"
+                                                    title="Editar Ruta"
+                                                >
+                                                    <Edit2 size={18} />
+                                                </button>
+                                                <button
+                                                    onClick={() => handleDeletePath(path.id)}
+                                                    className="p-2.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all"
+                                                    title="Eliminar Ruta"
+                                                >
+                                                    <Trash2 size={18} />
+                                                </button>
+                                            </div>
+                                        )}
 
-                                    <Link
-                                        href={`/admin/paths/${path.id}`}
-                                        className="shrink-0 px-5 py-2.5 bg-indigo-600 text-white font-medium hover:bg-indigo-700 hover:shadow-lg hover:shadow-indigo-200/50 rounded-xl transition-all flex items-center gap-2"
-                                        title="Gestionar Cursos en esta Ruta"
-                                    >
-                                        <BookOpen size={18} />
-                                        <span>Gestionar</span>
-                                    </Link>
+                                        <Link
+                                            href={`/admin/paths/${path.id}`}
+                                            className="shrink-0 px-6 py-2.5 bg-slate-50 text-[#135bec] font-semibold hover:bg-[#135bec] hover:text-white rounded-full transition-all duration-300 flex items-center gap-2 border border-[#135bec]/10 hover:border-transparent group/btn active:scale-95"
+                                            title="Gestionar Cursos en esta Ruta"
+                                        >
+                                            <BookOpen size={18} className="transition-transform group-hover/btn:-translate-y-0.5" />
+                                            <span>Gestionar</span>
+                                        </Link>
+                                    </div>
                                 </div>
                             </div>
                         </div>

@@ -1,34 +1,45 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { collection, getDocs } from 'firebase/firestore';
+import { collection, getDocs, query, where, orderBy, limit } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import { Course, User } from '@/types';
-import { FIXED_PATHS } from '@/lib/constants';
+import { User } from '@/types';
 import Link from 'next/link';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import {
-    Map,
-    BookOpen,
     Users,
     GraduationCap,
-    Zap,
     ArrowRight,
     Layout,
-    FileVideo,
-    Plus,
-    TrendingUp,
+    BookOpen,
+    Award,
+    ClipboardList,
+    Target,
+    CheckCircle,
+    XCircle,
+    Clock,
     MoreHorizontal
 } from 'lucide-react';
 
+interface RecentActivity {
+    id: string;
+    type: 'quiz' | 'evaluation';
+    studentName: string;
+    detail: string;
+    score?: number;
+    passed?: boolean;
+    timestamp: Date;
+}
+
 export default function AdminDashboard() {
     const [stats, setStats] = useState({
-        totalModules: 0,
-        activeModules: 0,
-        totalUsers: 0,
-        totalStudents: 0,
+        activeStudents: 0,
+        certificationRate: 0,
+        pendingEvaluations: 0,
+        averageScore: 0,
     });
+    const [recentActivity, setRecentActivity] = useState<RecentActivity[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -37,25 +48,104 @@ export default function AdminDashboard() {
 
     const loadDashboardData = async () => {
         try {
-            // Usar rutas fijas
-            const paths = FIXED_PATHS;
-            const existingPathIds = new Set(paths.map(p => p.id));
-
-            // Cargar Cursos y filtrar solo los que pertenecen a las rutas fijas
-            const coursesSnapshot = await getDocs(collection(db, 'courses'));
-            const allCourses = coursesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Course));
-            const validCourses = allCourses.filter(course => existingPathIds.has(course.pathId));
-
-            // Cargar usuarios
+            // 1. Estudiantes activos
             const usersSnapshot = await getDocs(collection(db, 'users'));
-            const users = usersSnapshot.docs.map(doc => doc.data() as User);
+            const users = usersSnapshot.docs.map(d => ({ uid: d.id, ...d.data() } as User));
+            const students = users.filter(u => u.role === 'student');
+            const activeStudents = students.filter(u => u.isActive).length;
+
+            // 2. Tasa de certificación
+            const certsSnapshot = await getDocs(
+                query(collection(db, 'certificates'), where('isActive', '==', true))
+            );
+            const totalCerts = certsSnapshot.size;
+            const certificationRate = activeStudents > 0
+                ? Math.round((totalCerts / activeStudents) * 100)
+                : 0;
+
+            // 3. Evaluaciones pendientes
+            const evalsSnapshot = await getDocs(
+                query(collection(db, 'attitudinal_evaluations'), where('semaphore', '==', 'pending'))
+            );
+            const pendingEvaluations = evalsSnapshot.size;
+
+            // 4. Promedio general de scores
+            const sessionsSnapshot = await getDocs(collection(db, 'quiz_sessions'));
+            const sessions = sessionsSnapshot.docs.map(d => d.data());
+            let totalScore = 0;
+            sessions.forEach((s: any) => {
+                totalScore += s.score || 0;
+            });
+            const averageScore = sessions.length > 0
+                ? Math.round(totalScore / sessions.length)
+                : 0;
 
             setStats({
-                totalModules: paths.length,
-                activeModules: validCourses.length,
-                totalUsers: users.length,
-                totalStudents: users.filter(u => u.role === 'student').length,
+                activeStudents,
+                certificationRate,
+                pendingEvaluations,
+                averageScore,
             });
+
+            // 5. Actividad reciente (últimas quiz sessions)
+            // Build a user map for names
+            const userMap = new Map<string, string>();
+            users.forEach(u => userMap.set(u.uid, u.displayName));
+
+            const activities: RecentActivity[] = [];
+
+            // Recent quiz sessions
+            const recentSessions = sessionsSnapshot.docs
+                .map(d => ({ id: d.id, ...d.data() } as any))
+                .filter(s => s.completedAt)
+                .sort((a: any, b: any) => {
+                    const ta = a.completedAt?.toDate?.() || new Date(0);
+                    const tb = b.completedAt?.toDate?.() || new Date(0);
+                    return tb.getTime() - ta.getTime();
+                })
+                .slice(0, 5);
+
+            recentSessions.forEach((s: any) => {
+                activities.push({
+                    id: s.id,
+                    type: 'quiz',
+                    studentName: userMap.get(s.userId) || 'Estudiante',
+                    detail: `Quiz completado — ${s.score}%`,
+                    score: s.score,
+                    passed: s.passed,
+                    timestamp: s.completedAt?.toDate?.() || new Date(),
+                });
+            });
+
+            // Recent evaluations
+            const evalsAllSnapshot = await getDocs(collection(db, 'attitudinal_evaluations'));
+            const recentEvals = evalsAllSnapshot.docs
+                .map(d => ({ id: d.id, ...d.data() } as any))
+                .filter(e => e.createdAt)
+                .sort((a: any, b: any) => {
+                    const ta = a.createdAt?.toDate?.() || new Date(0);
+                    const tb = b.createdAt?.toDate?.() || new Date(0);
+                    return tb.getTime() - ta.getTime();
+                })
+                .slice(0, 3);
+
+            recentEvals.forEach((e: any) => {
+                const statusLabel = e.semaphore === 'pending' ? 'Pendiente de revisión'
+                    : e.semaphore === 'green' ? 'Aprobada'
+                        : e.semaphore === 'red' ? 'No apta'
+                            : 'En revisión';
+                activities.push({
+                    id: e.id,
+                    type: 'evaluation',
+                    studentName: userMap.get(e.userId) || 'Estudiante',
+                    detail: `Evaluación actitudinal — ${statusLabel}`,
+                    timestamp: e.createdAt?.toDate?.() || new Date(),
+                });
+            });
+
+            // Sort by timestamp
+            activities.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+            setRecentActivity(activities.slice(0, 5));
 
         } catch (error) {
             console.error('Error loading dashboard data:', error);
@@ -85,85 +175,81 @@ export default function AdminDashboard() {
                 </div>
             </header>
 
-            {/* Stats Grid - Apple Widgets Style */}
+            {/* Stats Grid - Real KPIs */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 <StatCard
-                    icon={<Map size={24} />}
-                    value={stats.totalModules}
-                    label="Rutas Activas"
-                    trend="+12%"
+                    icon={<Users size={24} />}
+                    value={stats.activeStudents}
+                    label="Estudiantes Activos"
                     color="text-[var(--primary-600)] bg-[var(--primary-50)]"
                 />
                 <StatCard
-                    icon={<BookOpen size={24} />}
-                    value={stats.activeModules}
-                    label="Cursos Totales"
-                    trend="+5%"
-                    color="text-amber-600 bg-amber-50"
-                />
-                <StatCard
-                    icon={<Users size={24} />}
-                    value={stats.totalUsers}
-                    label="Usuarios"
-                    trend="+24%"
-                    color="text-[var(--primary-500)] bg-[var(--primary-50)]"
-                />
-                <StatCard
-                    icon={<GraduationCap size={24} />}
-                    value={stats.totalStudents}
-                    label="Estudiantes"
-                    trend="+18%"
+                    icon={<Award size={24} />}
+                    value={`${stats.certificationRate}%`}
+                    label="Tasa de Certificación"
                     color="text-emerald-600 bg-emerald-50"
+                />
+                <StatCard
+                    icon={<ClipboardList size={24} />}
+                    value={stats.pendingEvaluations}
+                    label="Evaluaciones Pendientes"
+                    color={stats.pendingEvaluations > 0
+                        ? "text-amber-600 bg-amber-50"
+                        : "text-slate-500 bg-slate-50"
+                    }
+                    alert={stats.pendingEvaluations > 0}
+                />
+                <StatCard
+                    icon={<Target size={24} />}
+                    value={`${stats.averageScore}%`}
+                    label="Promedio General"
+                    color="text-[var(--primary-500)] bg-[var(--primary-50)]"
                 />
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Main Action Area */}
                 <div className="lg:col-span-2 space-y-6">
-                    <div className="flex items-center justify-between">
-                        <h2 className="text-h2 text-[var(--text-primary)]">Acciones Rápidas</h2>
-                        <Button variant="ghost" className="text-[var(--primary-600)] hover:text-[var(--primary-700)] text-sm font-medium">
-                            Ver todo
-                        </Button>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                        <ActionCard
-                            href="/admin/paths"
-                            icon={<Layout size={28} />}
-                            title="Gestionar Contenido"
-                            description='Crea nuevas Rutas, asigna Cursos y organiza el material educativo.'
-                            color="from-[var(--primary-600)] to-[var(--primary-800)]"
-                        />
-                        <ActionCard
-                            href="/admin/users"
-                            icon={<Users size={28} />}
-                            title="Directorio de Usuarios"
-                            description="Administra estudiantes, profesores y permisos de acceso."
-                            color="from-slate-700 to-slate-900"
-                        />
-                    </div>
-
-                    {/* Recent Activity Placeholder - Could be a list */}
                     <div className="bg-[var(--bg-surface)] rounded-2xl p-6 shadow-sm border border-[rgba(0,0,0,0.04)]">
                         <div className="flex items-center justify-between mb-6">
                             <h3 className="text-h3 text-[var(--text-primary)]">Actividad Reciente</h3>
-                            <button className="p-2 hover:bg-[var(--bg-elevated)] rounded-full transition-colors text-[var(--text-muted)]">
-                                <MoreHorizontal size={20} />
-                            </button>
                         </div>
                         <div className="space-y-4">
-                            {[1, 2, 3].map((_, i) => (
-                                <div key={i} className="flex items-center gap-4 py-2 border-b border-[rgba(0,0,0,0.03)] last:border-0">
-                                    <div className="w-10 h-10 rounded-full bg-[var(--bg-elevated)] flex items-center justify-center text-[var(--text-secondary)]">
-                                        <Zap size={18} />
-                                    </div>
-                                    <div>
-                                        <p className="text-sm font-medium text-[var(--text-primary)]">Nuevo estudiante registrado</p>
-                                        <p className="text-xs text-[var(--text-muted)]">Hace {i * 2 + 5} minutos</p>
-                                    </div>
+                            {recentActivity.length === 0 ? (
+                                <div className="text-center py-8">
+                                    <div className="text-3xl mb-2">📭</div>
+                                    <p className="text-sm text-[var(--text-muted)]">Sin actividad reciente aún</p>
                                 </div>
-                            ))}
+                            ) : (
+                                recentActivity.map((activity) => (
+                                    <div key={activity.id} className="flex items-center gap-4 py-2 border-b border-[rgba(0,0,0,0.03)] last:border-0">
+                                        <div className={`w-10 h-10 rounded-full flex items-center justify-center ${activity.type === 'quiz'
+                                            ? activity.passed
+                                                ? 'bg-emerald-50 text-emerald-600'
+                                                : 'bg-red-50 text-red-500'
+                                            : 'bg-amber-50 text-amber-600'
+                                            }`}>
+                                            {activity.type === 'quiz'
+                                                ? activity.passed
+                                                    ? <CheckCircle size={18} />
+                                                    : <XCircle size={18} />
+                                                : <Clock size={18} />
+                                            }
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <p className="text-sm font-medium text-[var(--text-primary)] truncate">
+                                                {activity.studentName}
+                                            </p>
+                                            <p className="text-xs text-[var(--text-muted)]">
+                                                {activity.detail}
+                                            </p>
+                                        </div>
+                                        <div className="text-xs text-[var(--text-muted)] whitespace-nowrap">
+                                            {formatTimeAgo(activity.timestamp)}
+                                        </div>
+                                    </div>
+                                ))
+                            )}
                         </div>
                     </div>
                 </div>
@@ -213,17 +299,38 @@ export default function AdminDashboard() {
     );
 }
 
-function StatCard({ icon, value, label, trend, color }: { icon: React.ReactNode; value: number; label: string; trend: string; color: string }) {
+function formatTimeAgo(date: Date): string {
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+
+    if (diffMins < 1) return 'Ahora';
+    if (diffMins < 60) return `Hace ${diffMins}m`;
+    if (diffHours < 24) return `Hace ${diffHours}h`;
+    if (diffDays < 7) return `Hace ${diffDays}d`;
+    return date.toLocaleDateString('es-PE', { day: 'numeric', month: 'short' });
+}
+
+function StatCard({ icon, value, label, color, alert }: {
+    icon: React.ReactNode;
+    value: number | string;
+    label: string;
+    color: string;
+    alert?: boolean;
+}) {
     return (
         <Card className="card-premium flex flex-col justify-between h-full !p-6 hover:!shadow-[0_20px_40px_-12px_rgba(0,0,0,0.1)]">
             <div className="flex items-start justify-between mb-4">
                 <div className={`p-3.5 rounded-2xl ${color}`}>
                     {icon}
                 </div>
-                <div className="flex items-center text-xs font-bold text-[var(--success)] bg-[rgba(34,197,94,0.1)] px-2 py-1 rounded-full">
-                    <TrendingUp size={12} className="mr-1" />
-                    {trend}
-                </div>
+                {alert && (
+                    <div className="flex items-center text-xs font-bold text-amber-600 bg-amber-50 px-2 py-1 rounded-full">
+                        Acción requerida
+                    </div>
+                )}
             </div>
             <div>
                 <span className="block text-4xl font-bold text-[var(--text-primary)] leading-none mb-2 tracking-tight">{value}</span>
@@ -243,7 +350,6 @@ function ActionCard({ href, icon, title, description, color }: { href: string; i
             `}>
                 <div className="absolute top-0 right-0 p-8 opacity-10 transform translate-x-1/4 -translate-y-1/4">
                     {icon}
-                    {/* Large background icon */}
                 </div>
 
                 <div className="relative z-10 flex flex-col h-full">

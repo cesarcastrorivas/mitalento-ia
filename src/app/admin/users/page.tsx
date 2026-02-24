@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import {
     collection,
     query,
@@ -12,8 +12,9 @@ import {
     setDoc,
     where
 } from 'firebase/firestore';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { createUserWithEmailAndPassword, signOut } from 'firebase/auth';
-import { db, secondaryAuth } from '@/lib/firebase';
+import { db, storage, secondaryAuth } from '@/lib/firebase';
 import { User, UserRole, LearningPath } from '@/types';
 import { useAuth } from '@/contexts/AuthContext';
 import styles from './page.module.css';
@@ -33,11 +34,12 @@ import {
     Shield,
     UserPlus,
     Save,
-    AlertTriangle
+    AlertTriangle,
+    Camera
 } from 'lucide-react';
 
 export default function UsersPage() {
-    const { user: currentUser } = useAuth();
+    const { user: currentUser, refreshUser } = useAuth();
     const [users, setUsers] = useState<User[]>([]);
     const [paths, setPaths] = useState<LearningPath[]>([]);
 
@@ -61,10 +63,16 @@ export default function UsersPage() {
         role: 'student' as UserRole,
     });
     const [savingEdit, setSavingEdit] = useState(false);
+    const [editPhotoURL, setEditPhotoURL] = useState<string>('');
+    const [uploadingEditPhoto, setUploadingEditPhoto] = useState(false);
+    const editFileInputRef = useRef<HTMLInputElement>(null);
 
     // Estado para búsqueda y filtros
     const [searchTerm, setSearchTerm] = useState('');
     const [roleFilter, setRoleFilter] = useState<UserRole | 'all'>('all');
+
+    // Estado para confirmación de eliminación
+    const [deleteConfirm, setDeleteConfirm] = useState<{ show: boolean; uid: string; name: string }>({ show: false, uid: '', name: '' });
 
     const [formData, setFormData] = useState({
         email: '',
@@ -93,7 +101,8 @@ export default function UsersPage() {
                     role: data.role,
                     createdAt: data.createdAt,
                     isActive: data.isActive,
-                    assignedPathIds: data.assignedPathIds
+                    assignedPathIds: data.assignedPathIds,
+                    photoURL: data.photoURL
                 } as User;
             });
             setUsers(usersData);
@@ -167,7 +176,16 @@ export default function UsersPage() {
             loadData(); // Recargar todo
         } catch (error: any) {
             console.error('Error creating user:', error);
-            alert('Error al crear usuario: ' + (error.message || 'Desconocido'));
+            if (error.code === 'auth/email-already-in-use') {
+                alert(
+                    '❌ Error: El correo electrónico ya está registrado en el sistema.\n\n' +
+                    'Si eliminaste a este usuario recientemente de la lista, ten en cuenta que su cuenta de acceso (Authentication) aún existe. ' +
+                    'Para crear un usuario con este mismo correo, primero debes eliminar la cuenta manualmente desde la consola de Firebase Authentication o desde un backend.\n\n' +
+                    'Por favor, utiliza un correo diferente u otra cuenta.'
+                );
+            } else {
+                alert('Error al crear usuario: ' + (error.message || 'Desconocido'));
+            }
         } finally {
             setCreating(false);
         }
@@ -229,7 +247,47 @@ export default function UsersPage() {
             password: '',
             role: user.role,
         });
+        setEditPhotoURL(user.photoURL || '');
         setShowEditModal(true);
+    };
+
+    const handleEditPhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file || !editingUser) return;
+
+        if (!file.type.startsWith('image/')) {
+            alert('Por favor selecciona una imagen válida.');
+            return;
+        }
+        if (file.size > 5 * 1024 * 1024) {
+            alert('La imagen no puede superar 5MB.');
+            return;
+        }
+
+        setUploadingEditPhoto(true);
+        try {
+            const storageRef = ref(storage, `avatars/${editingUser.uid}/profile.${file.name.split('.').pop()}`);
+            await uploadBytes(storageRef, file);
+            const downloadURL = await getDownloadURL(storageRef);
+
+            await updateDoc(doc(db, 'users', editingUser.uid), {
+                photoURL: downloadURL,
+            });
+
+            setEditPhotoURL(downloadURL);
+            setEditingUser({ ...editingUser, photoURL: downloadURL });
+            setUsers(users.map(u => u.uid === editingUser.uid ? { ...u, photoURL: downloadURL } : u));
+
+            // Si el admin editó su propia foto, refrescar el contexto para actualizar la navbar
+            if (currentUser && editingUser.uid === currentUser.uid) {
+                await refreshUser();
+            }
+        } catch (error: any) {
+            console.error('Error uploading photo:', error);
+            alert('Error al subir la foto: ' + (error.message || 'Desconocido'));
+        } finally {
+            setUploadingEditPhoto(false);
+        }
     };
 
     const handleSaveEdit = async () => {
@@ -263,14 +321,38 @@ export default function UsersPage() {
         }
     };
 
-    const handleDelete = async (uid: string) => {
-        if (!confirm('¿Estás seguro de eliminar este usuario?')) return;
+    const handleDelete = (uid: string) => {
+        const userToDelete = users.find(u => u.uid === uid);
+        setDeleteConfirm({ show: true, uid, name: userToDelete?.displayName || 'este usuario' });
+    };
 
+    const confirmDelete = async () => {
         try {
-            await deleteDoc(doc(db, 'users', uid));
-            setUsers(users.filter(u => u.uid !== uid));
+            // Eliminar usando nuestro backend (API Route) que usa Firebase Admin para borrar también de Authentication
+            const response = await fetch(`/api/admin/users/${deleteConfirm.uid}`, {
+                method: 'DELETE',
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                // Si falta la key de firebase admin, mostramos el error original
+                if (response.status === 500 && result.error?.includes('FIREBASE_PRIVATE_KEY')) {
+                    alert('⚠️ Configuración pendiente: Para eliminar la cuenta de Firebase Authentication falta agregar FIREBASE_PRIVATE_KEY y FIREBASE_CLIENT_EMAIL en tu archivo .env.local.\n\nPor ahora, solo se ha borrado de la lista, pero la cuenta aún existe en Firebase. Bórrala manualmente de la consola de Firebase -> Authentication.');
+                    // De todas formas lo borramos de UI y de Firestore manual localmente para su conveniencia visual
+                    await deleteDoc(doc(db, 'users', deleteConfirm.uid));
+                    setUsers(prev => prev.filter(u => u.uid !== deleteConfirm.uid));
+                } else {
+                    throw new Error(result.error || 'Error al eliminar usuario');
+                }
+            } else {
+                setUsers(prev => prev.filter(u => u.uid !== deleteConfirm.uid));
+            }
         } catch (error) {
             console.error('Error deleting user:', error);
+            alert('Error eliminando: ' + (error as Error).message);
+        } finally {
+            setDeleteConfirm({ show: false, uid: '', name: '' });
         }
     };
 
@@ -299,133 +381,157 @@ export default function UsersPage() {
                 </div>
             </header>
 
-            <div className={styles.controls}>
+            <div className={styles.topBar}>
                 <div className={styles.searchWrapper}>
-                    <Search className={styles.searchIcon} size={20} />
+                    <Search className={styles.searchIcon} size={18} />
                     <input
                         type="text"
-                        placeholder="Buscar por nombre o correo..."
+                        placeholder="Buscar por nombre, email..."
                         className={styles.searchInput}
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
                 </div>
 
-                <div className="flex gap-4">
-                    <div className="relative">
-                        <select
-                            className={styles.filterSelect}
-                            value={roleFilter}
-                            onChange={(e) => setRoleFilter(e.target.value as UserRole | 'all')}
+                <div className={styles.segmentedControl}>
+                    {[
+                        { value: 'all', label: 'Todos' },
+                        { value: 'student', label: 'Estudiantes' },
+                        { value: 'admin', label: 'Administradores' },
+                    ].map((opt) => (
+                        <button
+                            key={opt.value}
+                            className={`${styles.segmentBtn} ${roleFilter === opt.value ? styles.segmentBtnActive : ''}`}
+                            onClick={() => setRoleFilter(opt.value as UserRole | 'all')}
                         >
-                            <option value="all">Todos los roles</option>
-                            <option value="student">Estudiantes</option>
-                            <option value="admin">Administradores</option>
-                        </select>
-                    </div>
-
-                    <button
-                        onClick={() => {
-                            setFormData({ email: '', password: '', displayName: '', role: 'student' });
-                            setShowModal(true);
-                        }}
-                        className={styles.primaryBtn}
-                    >
-                        <Plus size={20} />
-                        Nuevo Usuario
-                    </button>
+                            {opt.label}
+                        </button>
+                    ))}
                 </div>
+
+                <button
+                    onClick={() => {
+                        setFormData({ email: '', password: '', displayName: '', role: 'student' });
+                        setShowModal(true);
+                    }}
+                    className={styles.primaryBtn}
+                >
+                    <Plus size={18} />
+                    Nuevo Usuario
+                </button>
             </div>
 
-            <div className={styles.card}>
+            <div className={styles.grid}>
                 {filteredUsers.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center p-12 text-center text-gray-500">
-                        <div className="bg-gray-100 p-4 rounded-full mb-4">
-                            <Search size={32} className="text-gray-400" />
+                    <div className={styles.emptyState}>
+                        <div className={styles.emptyStateIcon}>
+                            <Search size={28} />
                         </div>
-                        <h3 className="text-lg font-semibold text-gray-700">No se encontraron usuarios</h3>
-                        <p className="text-sm">Intenta ajustar los filtros o agrega un nuevo usuario.</p>
+                        <h3 className={styles.emptyStateTitle}>No se encontraron usuarios</h3>
+                        <p className={styles.emptyStateText}>Intenta ajustar los filtros o agrega un nuevo usuario.</p>
                     </div>
                 ) : (
                     <>
-                        <div className={styles.tableHeader}>
-                            <span>Usuario</span>
-                            <span>Rol</span>
-                            <span>Acceso</span>
-                            <span>Estado</span>
-                            <span className="text-right">Acciones</span>
-                        </div>
-                        <div>
-                            {filteredUsers.map((user) => (
-                                <div key={user.uid} className={styles.tableRow}>
-                                    <div className={styles.userInfo}>
-                                        <div className={styles.avatar}>
-                                            {user.displayName?.charAt(0).toUpperCase() || '?'}
-                                        </div>
-                                        <div className={styles.userDetails}>
-                                            <p className={styles.userName}>{user.displayName}</p>
-                                            <p className={styles.userEmail}>{user.email}</p>
-                                        </div>
-                                    </div>
-
-                                    <div>
-                                        <span className={`${styles.badge} ${user.role === 'admin' ? styles.badgeAdmin : styles.badgeStudent}`}>
-                                            {user.role === 'admin' ? 'Administrador' : 'Estudiante'}
-                                        </span>
-                                    </div>
-
-                                    {/* Columna Rutas */}
-                                    <div className="text-sm text-gray-500 flex flex-col items-start gap-1">
-                                        <span className="inline-flex items-center gap-1 text-[10px] uppercase font-bold tracking-wider text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md">
-                                            3 Obligatorias
-                                        </span>
-                                        {user.assignedPathIds && user.assignedPathIds.length > 0 && (
-                                            <span className="inline-flex items-center gap-1 text-[10px] uppercase font-bold tracking-wider text-indigo-600 bg-indigo-50 border border-indigo-100 px-2 py-0.5 rounded-md mt-1">
-                                                +{user.assignedPathIds.length} Especializaciones
-                                            </span>
+                        {filteredUsers.map((user) => (
+                            <div key={user.uid} className={styles.userCard}>
+                                <div className={styles.avatarContainer}>
+                                    <div className={styles.gridAvatar} style={{ background: user.photoURL ? 'transparent' : '' }}>
+                                        {user.photoURL ? (
+                                            <img src={user.photoURL} alt={user.displayName || ''} />
+                                        ) : (
+                                            user.displayName?.substring(0, 2).toUpperCase() || '?'
                                         )}
                                     </div>
+                                    <div className={`${styles.statusIndicator} ${!user.isActive ? styles.statusInactive : ''}`}></div>
+                                </div>
 
-                                    <div>
-                                        <span className={user.isActive ? styles.badgeActive : styles.badgeInactive}>
-                                            <span className={styles.badgeDot}></span>
-                                            {user.isActive ? 'Activo' : 'Inactivo'}
+                                <h3 className={styles.cardName}>{user.displayName || 'Usuario Nuevo'}</h3>
+                                <p className={styles.cardEmail}>{user.email}</p>
+
+                                <div className={styles.cardBadges}>
+                                    <span className={`${styles.badgePill} ${user.role === 'admin' ? styles.badgePillAdmin : styles.badgePillStudent}`}>
+                                        {user.role === 'admin' ? 'Admin' : 'Estudiante'}
+                                    </span>
+                                    {user.isActive ? (
+                                        <span className={`${styles.badgePill} ${styles.badgePillAccess}`}>
+                                            {user.assignedPathIds && user.assignedPathIds.length > 0 ? `${user.assignedPathIds.length} Cursos` : 'Acceso Total'}
                                         </span>
-                                    </div>
+                                    ) : (
+                                        <span className={`${styles.badgePill} ${styles.badgePillInactive}`}>
+                                            Inactivo
+                                        </span>
+                                    )}
+                                </div>
 
-                                    <div className={styles.actions}>
-                                        <button
-                                            onClick={() => handleOpenPathModal(user)}
-                                            className={styles.actionBtn}
-                                            title="Asignar Especializaciones"
-                                        >
-                                            <Map size={18} />
-                                        </button>
+                                <div className={styles.cardDivider}></div>
 
+                                <div className={styles.cardFooter}>
+                                    <div className={styles.footerActions}>
                                         <button
                                             onClick={() => handleOpenEditModal(user)}
-                                            className={styles.actionBtn}
+                                            className={`${styles.iconBtn} ${styles.iconBtnPrimary}`}
                                             title="Editar usuario"
                                         >
-                                            <Edit2 size={18} />
+                                            <Edit2 size={16} strokeWidth={2.5} />
                                         </button>
-
-                                        {user.uid !== currentUser?.uid && (
-                                            <button
-                                                onClick={() => handleDelete(user.uid)}
-                                                className={`${styles.actionBtn} ${styles.actionBtnDanger}`}
-                                                title="Eliminar"
-                                            >
-                                                <Trash2 size={18} />
-                                            </button>
-                                        )}
+                                        <button
+                                            onClick={() => handleOpenPathModal(user)}
+                                            className={`${styles.iconBtn} ${styles.iconBtnSecondary}`}
+                                            title="Asignar Especializaciones"
+                                        >
+                                            <Map size={16} strokeWidth={2.5} />
+                                        </button>
                                     </div>
+                                    {user.uid !== currentUser?.uid && (
+                                        <button
+                                            onClick={() => handleDelete(user.uid)}
+                                            className={`${styles.iconBtn} ${styles.iconBtnDanger}`}
+                                            title="Eliminar"
+                                        >
+                                            <Trash2 size={16} strokeWidth={2.5} />
+                                        </button>
+                                    )}
                                 </div>
-                            ))}
-                        </div>
+                            </div>
+                        ))}
                     </>
                 )}
             </div>
+
+            {/* Modal de confirmación de eliminación */}
+            {deleteConfirm.show && (
+                <div
+                    className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[60] flex items-center justify-center p-4"
+                    onClick={() => setDeleteConfirm({ show: false, uid: '', name: '' })}
+                >
+                    <div
+                        className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 text-center"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="w-14 h-14 rounded-full bg-red-50 flex items-center justify-center mx-auto mb-4">
+                            <Trash2 size={24} className="text-red-500" />
+                        </div>
+                        <h3 className="text-lg font-bold text-slate-800 mb-1">Eliminar usuario</h3>
+                        <p className="text-sm text-slate-500 mb-6">
+                            ¿Estás seguro de eliminar a <strong>{deleteConfirm.name}</strong>? Esta acción no se puede deshacer.
+                        </p>
+                        <div className="flex gap-3">
+                            <button
+                                onClick={() => setDeleteConfirm({ show: false, uid: '', name: '' })}
+                                className="flex-1 px-4 py-2.5 text-slate-600 font-medium bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors"
+                            >
+                                Cancelar
+                            </button>
+                            <button
+                                onClick={confirmDelete}
+                                className="flex-1 px-4 py-2.5 text-white font-medium bg-red-500 hover:bg-red-600 rounded-xl transition-colors"
+                            >
+                                Eliminar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Modal para crear usuario */}
             {showModal && (
@@ -659,9 +765,36 @@ export default function UsersPage() {
                     >
                         {/* Header */}
                         <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-white">
-                            <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 text-white flex items-center justify-center font-bold text-lg shadow-md">
-                                    {editingUser.displayName?.charAt(0).toUpperCase() || '?'}
+                            <div className="flex items-center gap-4">
+                                {/* Avatar con opción de cambiar foto */}
+                                <div className="relative group">
+                                    <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 text-white flex items-center justify-center font-bold text-2xl shadow-lg overflow-hidden ring-2 ring-white">
+                                        {editPhotoURL ? (
+                                            <img src={editPhotoURL} alt="Avatar" className="w-full h-full object-cover" />
+                                        ) : (
+                                            editingUser.displayName?.charAt(0).toUpperCase() || '?'
+                                        )}
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={() => editFileInputRef.current?.click()}
+                                        disabled={uploadingEditPhoto}
+                                        className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-indigo-600 text-white flex items-center justify-center shadow-lg border-2 border-white hover:bg-indigo-700 transition-all cursor-pointer disabled:opacity-60"
+                                        title="Cambiar foto de perfil"
+                                    >
+                                        {uploadingEditPhoto ? (
+                                            <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                                        ) : (
+                                            <Camera size={14} />
+                                        )}
+                                    </button>
+                                    <input
+                                        ref={editFileInputRef}
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={handleEditPhotoUpload}
+                                        className="hidden"
+                                    />
                                 </div>
                                 <div>
                                     <h2 className="text-xl font-bold text-slate-800 tracking-tight">Editar Usuario</h2>
@@ -752,25 +885,25 @@ export default function UsersPage() {
                             {/* Separador */}
                             <div className="border-t border-slate-200 pt-4 mt-2">
                                 <div className={`rounded-xl p-4 transition-all ${editingUser.isActive
-                                        ? 'bg-amber-50 border border-amber-200'
-                                        : 'bg-emerald-50 border border-emerald-200'
+                                    ? 'bg-emerald-50 border border-emerald-200'
+                                    : 'bg-amber-50 border border-amber-200'
                                     }`}>
                                     <div className="flex items-center justify-between">
                                         <div className="flex items-center gap-3">
                                             <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${editingUser.isActive
-                                                    ? 'bg-amber-100 text-amber-600'
-                                                    : 'bg-emerald-100 text-emerald-600'
+                                                ? 'bg-emerald-100 text-emerald-600'
+                                                : 'bg-amber-100 text-amber-600'
                                                 }`}>
-                                                <AlertTriangle size={18} />
+                                                {editingUser.isActive ? <CheckCircle size={18} /> : <AlertTriangle size={18} />}
                                             </div>
                                             <div>
                                                 <p className="text-sm font-semibold text-slate-800">
-                                                    {editingUser.isActive ? 'Desactivar usuario' : 'Reactivar usuario'}
+                                                    {editingUser.isActive ? 'Usuario activo' : 'Usuario inactivo'}
                                                 </p>
                                                 <p className="text-xs text-slate-500 mt-0.5">
                                                     {editingUser.isActive
-                                                        ? 'El alumno no podrá acceder, pero sus datos se conservarán'
-                                                        : 'El alumno recuperará el acceso a la plataforma'
+                                                        ? 'El alumno tiene acceso a la plataforma'
+                                                        : 'El alumno no puede acceder, pero sus datos se conservan'
                                                     }
                                                 </p>
                                             </div>
@@ -779,8 +912,8 @@ export default function UsersPage() {
                                             type="button"
                                             onClick={() => handleToggleActive(editingUser)}
                                             className={`relative w-12 h-7 rounded-full transition-all duration-300 focus:outline-none focus:ring-4 ${editingUser.isActive
-                                                    ? 'bg-emerald-500 focus:ring-emerald-500/20'
-                                                    : 'bg-slate-300 focus:ring-slate-300/20'
+                                                ? 'bg-emerald-500 focus:ring-emerald-500/20'
+                                                : 'bg-slate-300 focus:ring-slate-300/20'
                                                 }`}
                                         >
                                             <span className={`absolute top-0.5 left-0.5 w-6 h-6 bg-white rounded-full shadow-md transition-transform duration-300 ${editingUser.isActive ? 'translate-x-5' : 'translate-x-0'

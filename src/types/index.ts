@@ -24,6 +24,8 @@ export interface User {
     attitudinalStatus?: AttitudinalSemaphore | 'pending';
     completedCourses?: string[]; // IDs de cursos completados (todos sus módulos aprobados)
     completedPaths?: string[];   // IDs de rutas completadas (todos sus cursos aprobados)
+    stageChecklist?: Record<string, boolean>; // Checklist de requisitos por etapa del pipeline
+    supervisorFeedback?: string; // Nota del supervisor sobre el candidato
 }
 
 // Camino de aprendizaje (Learning Path)

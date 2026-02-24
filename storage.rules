@@ -11,7 +11,11 @@ service firebase.storage {
     // NUEVAS reglas para avatares de perfil (AGREGAR)
     match /avatars/{userId}/{allPaths=**} {
       allow read: if request.auth != null;
-      allow write: if request.auth != null && request.auth.uid == userId;
+      // El usuario puede subir su foto, O un administrador puede subirla en su nombre
+      allow write: if request.auth != null && (
+          request.auth.uid == userId || 
+          firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role == 'admin'
+      );
     }
 
     // Reglas para imágenes de portada de cursos

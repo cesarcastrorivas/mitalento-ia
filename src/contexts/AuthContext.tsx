@@ -20,6 +20,7 @@ interface AuthContextType {
     signOut: () => Promise<void>;
     createUser: (email: string, password: string, displayName: string, role: UserRole) => Promise<void>;
     register: (email: string, password: string, displayName: string) => Promise<void>;
+    refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -127,8 +128,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         await setDoc(doc(db, 'users', credential.user.uid), newUser);
     };
 
+    const refreshUser = async () => {
+        if (firebaseUser) {
+            try {
+                const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
+                if (userDoc.exists()) {
+                    setUser({ uid: firebaseUser.uid, ...userDoc.data() } as User);
+                }
+            } catch (error) {
+                console.error('Error refreshing user:', error);
+            }
+        }
+    };
+
     return (
-        <AuthContext.Provider value={{ user, firebaseUser, loading, signIn, signOut, createUser, register }}>
+        <AuthContext.Provider value={{ user, firebaseUser, loading, signIn, signOut, createUser, register, refreshUser }}>
             {children}
         </AuthContext.Provider>
     );

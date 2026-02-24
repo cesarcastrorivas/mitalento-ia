@@ -4,7 +4,7 @@ import { useEffect, useState, useMemo } from 'react';
 import { collection, query, where, getDocs, doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useAuth } from '@/contexts/AuthContext';
-import { LearningPath, User, Certificate } from '@/types';
+import { LearningPath, User, Certificate, Course } from '@/types';
 import { FIXED_PATHS } from '@/lib/constants';
 import Link from 'next/link';
 import styles from './page.module.css';
@@ -56,6 +56,8 @@ export default function StudentDashboard() {
         averageScore: 0,
         totalAttempts: 0,
         progressPercent: 0,
+        routesCompleted: 0,
+        totalRoutes: 0,
     });
 
     useEffect(() => {
@@ -87,12 +89,32 @@ export default function StudentDashboard() {
         try {
             if (!user?.uid) return;
 
-            // 1. Total módulos activos
-            const modulesQuery = query(collection(db, 'modules'), where('isActive', '==', true));
-            const modulesSnapshot = await getDocs(modulesQuery);
-            const totalModules = modulesSnapshot.size;
+            // 1. Obtener las rutas del estudiante (fijas + asignadas)
+            const userDoc = await getDoc(doc(db, 'users', user.uid));
+            const userData = userDoc.exists() ? userDoc.data() as User : null;
+            const assignedPathIds = userData?.assignedPathIds || [];
+            const allPathIds = [...FIXED_PATHS.map(p => p.id), ...assignedPathIds];
+            const uniquePathIds = [...new Set(allPathIds)];
+            const totalRoutes = uniquePathIds.length;
+            const routesCompleted = (userData?.completedPaths || []).length;
 
-            // 2. Sesiones del usuario
+            // 2. Obtener cursos de esas rutas
+            const coursesSnapshot = await getDocs(collection(db, 'courses'));
+            const studentCourses = coursesSnapshot.docs
+                .map(d => ({ id: d.id, ...d.data() } as Course))
+                .filter(c => uniquePathIds.includes(c.pathId) && c.isActive);
+            const studentCourseIds = new Set(studentCourses.map(c => c.id));
+
+            // 3. Obtener módulos solo de los cursos del estudiante
+            const modulesSnapshot = await getDocs(
+                query(collection(db, 'modules'), where('isActive', '==', true))
+            );
+            const studentModules = modulesSnapshot.docs
+                .map(d => ({ id: d.id, ...d.data() } as any))
+                .filter((m: any) => studentCourseIds.has(m.courseId));
+            const totalModules = studentModules.length;
+
+            // 4. Sesiones del usuario
             const sessionsQuery = query(
                 collection(db, 'quiz_sessions'),
                 where('userId', '==', user.uid)
@@ -100,17 +122,24 @@ export default function StudentDashboard() {
             const sessionsSnapshot = await getDocs(sessionsQuery);
             const sessions = sessionsSnapshot.docs.map(doc => doc.data() as any);
 
-            // 3. Cálculos
-            const passedModules = new Set();
-            let totalScore = 0;
+            // 5. Calcular mejor score por módulo (no promediar intentos fallidos)
+            const passedModules = new Set<string>();
+            const bestScorePerModule = new Map<string, number>();
 
-            sessions.forEach(session => {
+            sessions.forEach((session: any) => {
                 if (session.passed) passedModules.add(session.moduleId);
-                totalScore += session.score;
+                const current = bestScorePerModule.get(session.moduleId) || 0;
+                if (session.score > current) {
+                    bestScorePerModule.set(session.moduleId, session.score);
+                }
             });
 
             const completedModules = passedModules.size;
-            const averageScore = sessions.length > 0 ? Math.round(totalScore / sessions.length) : 0;
+            // Promedio usando el mejor score de cada módulo intentado
+            const bestScores = Array.from(bestScorePerModule.values());
+            const averageScore = bestScores.length > 0
+                ? Math.round(bestScores.reduce((sum, s) => sum + s, 0) / bestScores.length)
+                : 0;
             const progressPercent = totalModules > 0 ? Math.round((completedModules / totalModules) * 100) : 0;
 
             setProgressStats({
@@ -119,6 +148,8 @@ export default function StudentDashboard() {
                 averageScore,
                 totalAttempts: sessions.length,
                 progressPercent,
+                routesCompleted,
+                totalRoutes,
             });
 
         } catch (error) {
@@ -211,10 +242,10 @@ export default function StudentDashboard() {
                             </div>
                         </div>
                         <div className={styles.statCard}>
-                            <span className={styles.statIcon}>🎯</span>
+                            <span className={styles.statIcon}>🛤️</span>
                             <div>
-                                <span className={styles.statNumber}>{progressStats.averageScore}%</span>
-                                <span className={styles.statLabel}>Promedio</span>
+                                <span className={styles.statNumber}>{progressStats.routesCompleted}/{progressStats.totalRoutes}</span>
+                                <span className={styles.statLabel}>Rutas</span>
                             </div>
                         </div>
                     </div>

@@ -26,8 +26,7 @@ export default function AdminLayout({
     const { user, loading, signOut } = useAuth();
     const router = useRouter();
     const pathname = usePathname();
-    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     useEffect(() => {
         if (!loading && !user) {
             router.push('/');
@@ -36,9 +35,9 @@ export default function AdminLayout({
         }
     }, [user, loading, router]);
 
-    // Close mobile menu on route change
+    // Close sidebar on route change
     useEffect(() => {
-        setIsMobileMenuOpen(false);
+        setIsSidebarOpen(false);
     }, [pathname]);
 
     if (loading) {
@@ -56,69 +55,70 @@ export default function AdminLayout({
 
     return (
         <div className="flex min-h-screen bg-[var(--bg-main)] font-sans text-[var(--text-primary)]">
-            {/* Mobile Header - Glassmorphism */}
-            <header className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-[rgba(255,255,255,0.8)] backdrop-blur-md border-b border-[rgba(0,0,0,0.05)] z-50 px-4 flex items-center justify-between transition-all duration-300">
-                <div className="flex items-center gap-3">
+            {/* Global Top Header (Sistema X Style) */}
+            <header className="fixed top-0 left-0 right-0 h-16 bg-white border-b border-[rgba(0,0,0,0.05)] z-50 px-4 xl:px-6 flex items-center justify-between shadow-sm transition-all duration-300">
+                <div className="flex items-center gap-4 lg:gap-6">
                     <button
-                        onClick={() => setIsMobileMenuOpen(true)}
-                        className="p-2 -ml-2 text-[var(--text-secondary)] hover:bg-[var(--bg-elevated)] rounded-lg active:scale-95 transition-all"
+                        onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                        className="p-2 -ml-2 text-[var(--text-secondary)] hover:text-[var(--primary-600)] hover:bg-[var(--primary-50)] rounded-lg transition-all active:scale-95"
+                        title={isSidebarOpen ? "Cerrar menú" : "Abrir menú"}
                     >
-                        <Menu size={20} />
+                        {isSidebarOpen ? <X size={24} /> : <Menu size={24} />}
                     </button>
-                    <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 flex items-center justify-center rounded-xl bg-gradient-to-tr from-[var(--primary-700)] to-[var(--primary-500)] text-white shadow-lg shadow-[rgba(139,92,246,0.2)]">
+                    {/* Brand */}
+                    <div className="flex items-center gap-2.5 select-none">
+                        <div className="w-8 h-8 flex items-center justify-center rounded-lg bg-gradient-to-tr from-[var(--primary-700)] to-[var(--primary-500)] text-white shadow-md">
                             <GraduationCap size={16} strokeWidth={2.5} />
                         </div>
-                        <span className="font-bold text-[var(--text-primary)] text-sm tracking-tight">Mi Talento Admin</span>
+                        <span className="font-extrabold text-[var(--primary-700)] text-lg tracking-tight uppercase hidden sm:block">
+                            Mi Talento <span className="text-[var(--text-muted)] font-medium">| Admin</span>
+                        </span>
                     </div>
+                </div>
+
+                {/* Top Right User Info & Actions */}
+                <div className="flex items-center gap-4">
+                    <div className="hidden md:flex flex-col items-end justify-center">
+                        <p className="text-sm font-bold text-[var(--text-primary)] leading-tight">{user.displayName}</p>
+                        <p className="text-[10px] text-[var(--text-secondary)] font-medium uppercase tracking-wider">{user.email}</p>
+                    </div>
+                    <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[var(--primary-900)] to-[var(--primary-700)] flex flex-shrink-0 items-center justify-center text-white font-bold text-sm shadow-sm border border-white overflow-hidden">
+                        {user.photoURL ? (
+                            <img src={user.photoURL} alt={user.displayName || ''} className="w-full h-full object-cover" />
+                        ) : (
+                            user.displayName?.charAt(0).toUpperCase() || 'A'
+                        )}
+                    </div>
+                    <button
+                        onClick={signOut}
+                        className="p-2 text-[var(--text-secondary)] hover:text-[var(--error)] hover:bg-[rgba(239,68,68,0.08)] rounded-lg transition-colors"
+                        title="Cerrar sesión"
+                    >
+                        <LogOut size={18} />
+                    </button>
                 </div>
             </header>
 
-            {/* Mobile Backdrop */}
-            {isMobileMenuOpen && (
+            {/* Mobile/Tablet Backdrop */}
+            {isSidebarOpen && (
                 <div
-                    className="fixed inset-0 bg-[rgba(15,23,42,0.2)] backdrop-blur-sm z-50 lg:hidden animate-in fade-in duration-200"
-                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="fixed inset-0 bg-[rgba(15,23,42,0.2)] backdrop-blur-sm z-40 lg:hidden animate-in fade-in duration-200"
+                    onClick={() => setIsSidebarOpen(false)}
                 />
             )}
 
-            {/* Sidebar - Apple Style */}
+            {/* Sidebar Drawer */}
             <aside className={`
-                w-[260px] flex flex-col fixed inset-y-0 left-0 bg-[var(--bg-surface)] border-r border-[rgba(0,0,0,0.04)] z-[60]
-                transition-transform duration-300 cubic-bezier(0.4, 0, 0.2, 1)
-                lg:translate-x-0 lg:static lg:h-screen lg:z-40
-                ${isMobileMenuOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full lg:shadow-none'}
+                fixed top-16 bottom-0 left-0 bg-[var(--bg-surface)] border-r border-[rgba(0,0,0,0.04)] z-[45] w-[260px]
+                transition-transform duration-300 cubic-bezier(0.4, 0, 0.2, 1) shadow-xl
+                flex flex-col
+                ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
             `}>
-                <div className="flex flex-col h-full">
-                    {/* Brand Section */}
-                    <div className="px-6 pt-8 pb-8">
-                        <div className="flex items-center gap-3">
-                            <div className="w-9 h-9 flex items-center justify-center rounded-xl bg-gradient-to-br from-[var(--primary-700)] to-[var(--primary-600)] text-white shadow-lg shadow-[rgba(90,34,181,0.2)]">
-                                <GraduationCap size={20} strokeWidth={2.5} />
-                            </div>
-                            <div>
-                                <h1 className="text-sm font-bold text-[var(--text-primary)] leading-none tracking-tight">
-                                    Mi Talento
-                                </h1>
-                                <span className="text-[10px] font-semibold text-[var(--primary-600)] uppercase tracking-wider mt-0.5 block">
-                                    Urbanity Admin
-                                </span>
-                            </div>
-
-                            {/* Close button for mobile */}
-                            <button
-                                onClick={() => setIsMobileMenuOpen(false)}
-                                className="lg:hidden ml-auto p-2 text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)] rounded-full transition-colors"
-                            >
-                                <X size={20} />
-                            </button>
-                        </div>
-                    </div>
-
+                <div className="flex flex-col h-full py-6">
                     {/* Navigation */}
                     <div className="px-3 space-y-7 overflow-y-auto flex-1 custom-scrollbar">
                         <div className="space-y-1">
-                            <p className="px-3 text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest mb-2">Principal</p>
+                            <p className="px-3 text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest mb-3">Principal</p>
                             <NavLink href="/admin" icon={<LayoutDashboard size={18} />} text="Dashboard" active={pathname === '/admin'} />
                             <NavLink href="/admin/paths" icon={<Map size={18} />} text="Rutas y Cursos" active={pathname.startsWith('/admin/paths')} />
                             <NavLink href="/admin/users" icon={<Users size={18} />} text="Usuarios" active={pathname.startsWith('/admin/users')} />
@@ -127,39 +127,19 @@ export default function AdminLayout({
                         </div>
 
                         <div className="space-y-1">
-                            <p className="px-3 text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest mb-2">Analítica</p>
+                            <p className="px-3 text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest mb-3">Analítica</p>
                             <NavLink href="/admin/reports" icon={<BarChart3 size={18} />} text="Reportes" active={pathname.startsWith('/admin/reports')} />
-                            <NavLink href="/admin/reportes-certificacion" icon={<TrendingUp size={18} />} text="Reportes Cert." active={pathname.startsWith('/admin/reportes-certificacion')} />
-                        </div>
-                    </div>
-
-                    {/* User Profile - Bottom */}
-                    <div className="p-4 mt-auto border-t border-[rgba(0,0,0,0.04)] bg-[var(--bg-surface)]">
-                        <div className="bg-[var(--bg-elevated)] rounded-xl p-3 border border-[rgba(0,0,0,0.02)] transition-all hover:border-[rgba(0,0,0,0.06)] hover:shadow-sm">
-                            <div className="flex items-center gap-3 mb-3">
-                                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[var(--primary-900)] to-[var(--primary-700)] flex items-center justify-center text-white font-medium text-xs shadow-md border border-white">
-                                    {user.displayName?.charAt(0).toUpperCase() || 'A'}
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                    <p className="text-xs font-semibold text-[var(--text-primary)] truncate">{user.displayName}</p>
-                                    <p className="text-[10px] text-[var(--text-secondary)] truncate">{user.email}</p>
-                                </div>
-                            </div>
-                            <button
-                                onClick={signOut}
-                                className="w-full text-xs font-medium text-[var(--text-secondary)] hover:text-[var(--error)] hover:bg-[rgba(239,68,68,0.08)] p-2 rounded-lg transition-all duration-200 flex items-center justify-center gap-2 group"
-                            >
-                                <LogOut size={14} className="group-hover:-translate-x-0.5 transition-transform" />
-                                <span>Cerrar sesión</span>
-                            </button>
                         </div>
                     </div>
                 </div>
             </aside>
 
             {/* Main Content Area */}
-            <main className="flex-1 min-w-0 relative">
-                <div className="p-4 lg:p-8 pt-20 lg:pt-8 max-w-7xl mx-auto animate-fade-in">
+            <main className={`
+                pt-16 flex-1 min-w-0 h-screen overflow-hidden transition-all duration-300
+                ${isSidebarOpen ? 'lg:pl-[260px]' : 'pl-0'}
+            `}>
+                <div className="p-4 lg:p-8 w-full max-w-none mx-auto animate-fade-in h-full overflow-auto custom-scrollbar">
                     {children}
                 </div>
             </main>
@@ -172,7 +152,7 @@ function NavLink({ href, icon, text, active }: { href: string; icon: React.React
         <Link
             href={href}
             className={`
-                group flex items-center justify-between px-3 py-2.5 mx-2 rounded-lg transition-all duration-200
+                group flex items-center px-3 py-2.5 mx-2 rounded-lg transition-all duration-200 justify-between
                 ${active
                     ? 'bg-[var(--primary-50)] text-[var(--primary-700)] font-medium'
                     : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)]'
@@ -183,9 +163,9 @@ function NavLink({ href, icon, text, active }: { href: string; icon: React.React
                 <span className={`transition-transform duration-200 ${active ? 'scale-110 text-[var(--primary-600)]' : 'group-hover:scale-105'}`}>
                     {icon}
                 </span>
-                <span className="text-[13px]">{text}</span>
+                <span className="text-[13px] whitespace-nowrap overflow-hidden text-ellipsis">{text}</span>
             </div>
-            {active && <div className="w-1.5 h-1.5 rounded-full bg-[var(--primary-500)]" />}
+            {active && <div className="w-1.5 h-1.5 rounded-full bg-[var(--primary-500)] flex-shrink-0" />}
         </Link>
     );
 }
