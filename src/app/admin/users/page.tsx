@@ -10,13 +10,17 @@ import {
     deleteDoc,
     Timestamp,
     setDoc,
-    where
+    where,
+    limit,
+    startAfter,
+    DocumentSnapshot,
 } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { createUserWithEmailAndPassword, signOut } from 'firebase/auth';
 import { db, storage, secondaryAuth } from '@/lib/firebase';
 import { User, UserRole, LearningPath } from '@/types';
 import { useAuth } from '@/contexts/AuthContext';
+import Image from 'next/image';
 import styles from './page.module.css';
 import {
     Search,
@@ -67,6 +71,11 @@ export default function UsersPage() {
     const [uploadingEditPhoto, setUploadingEditPhoto] = useState(false);
     const editFileInputRef = useRef<HTMLInputElement>(null);
 
+    // Paginación de usuarios
+    const lastUserDocRef = useRef<DocumentSnapshot | null>(null);
+    const [hasMoreUsers, setHasMoreUsers] = useState(false);
+    const [loadingMoreUsers, setLoadingMoreUsers] = useState(false);
+
     // Estado para búsqueda y filtros
     const [searchTerm, setSearchTerm] = useState('');
     const [roleFilter, setRoleFilter] = useState<UserRole | 'all'>('all');
@@ -85,27 +94,33 @@ export default function UsersPage() {
         loadData();
     }, []);
 
+    const PAGE_SIZE = 50;
+
+    const mapUserDocs = (docs: DocumentSnapshot[]) =>
+        docs.map(doc => {
+            const data = doc.data()!;
+            return {
+                ...data,
+                uid: doc.id,
+                email: data.email,
+                displayName: data.displayName,
+                role: data.role,
+                createdAt: data.createdAt,
+                isActive: data.isActive,
+                assignedPathIds: data.assignedPathIds,
+                photoURL: data.photoURL
+            } as User;
+        });
+
     const loadData = async () => {
         try {
             setLoading(true);
-            // Cargar usuarios
-            const usersQ = query(collection(db, 'users'));
+            // Cargar primera página de usuarios
+            const usersQ = query(collection(db, 'users'), limit(PAGE_SIZE));
             const usersSnapshot = await getDocs(usersQ);
-            const usersData = usersSnapshot.docs.map(doc => {
-                const data = doc.data();
-                return {
-                    ...data,
-                    uid: doc.id,
-                    email: data.email,
-                    displayName: data.displayName,
-                    role: data.role,
-                    createdAt: data.createdAt,
-                    isActive: data.isActive,
-                    assignedPathIds: data.assignedPathIds,
-                    photoURL: data.photoURL
-                } as User;
-            });
-            setUsers(usersData);
+            lastUserDocRef.current = usersSnapshot.docs[usersSnapshot.docs.length - 1] ?? null;
+            setHasMoreUsers(usersSnapshot.docs.length === PAGE_SIZE);
+            setUsers(mapUserDocs(usersSnapshot.docs));
 
             // Cargar Rutas Dinámicas (Especializadas) de Firestore para el modal
             const pathsQ = query(collection(db, 'learning_paths'));
@@ -119,6 +134,22 @@ export default function UsersPage() {
             console.error('Error loading data:', error);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const loadMoreUsers = async () => {
+        if (!lastUserDocRef.current || loadingMoreUsers) return;
+        setLoadingMoreUsers(true);
+        try {
+            const usersQ = query(collection(db, 'users'), limit(PAGE_SIZE), startAfter(lastUserDocRef.current));
+            const snap = await getDocs(usersQ);
+            lastUserDocRef.current = snap.docs[snap.docs.length - 1] ?? null;
+            setHasMoreUsers(snap.docs.length === PAGE_SIZE);
+            setUsers(prev => [...prev, ...mapUserDocs(snap.docs)]);
+        } catch (error) {
+            console.error('Error loading more users:', error);
+        } finally {
+            setLoadingMoreUsers(false);
         }
     };
 
@@ -175,8 +206,10 @@ export default function UsersPage() {
             setFormData({ email: '', password: '', displayName: '', role: 'student' });
             loadData(); // Recargar todo
         } catch (error: any) {
-            console.error('Error creating user:', error);
+            // Next.js intercepts console.error with Error objects and shows a full-screen overlay in dev mode.
+            // Since we handle this error gracefully, we log it as a warning so it doesn't disrupt the UI.
             if (error.code === 'auth/email-already-in-use') {
+                console.warn('Handling expected error: Email already in use', error.message);
                 alert(
                     '❌ Error: El correo electrónico ya está registrado en el sistema.\n\n' +
                     'Si eliminaste a este usuario recientemente de la lista, ten en cuenta que su cuenta de acceso (Authentication) aún existe. ' +
@@ -184,6 +217,7 @@ export default function UsersPage() {
                     'Por favor, utiliza un correo diferente u otra cuenta.'
                 );
             } else {
+                console.error('Error creating user:', error);
                 alert('Error al crear usuario: ' + (error.message || 'Desconocido'));
             }
         } finally {
@@ -328,25 +362,36 @@ export default function UsersPage() {
 
     const confirmDelete = async () => {
         try {
-            // Eliminar usando nuestro backend (API Route) que usa Firebase Admin para borrar también de Authentication
+            // Intentar eliminar usando nuestro backend (API Route) que usa Firebase Admin
             const response = await fetch(`/api/admin/users/${deleteConfirm.uid}`, {
                 method: 'DELETE',
             });
 
-            const result = await response.json();
+            const contentType = response.headers.get('content-type') || '';
 
-            if (!response.ok) {
-                // Si falta la key de firebase admin, mostramos el error original
-                if (response.status === 500 && result.error?.includes('FIREBASE_PRIVATE_KEY')) {
-                    alert('⚠️ Configuración pendiente: Para eliminar la cuenta de Firebase Authentication falta agregar FIREBASE_PRIVATE_KEY y FIREBASE_CLIENT_EMAIL en tu archivo .env.local.\n\nPor ahora, solo se ha borrado de la lista, pero la cuenta aún existe en Firebase. Bórrala manualmente de la consola de Firebase -> Authentication.');
-                    // De todas formas lo borramos de UI y de Firestore manual localmente para su conveniencia visual
-                    await deleteDoc(doc(db, 'users', deleteConfirm.uid));
-                    setUsers(prev => prev.filter(u => u.uid !== deleteConfirm.uid));
+            if (contentType.includes('application/json')) {
+                // La API respondió con JSON válido
+                const result = await response.json();
+
+                if (!response.ok) {
+                    if (response.status === 500 && result.error?.includes('FIREBASE_PRIVATE_KEY')) {
+                        // Falta configuración de Firebase Admin, eliminar solo de Firestore
+                        await deleteDoc(doc(db, 'users', deleteConfirm.uid));
+                        setUsers(prev => prev.filter(u => u.uid !== deleteConfirm.uid));
+                        alert('⚠️ Usuario eliminado de la plataforma.\n\nNota: La cuenta de autenticación aún existe en Firebase. Para eliminarla completamente, configura FIREBASE_PRIVATE_KEY en .env.local o bórrala manualmente desde la consola de Firebase → Authentication.');
+                    } else {
+                        throw new Error(result.error || 'Error al eliminar usuario');
+                    }
                 } else {
-                    throw new Error(result.error || 'Error al eliminar usuario');
+                    setUsers(prev => prev.filter(u => u.uid !== deleteConfirm.uid));
                 }
             } else {
+                // La API devolvió HTML (error del servidor, Firebase Admin no configurado)
+                // Fallback: eliminar directamente de Firestore desde el cliente
+                console.warn('API de eliminación no disponible (Firebase Admin no configurado). Eliminando solo de Firestore.');
+                await deleteDoc(doc(db, 'users', deleteConfirm.uid));
                 setUsers(prev => prev.filter(u => u.uid !== deleteConfirm.uid));
+                alert('⚠️ Usuario eliminado de la plataforma.\n\nNota: La cuenta de autenticación aún puede existir en Firebase. Para eliminarla completamente, configura FIREBASE_PRIVATE_KEY en .env.local o bórrala manualmente desde la consola de Firebase → Authentication.');
             }
         } catch (error) {
             console.error('Error deleting user:', error);
@@ -435,9 +480,9 @@ export default function UsersPage() {
                         {filteredUsers.map((user) => (
                             <div key={user.uid} className={styles.userCard}>
                                 <div className={styles.avatarContainer}>
-                                    <div className={styles.gridAvatar} style={{ background: user.photoURL ? 'transparent' : '' }}>
+                                    <div className={styles.gridAvatar} style={{ background: user.photoURL ? 'transparent' : '', position: 'relative', overflow: 'hidden' }}>
                                         {user.photoURL ? (
-                                            <img src={user.photoURL} alt={user.displayName || ''} />
+                                            <Image src={user.photoURL} alt={user.displayName || ''} fill className="object-cover" sizes="48px" />
                                         ) : (
                                             user.displayName?.substring(0, 2).toUpperCase() || '?'
                                         )}
@@ -497,6 +542,26 @@ export default function UsersPage() {
                     </>
                 )}
             </div>
+
+            {/* Cargar más usuarios */}
+            {hasMoreUsers && (
+                <div className="flex justify-center mt-4 mb-2">
+                    <button
+                        onClick={loadMoreUsers}
+                        disabled={loadingMoreUsers}
+                        className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-semibold text-indigo-600 border border-indigo-200 hover:bg-indigo-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        {loadingMoreUsers ? (
+                            <>
+                                <div className="w-4 h-4 border-2 border-indigo-400 border-t-transparent rounded-full animate-spin" />
+                                Cargando...
+                            </>
+                        ) : (
+                            `Cargar más usuarios`
+                        )}
+                    </button>
+                </div>
+            )}
 
             {/* Modal de confirmación de eliminación */}
             {deleteConfirm.show && (
@@ -768,9 +833,9 @@ export default function UsersPage() {
                             <div className="flex items-center gap-4">
                                 {/* Avatar con opción de cambiar foto */}
                                 <div className="relative group">
-                                    <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 text-white flex items-center justify-center font-bold text-2xl shadow-lg overflow-hidden ring-2 ring-white">
+                                    <div className="relative w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 text-white flex items-center justify-center font-bold text-2xl shadow-lg overflow-hidden ring-2 ring-white">
                                         {editPhotoURL ? (
-                                            <img src={editPhotoURL} alt="Avatar" className="w-full h-full object-cover" />
+                                            <Image src={editPhotoURL} alt="Avatar" fill className="object-cover" sizes="64px" />
                                         ) : (
                                             editingUser.displayName?.charAt(0).toUpperCase() || '?'
                                         )}

@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, useRef, use } from 'react';
+import Image from 'next/image';
 import {
     collection,
     query,
@@ -12,7 +13,7 @@ import {
     deleteDoc,
     doc,
     orderBy,
-    Timestamp
+    Timestamp,
 } from 'firebase/firestore';
 import { db, storage } from '@/lib/firebase';
 import { Course, LearningPath } from '@/types';
@@ -112,14 +113,18 @@ export default function PathCoursesPage({ params }: { params: Promise<{ pathId: 
     const loadData = async () => {
         try {
             setLoading(true);
-            // Cargar datos de la ruta desde las fijas
+            // Cargar datos de la ruta: primero FIXED_PATHS, luego Firestore
             const pathData = FIXED_PATHS.find(p => p.id === pathId);
             if (pathData) {
                 setPath(pathData);
             } else {
-                alert('Ruta no encontrada');
-                router.push('/admin/paths');
-                return;
+                const pathDoc = await getDoc(doc(db, 'learning_paths', pathId));
+                if (!pathDoc.exists()) {
+                    alert('Ruta no encontrada');
+                    router.push('/admin/paths');
+                    return;
+                }
+                setPath({ id: pathDoc.id, ...pathDoc.data() } as LearningPath);
             }
 
             // Cargar cursos de la ruta
@@ -269,10 +274,12 @@ export default function PathCoursesPage({ params }: { params: Promise<{ pathId: 
                         {/* Thumbnail Area */}
                         <div className="relative h-48 bg-slate-100 overflow-hidden border-b border-slate-100">
                             {course.thumbnailUrl ? (
-                                <img
+                                <Image
                                     src={course.thumbnailUrl}
                                     alt={course.title}
-                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                    fill
+                                    sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw"
+                                    className="object-cover group-hover:scale-105 transition-transform duration-500"
                                 />
                             ) : (
                                 <div className="w-full h-full flex items-center justify-center text-slate-300">
@@ -419,10 +426,12 @@ export default function PathCoursesPage({ params }: { params: Promise<{ pathId: 
                                 <label className="text-sm font-medium text-slate-700 block">Imagen de Portada</label>
                                 {formData.thumbnailUrl ? (
                                     <div className="group relative h-48 bg-slate-50 rounded-xl border border-slate-200 overflow-hidden shadow-sm">
-                                        <img
+                                        <Image
                                             src={formData.thumbnailUrl}
                                             alt="Preview"
-                                            className="w-full h-full object-cover transition-transform group-hover:scale-105"
+                                            fill
+                                            sizes="400px"
+                                            className="object-cover transition-transform group-hover:scale-105"
                                         />
                                         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3 backdrop-blur-sm">
                                             <button

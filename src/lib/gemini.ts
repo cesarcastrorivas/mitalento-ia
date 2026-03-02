@@ -10,6 +10,136 @@ const apiKey = process.env.GEMINI_API_KEY || '';
 const genAI = new GoogleGenerativeAI(apiKey);
 const fileManager = new GoogleAIFileManager(apiKey);
 
+// ─── Security: URL validation (SSRF protection) ──────────────────────────────
+
+/**
+ * Validates that a video URL is safe to fetch.
+ * Blocks internal/private IPs and non-HTTPS protocols.
+ */
+function validateVideoUrl(url: string): void {
+    let parsed: URL;
+    try {
+        parsed = new URL(url);
+    } catch {
+        throw new Error('URL de video inválida');
+    }
+
+    if (parsed.protocol !== 'https:') {
+        throw new Error('Solo se permiten URLs con protocolo HTTPS');
+    }
+
+    const host = parsed.hostname.toLowerCase();
+
+    // Block loopback, link-local, and common cloud metadata endpoints
+    const blockedExact = ['localhost', '0.0.0.0', '::1'];
+    if (blockedExact.includes(host)) {
+        throw new Error('URL de video no permitida');
+    }
+
+    const blockedPrefixes = ['127.', '169.254.']; // loopback, link-local/metadata
+    if (blockedPrefixes.some(p => host.startsWith(p))) {
+        throw new Error('URL de video no permitida');
+    }
+
+    // Block RFC-1918 private ranges: 10.x, 172.16–31.x, 192.168.x
+    const octets = host.split('.').map(Number);
+    if (octets.length === 4 && octets.every(n => !isNaN(n))) {
+        const [a, b] = octets;
+        if (a === 10) throw new Error('URL de video no permitida');
+        if (a === 172 && b >= 16 && b <= 31) throw new Error('URL de video no permitida');
+        if (a === 192 && b === 168) throw new Error('URL de video no permitida');
+    }
+}
+
+// ─── Security: Gemini response schema validation ──────────────────────────────
+
+/**
+ * Validates and sanitizes the raw JSON returned by Gemini.
+ * Prevents malformed/malicious AI output from reaching Firestore.
+ */
+function validateParsedQuiz(parsed: unknown): Question[] {
+    if (!parsed || typeof parsed !== 'object') {
+        throw new Error('Gemini: la respuesta no es un objeto JSON válido');
+    }
+
+    const obj = parsed as Record<string, unknown>;
+
+    if (!Array.isArray(obj.questions) || obj.questions.length === 0) {
+        throw new Error('Gemini: el campo "questions" debe ser un array no vacío');
+    }
+
+    if (obj.questions.length > 20) {
+        throw new Error('Gemini: demasiadas preguntas en la respuesta');
+    }
+
+    return obj.questions.map((q: unknown, index: number) => {
+        if (!q || typeof q !== 'object') {
+            throw new Error(`Gemini: la pregunta ${index} no es un objeto válido`);
+        }
+
+        const question = q as Record<string, unknown>;
+
+        if (typeof question.text !== 'string' || question.text.trim().length === 0) {
+            throw new Error(`Gemini: la pregunta ${index} no tiene texto válido`);
+        }
+
+        if (!Array.isArray(question.options) || question.options.length < 2 || question.options.length > 6) {
+            throw new Error(`Gemini: la pregunta ${index} tiene opciones inválidas`);
+        }
+
+        for (const opt of question.options) {
+            if (typeof opt !== 'string') {
+                throw new Error(`Gemini: opción inválida en pregunta ${index}`);
+            }
+        }
+
+        if (
+            typeof question.correctIndex !== 'number' ||
+            !Number.isInteger(question.correctIndex) ||
+            question.correctIndex < 0 ||
+            question.correctIndex >= (question.options as string[]).length
+        ) {
+            throw new Error(`Gemini: correctIndex inválido en pregunta ${index}`);
+        }
+
+        if (typeof question.explanation !== 'string') {
+            throw new Error(`Gemini: la pregunta ${index} no tiene explicación`);
+        }
+
+        return {
+            id: typeof question.id === 'string' ? question.id.slice(0, 50) : `q${index + 1}`,
+            text: (question.text as string).slice(0, 500),
+            options: (question.options as string[]).map(o => o.slice(0, 200)),
+            correctIndex: question.correctIndex as number,
+            explanation: (question.explanation as string).slice(0, 1000),
+        };
+    });
+}
+
+/** Polls Gemini until the file is ready, using exponential backoff.
+ *  Throws if the file fails or the max wait time is exceeded. */
+async function waitForProcessing(uploadName: string, maxWaitMs = 120_000): Promise<void> {
+    const start = Date.now();
+    let attempts = 0;
+
+    let file = await fileManager.getFile(uploadName);
+
+    while (file.state === FileState.PROCESSING) {
+        if (Date.now() - start > maxWaitMs) {
+            throw new Error('Timeout: el video tardó demasiado en procesarse en Gemini');
+        }
+        // Exponential backoff: 2s → 2.6s → 3.4s … capped at 15s
+        const wait = Math.min(2000 * Math.pow(1.3, attempts), 15_000);
+        await new Promise((resolve) => setTimeout(resolve, wait));
+        file = await fileManager.getFile(uploadName);
+        attempts++;
+    }
+
+    if (file.state === FileState.FAILED) {
+        throw new Error('El procesamiento del video falló en Gemini');
+    }
+}
+
 // Gemini 3.0 Flash Preview - As requested
 export const geminiModel = genAI.getGenerativeModel({
     model: 'gemini-3-flash-preview',
@@ -33,6 +163,8 @@ export interface QuizGenerationResult {
  * Downloads a file from a URL to a temporary local file
  */
 async function downloadFile(url: string, suffix: string): Promise<string> {
+    validateVideoUrl(url);
+
     const tempDir = os.tmpdir();
     const tempFilePath = path.join(tempDir, `video-${Date.now()}-${Math.random().toString(36).substring(7)}${suffix}`);
 
@@ -77,16 +209,9 @@ export async function generateQuizFromVideo(
         console.log('Uploaded video URI:', fileUri);
 
         // 3. Wait for processing
-        let file = await fileManager.getFile(uploadName);
-        while (file.state === FileState.PROCESSING) {
-            console.log('Processing video...');
-            await new Promise((resolve) => setTimeout(resolve, 2000)); // Wait 2s
-            file = await fileManager.getFile(uploadName);
-        }
-
-        if (file.state === FileState.FAILED) {
-            throw new Error('Video processing failed on Gemini');
-        }
+        console.log('Waiting for Gemini to process video...');
+        await waitForProcessing(uploadName);
+        const file = await fileManager.getFile(uploadName);
 
         console.log('Video processed. Generating quiz...');
 
@@ -154,12 +279,7 @@ RESPONDE ÚNICAMENTE CON EL JSON. Sin texto adicional antes o después.`;
             throw new Error('No valid JSON found in response');
         }
 
-        const parsed = JSON.parse(jsonMatch[0]);
-
-        const questions: Question[] = parsed.questions.map((q: Question, index: number) => ({
-            ...q,
-            id: q.id || `q${index + 1}-${Date.now()}`
-        }));
+        const questions = validateParsedQuiz(JSON.parse(jsonMatch[0]));
 
         // Cleanup Gemini file (Async, don't wait)
         fileManager.deleteFile(uploadName).catch(console.error);
@@ -211,16 +331,9 @@ export async function transcribeVideo(
         console.log('Uploaded video URI:', fileUri);
 
         // Wait for processing
-        let file = await fileManager.getFile(uploadName);
-        while (file.state === FileState.PROCESSING) {
-            console.log('Processing video for transcription...');
-            await new Promise((resolve) => setTimeout(resolve, 2000));
-            file = await fileManager.getFile(uploadName);
-        }
-
-        if (file.state === FileState.FAILED) {
-            throw new Error('Video processing failed on Gemini');
-        }
+        console.log('Waiting for Gemini to process video for transcription...');
+        await waitForProcessing(uploadName);
+        const file = await fileManager.getFile(uploadName);
 
         console.log('Video processed. Generating transcription...');
 
@@ -265,13 +378,18 @@ export async function generateQuizFromTranscription(
     videoTitle: string,
     userId: string,
     moduleId: string,
-    questionCount: number = 5
+    questionCount: number = 5,
+    videoContext?: string
 ): Promise<QuizGenerationResult> {
     try {
         console.log('Generating quiz from transcription for:', videoTitle);
 
         const seed = `${userId}-${moduleId}-${Date.now()}`;
-        const prompt = `Eres un evaluador educativo corporativo de ALTA PRECISIÓN. Tu tarea es analizar la siguiente transcripción de un video y generar ${questionCount} preguntas de evaluación.
+        const contextToAdd = videoContext && videoContext.trim() !== ''
+            ? `\nCONTEXTO ADICIONAL / DIRECTRICES DEL ADMINISTRADOR:\n---\n${videoContext}\n---\n`
+            : '';
+
+        const prompt = `Eres un evaluador educativo corporativo de ALTA PRECISIÓN. Tu tarea es analizar la siguiente transcripción de un video y generar ${questionCount} preguntas de evaluación.${contextToAdd}
 
 TÍTULO DEL VIDEO: ${videoTitle}
 
@@ -337,12 +455,7 @@ RESPONDE ÚNICAMENTE CON EL JSON. Sin texto adicional antes o después.`;
             throw new Error('No valid JSON found in response');
         }
 
-        const parsed = JSON.parse(jsonMatch[0]);
-
-        const questions: Question[] = parsed.questions.map((q: Question, index: number) => ({
-            ...q,
-            id: q.id || `q${index + 1}-${Date.now()}`
-        }));
+        const questions = validateParsedQuiz(JSON.parse(jsonMatch[0]));
 
         return { questions, success: true };
 

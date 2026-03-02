@@ -2,16 +2,27 @@
 
 import { useEffect, useState, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { doc, getDoc, addDoc, collection, updateDoc, Timestamp, query, where, orderBy, getDocs } from 'firebase/firestore';
+import { doc, getDoc, query, where, orderBy, getDocs, Timestamp, collection } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import { Module, Question, QuizSession, UserAnswer } from '@/types';
+import { Module } from '@/types';
 import { useAuth } from '@/contexts/AuthContext';
-import { getEffectivePassingScore, checkCascadeCompletion } from '@/lib/grading-utils';
 import styles from './page.module.css';
-import { ChevronLeft, ChevronRight, Play, CheckCircle, Lock, AlertCircle, Trophy, Clock, Star, ArrowRight, PlayCircle, FileText, Menu, X, Info } from 'lucide-react';
-import Confetti from '@/components/Confetti';
+import { ChevronLeft, ChevronRight, CheckCircle, Lock, AlertCircle, Trophy, Clock, PlayCircle, Menu, X, Info } from 'lucide-react';
 import LoadingScreen from '@/components/LoadingScreen';
 import Toast, { ToastType } from '@/components/Toast';
+import dynamic from 'next/dynamic';
+
+const QuizModal = dynamic(() => import('@/components/modules/QuizModal'), {
+    ssr: false,
+    loading: () => (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+            <div className="bg-white rounded-2xl p-8 flex flex-col items-center gap-4 shadow-2xl">
+                <div className="w-10 h-10 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin" />
+                <p className="text-sm font-medium text-slate-500">Cargando evaluación...</p>
+            </div>
+        </div>
+    ),
+});
 
 type ViewState = 'video' | 'quiz' | 'results';
 type TabState = 'info' | 'notes';
@@ -21,6 +32,7 @@ export default function ModulePage() {
     const router = useRouter();
     const { user } = useAuth();
     const videoRef = useRef<HTMLVideoElement>(null);
+    const lastWatchedRef = useRef(0); // tracks last % sent to state, avoids stale closure
     const moduleId = params.id as string;
 
     const [module, setModule] = useState<Module | null>(null);
@@ -35,13 +47,6 @@ export default function ModulePage() {
     const [canTakeQuiz, setCanTakeQuiz] = useState(false);
     const [scrolled, setScrolled] = useState(false);
 
-    // Quiz state
-    const [questions, setQuestions] = useState<Question[]>([]);
-    const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-    const [answers, setAnswers] = useState<Map<string, number>>(new Map());
-    const [generatingQuiz, setGeneratingQuiz] = useState(false);
-    const [quizSession, setQuizSession] = useState<QuizSession | null>(null);
-    const [score, setScore] = useState(0);
     const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
 
     // New Modal State
@@ -58,10 +63,17 @@ export default function ModulePage() {
     useEffect(() => {
         loadModuleData();
 
+        let scrollTicking = false;
         const handleScroll = () => {
-            setScrolled(window.scrollY > 20);
+            if (!scrollTicking) {
+                requestAnimationFrame(() => {
+                    setScrolled(window.scrollY > 20);
+                    scrollTicking = false;
+                });
+                scrollTicking = true;
+            }
         };
-        window.addEventListener('scroll', handleScroll);
+        window.addEventListener('scroll', handleScroll, { passive: true });
 
         // Auto-open info only on large screens, close on mobile/tablet
         setInfoOpen(window.innerWidth > 1200);
@@ -110,8 +122,12 @@ export default function ModulePage() {
         }
 
         try {
-            // 1. Obtener el módulo actual
-            const moduleDoc = await getDoc(doc(db, 'modules', moduleId));
+            // 1. Módulo + progreso del usuario en paralelo (independientes entre sí)
+            const [moduleDoc, userDocSnap] = await Promise.all([
+                getDoc(doc(db, 'modules', moduleId)),
+                user ? getDoc(doc(db, 'users', user.uid)) : Promise.resolve(null),
+            ]);
+
             if (!moduleDoc.exists()) {
                 router.push('/dashboard');
                 return;
@@ -119,35 +135,31 @@ export default function ModulePage() {
             const currentModuleData = { id: moduleDoc.id, ...moduleDoc.data() } as Module;
             setModule(currentModuleData);
 
-            // 2. Si tenemos el usuario, obtener su progreso actualizado
-            if (user) {
-                const userDocRef = doc(db, 'users', user.uid);
-                const userDocSnap = await getDoc(userDocRef);
-                if (userDocSnap.exists()) {
-                    setUserProgress(userDocSnap.data().progress || {});
-                }
+            if (userDocSnap?.exists()) {
+                setUserProgress(userDocSnap.data()?.progress || {});
             }
 
-            // 3. Obtener todos los módulos del curso (para la sidebar) y datos del curso
+            // 2. Con courseId ya disponible: curso + lista de módulos en paralelo
             if (currentModuleData.courseId) {
-                // Datos del curso
-                const courseDoc = await getDoc(doc(db, 'courses', currentModuleData.courseId));
+                const siblingsQ = query(
+                    collection(db, 'modules'),
+                    where('courseId', '==', currentModuleData.courseId),
+                    where('isActive', '==', true),
+                    orderBy('order', 'asc')
+                );
+
+                const [courseDoc, modulesSnapshot] = await Promise.all([
+                    getDoc(doc(db, 'courses', currentModuleData.courseId)),
+                    getDocs(siblingsQ),
+                ]);
+
                 if (courseDoc.exists()) {
                     const courseData = courseDoc.data();
                     setCourseTitle(courseData.title);
                     setCoursePathId(courseData.pathId || null);
                 }
 
-                // Lista de módulos ordenados
-                const q = query(
-                    collection(db, 'modules'),
-                    where('courseId', '==', currentModuleData.courseId),
-                    where('isActive', '==', true),
-                    orderBy('order', 'asc')
-                );
-                const querySnapshot = await getDocs(q);
-                const modulesList = querySnapshot.docs.map(d => ({ id: d.id, ...d.data() } as Module));
-                setCourseModules(modulesList);
+                setCourseModules(modulesSnapshot.docs.map(d => ({ id: d.id, ...d.data() } as Module)));
             }
 
         } catch (error) {
@@ -167,157 +179,22 @@ export default function ModulePage() {
     };
 
     const handleTimeUpdate = () => {
-        if (videoRef.current && module) {
-            const percentage = (videoRef.current.currentTime / videoRef.current.duration) * 100;
-            if (percentage > watchedPercentage) {
-                setWatchedPercentage(percentage);
-            }
+        if (!videoRef.current || !module) return;
+        const percentage = (videoRef.current.currentTime / videoRef.current.duration) * 100;
 
-            if (percentage >= module.requiredWatchPercentage) {
-                setCanTakeQuiz(true);
-            }
+        // Only update state every 2% to avoid re-renders on every video frame (~30/s)
+        if (percentage - lastWatchedRef.current >= 2) {
+            lastWatchedRef.current = percentage;
+            setWatchedPercentage(percentage);
+        }
+
+        if (percentage >= module.requiredWatchPercentage) {
+            setCanTakeQuiz(true);
         }
     };
-
-    const generateQuiz = async () => {
-        if (!module || !user) return;
-
-        setGeneratingQuiz(true);
-
-        try {
-            const response = await fetch('/api/generate-quiz', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    moduleId: module.id,
-                    userId: user.uid,
-                    transcription: module.transcription, // Use stored transcription instead of video
-                    videoTitle: module.title,
-                    questionCount: 5,
-                }),
-            });
-
-            const data = await response.json();
-
-            if (data.success && data.questions) {
-                setQuestions(data.questions);
-                // setViewState('quiz'); // YA NO CAMBIAMOS EL VIEWSTATE
-                setCurrentQuestionIndex(0);
-                setAnswers(new Map());
-            } else {
-                throw new Error(data.error || 'Error generando quiz');
-            }
-        } catch (error) {
-            console.error('Error generating quiz:', error);
-            setToast({ message: 'Error al generar el quiz. Por favor intenta de nuevo.', type: 'error' });
-        } finally {
-            setGeneratingQuiz(false);
-        }
-    };
-
-    const handleAnswerSelect = (questionId: string, optionIndex: number) => {
-        const newAnswers = new Map(answers);
-        newAnswers.set(questionId, optionIndex);
-        setAnswers(newAnswers);
-    };
-
-    const handleNextQuestion = () => {
-        if (currentQuestionIndex < questions.length - 1) {
-            setCurrentQuestionIndex(prev => prev + 1);
-        }
-    };
-
-    const handlePreviousQuestion = () => {
-        if (currentQuestionIndex > 0) {
-            setCurrentQuestionIndex(prev => prev - 1);
-        }
-    };
-
-    const handleSubmitQuiz = async () => {
-        if (!module || !user) return;
-
-        let correctCount = 0;
-        const userAnswers: UserAnswer[] = [];
-
-        questions.forEach(question => {
-            const selectedIndex = answers.get(question.id);
-            const isCorrect = selectedIndex === question.correctIndex;
-            if (isCorrect) correctCount++;
-
-            userAnswers.push({
-                questionId: question.id,
-                selectedIndex: selectedIndex ?? -1,
-                isCorrect,
-                answeredAt: Timestamp.now(),
-            });
-        });
-
-        const calculatedScore = Math.round((correctCount / questions.length) * 100);
-        // Forzar mínimo 80% para aprobar, respetando configuración mayor del admin
-        const effectivePassingScore = getEffectivePassingScore(module.passingScore);
-        const passed = calculatedScore >= effectivePassingScore;
-
-        try {
-            const session: Omit<QuizSession, 'id'> = {
-                moduleId: module.id,
-                userId: user.uid,
-                questions,
-                answers: userAnswers,
-                score: calculatedScore,
-                passed,
-                startedAt: Timestamp.now(),
-                completedAt: Timestamp.now(),
-                seed: `${user.uid}-${module.id}-${Date.now()}`,
-            };
-
-            const docRef = await addDoc(collection(db, 'quiz_sessions'), session);
-            setQuizSession({ id: docRef.id, ...session } as QuizSession);
-
-            if (passed) {
-                const userRef = doc(db, 'users', user.uid);
-                await updateDoc(userRef, {
-                    [`progress.${module.id}`]: {
-                        completed: true,
-                        score: calculatedScore,
-                        lastAttempt: Timestamp.now(),
-                    }
-                });
-
-                // Validación en cascada: verificar si el curso y/o la ruta se completaron
-                try {
-                    const cascadeResult = await checkCascadeCompletion(
-                        user.uid,
-                        module.id,
-                        module.courseId
-                    );
-                    if (cascadeResult.courseCompleted) {
-                        console.log(`✅ Curso ${cascadeResult.completedCourseId} completado`);
-                    }
-                    if (cascadeResult.pathCompleted) {
-                        console.log(`🎓 Ruta ${cascadeResult.completedPathId} completada — Certificado disponible`);
-                        setToast({ message: '🎓 ¡Felicidades! Has completado la ruta. Tu certificado está disponible.', type: 'success' });
-                    }
-                } catch (cascadeError) {
-                    console.error('Error en validación en cascada:', cascadeError);
-                }
-            }
-
-            setScore(calculatedScore);
-            // setViewState('results'); // YA NO CAMBIAMOS EL VIEWSTATE
-        } catch (error) {
-            console.error('Error saving quiz:', error);
-            setToast({ message: 'Error al guardar el quiz', type: 'error' });
-        }
-    };
-
 
     const handleStartQuiz = () => {
-        // setToolsOpen(true); // No longer needed
-        // setActiveToolTab('quiz'); // No longer needed
         setShowQuizModal(true);
-        if (!questions.length) {
-            generateQuiz();
-        }
     };
 
     // ... (Mantener lógica de quiz)
@@ -327,9 +204,6 @@ export default function ModulePage() {
     }
 
     if (!module) return null;
-
-    const currentQuestion = questions[currentQuestionIndex];
-    const allAnswered = questions.every(q => answers.has(q.id));
 
     return (
         <div className={styles.layout}>
@@ -393,10 +267,16 @@ export default function ModulePage() {
 
                     {/* Título y Progreso Breve */}
                     <div className="flex-1 text-center hidden md:block">
-                        <span className="text-sm font-medium text-gray-700">{module.title}</span>
+                        <span className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1 block">LECCIÓN ACTUAL</span>
+                        <span className="text-sm font-bold text-gray-800 line-clamp-1">{module.title}</span>
                     </div>
 
                     <div className="flex items-center gap-3">
+                        {/* Fake Siguiente Button based on design, disabled for now or hooked up if there's a next module */}
+                        <button className={styles.nextLink} title="Siguiente Lección" disabled>
+                            <span className="hidden sm:inline">Siguiente</span> <ChevronRight size={16} />
+                        </button>
+
                         <button
                             onClick={() => setInfoOpen(!infoOpen)}
                             className={`${styles.menuToggle} ${infoOpen ? 'bg-indigo-50 text-indigo-600' : ''}`}
@@ -425,7 +305,11 @@ export default function ModulePage() {
                         />
                     </div>
 
-                    {/* Información de la Lección MOVIDA AL SIDEBAR */}
+                    {/* Información de la Lección debajo del video */}
+                    <div className={styles.videoDescription}>
+                        <h3 className="text-lg font-bold text-gray-700 mb-2 mt-2">Acerca de esta lección</h3>
+                        <p className="text-gray-600 leading-relaxed max-w-4xl text-base">{module.description}</p>
+                    </div>
                 </div>
             </main>
 
@@ -439,223 +323,78 @@ export default function ModulePage() {
                 </div>
 
                 <div className={styles.infoContent}>
-                    <div>
-                        <h1 className={styles.sidebarTitle}>{module.title}</h1>
-                        <div className="flex items-center gap-2 mt-2">
-                            <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${userProgress[module.id]?.completed
-                                ? 'bg-green-100 text-green-700'
-                                : 'bg-yellow-100 text-yellow-700'
-                                }`}>
-                                {userProgress[module.id]?.completed ? 'Completado' : 'En Progreso'}
-                            </span>
-                        </div>
-                    </div>
+                    {/* El título principal se movió debajo del video. La sidebar derecha ahora es puramente funcional. */}
 
                     <div className={styles.sidebarStats}>
                         <div className={styles.sidebarStatItem}>
-                            <div className={styles.sidebarStatLabel}>
-                                <Clock size={16} className="text-indigo-500" />
-                                <span>Progreso Video</span>
+                            <div className={styles.statHeaderRow}>
+                                <div className={styles.sidebarStatLabel}>
+                                    <Clock size={16} className="text-indigo-500" />
+                                    <span>Progreso Video</span>
+                                </div>
+                                <span className={styles.statValue}>{Math.round(watchedPercentage)}%</span>
                             </div>
-                            <span className="font-bold text-gray-700">{Math.round(watchedPercentage)}%</span>
+                            <div className={styles.progressBarContainer}>
+                                <div
+                                    className={styles.progressBarFill}
+                                    style={{ width: `${Math.round(watchedPercentage)}%` }}
+                                ></div>
+                            </div>
                         </div>
 
                         <div className={styles.sidebarStatItem}>
-                            <div className={styles.sidebarStatLabel}>
-                                <Trophy size={16} className={canTakeQuiz ? 'text-green-500' : 'text-gray-400'} />
-                                <span>Requisito Quiz</span>
+                            <div className={styles.statHeaderRow}>
+                                <div className={styles.sidebarStatLabel}>
+                                    <Trophy size={16} className={canTakeQuiz ? 'text-green-500' : 'text-gray-400'} />
+                                    <span>Requisito Quiz</span>
+                                </div>
+                                <span className={styles.statValue}>{module.requiredWatchPercentage}%</span>
                             </div>
-                            <span>{module.requiredWatchPercentage}%</span>
+                            <div className={styles.progressBarContainer}>
+                                <div
+                                    className={styles.progressBarFill}
+                                    style={{ width: `${module.requiredWatchPercentage}%`, backgroundColor: '#e2e8f0' }}
+                                ></div>
+                            </div>
                         </div>
                     </div>
 
-                    <div className={styles.sidebarDesc}>
-                        <p>{module.description}</p>
-                    </div>
-
                     {!canTakeQuiz && (
-                        <div className="bg-orange-50 border border-orange-100 rounded-lg p-3 text-xs text-orange-700 flex items-start gap-2">
-                            <AlertCircle size={14} className="mt-0.5 flex-shrink-0" />
-                            <p>Debes ver al menos el {module.requiredWatchPercentage}% del video para habilitar la evaluación.</p>
+                        <div className="bg-orange-50 border border-orange-100 rounded-xl p-3 text-xs text-orange-800 flex items-start gap-2">
+                            <AlertCircle size={16} className="mt-0.5 flex-shrink-0 text-orange-500" />
+                            <p>Debes ver al menos el <strong>{module.requiredWatchPercentage}% del video</strong> para habilitar la evaluación.</p>
                         </div>
                     )}
 
                     <div className={styles.sidebarCta}>
                         <button
                             onClick={handleStartQuiz}
-                            className="w-full py-3 bg-gray-900 text-white rounded-xl font-bold text-sm hover:bg-black transition-colors flex items-center justify-center gap-2 shadow-lg"
+                            disabled={!canTakeQuiz && !userProgress[module.id]?.completed}
+                            className={styles.ctaButton}
                         >
-                            <Trophy size={18} />
-                            {userProgress[module.id]?.completed ? 'Ver Resultados / Reintentar' : 'Iniciar Evaluación'}
+                            {userProgress[module.id]?.completed ? 'Revisar Resultados' : 'Iniciar Evaluación'}
+                            <ChevronRight size={18} />
                         </button>
                     </div>
                 </div>
             </aside>
 
-            {/* NEW QUIZ MODAL */}
-            {showQuizModal && (
-                <div className={styles.quizOverlay}>
-                    <div className={styles.quizModal}>
-                        <div className={styles.modalHeader}>
-                            <div className="flex items-center gap-2">
-                                <span className="text-sm font-bold text-indigo-600 tracking-wider uppercase">Evaluación</span>
-                            </div>
-                            <button onClick={() => setShowQuizModal(false)} className={styles.modalCloseBtn}>
-                                <X size={24} />
-                            </button>
-                        </div>
-
-                        <div className={styles.modalContent}>
-                            {/* ESTADO 1: INTRO / START */}
-                            {!quizSession && !generatingQuiz && questions.length === 0 && (
-                                <div className={styles.modalIntro}>
-                                    <div className={styles.introIcon}>
-                                        <Trophy size={40} />
-                                    </div>
-                                    <h3 className={styles.introTitle}>¡Hora de demostrar lo que sabes!</h3>
-                                    <p className={styles.introDesc}>
-                                        Responde estas preguntas rápidas para validar tu conocimiento sobre "{module.title}".
-                                        Necesitas un <strong>{module.passingScore}%</strong> para aprobar.
-                                    </p>
-
-                                    <div className="flex justify-center w-full">
-                                        <button
-                                            onClick={() => {
-                                                if (questions.length === 0) generateQuiz();
-                                            }}
-                                            disabled={!canTakeQuiz}
-                                            className={`${styles.startQuizBtn} max-w-sm`}
-                                        >
-                                            {!canTakeQuiz ? `Video al ${module.requiredWatchPercentage}% requerido` : 'Comenzar Evaluación'}
-                                        </button>
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* ESTADO 2: GENERANDO */}
-                            {generatingQuiz && (
-                                <div className={styles.modalIntro}>
-                                    <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-indigo-600 mb-6 mx-auto"></div>
-                                    <h3 className="text-xl font-bold text-gray-800 mb-2">Preparando tu examen...</h3>
-                                    <p className="text-gray-500">Nuestra IA está diseñando preguntas personalizadas para ti.</p>
-                                </div>
-                            )}
-
-                            {/* ESTADO 3: PREGUNTAS ACTIVAS */}
-                            {!quizSession && questions.length > 0 && currentQuestion && (
-                                <div className={styles.modalQuestionContainer}>
-                                    <div className={styles.questionProgress}>
-                                        <span>Pregunta {currentQuestionIndex + 1} de {questions.length}</span>
-                                        <div className={styles.progressBarTrack}>
-                                            <div
-                                                className={styles.progressBarFill}
-                                                style={{ width: `${((currentQuestionIndex + 1) / questions.length) * 100}%` }}
-                                            />
-                                        </div>
-                                    </div>
-
-                                    <h2 className={styles.modalQuestionText}>{currentQuestion.text}</h2>
-
-                                    <div className={styles.modalOptionsList}>
-                                        {currentQuestion.options.map((option, index) => (
-                                            <button
-                                                key={index}
-                                                onClick={() => handleAnswerSelect(currentQuestion.id, index)}
-                                                className={`${styles.modalOptionBtn} ${answers.get(currentQuestion.id) === index ? styles.modalOptionSelected : ''}`}
-                                            >
-                                                <span className={styles.optionLetter}>
-                                                    {String.fromCharCode(65 + index)}
-                                                </span>
-                                                <span className="flex-1 font-medium">{option}</span>
-                                                {answers.get(currentQuestion.id) === index && (
-                                                    <CheckCircle size={20} className="text-indigo-600" />
-                                                )}
-                                            </button>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* ESTADO 4: RESULTADOS */}
-                            {quizSession && (
-                                <div className={styles.modalResults}>
-                                    <Confetti active={quizSession.passed} />
-
-                                    <div className={styles.bigScore}>
-                                        {score}<span className="text-2xl text-gray-400">%</span>
-                                    </div>
-                                    <div className={styles.scoreLabel}>Tu Puntuación Final</div>
-
-                                    <h3 className={`${styles.resultTitle} ${quizSession.passed ? styles.passed : styles.failed}`}>
-                                        {quizSession.passed ? '¡Excelente Trabajo!' : 'Inténtalo de Nuevo'}
-                                    </h3>
-
-                                    <p className={styles.resultMessage}>
-                                        {quizSession.passed
-                                            ? 'Has demostrado un gran dominio del tema. Estás listo para avanzar al siguiente nivel.'
-                                            : 'No te preocupes, el aprendizaje es un proceso. Repasa el video y vuelve a intentarlo.'}
-                                    </p>
-
-                                    <div className={styles.resultActions}>
-                                        {!quizSession.passed ? (
-                                            <button
-                                                onClick={() => {
-                                                    setQuizSession(null);
-                                                    setQuestions([]);
-                                                    setAnswers(new Map());
-                                                    // Generate new quiz logic could be here if we want fresh questions
-                                                    generateQuiz();
-                                                }}
-                                                className={`${styles.modalNavBtn} ${styles.primaryBtn}`}
-                                            >
-                                                Reintentar Quiz
-                                            </button>
-                                        ) : (
-                                            <button
-                                                onClick={() => {
-                                                    setShowQuizModal(false);
-                                                    handleBack(); // Or specific logic to go to next module directly
-                                                }}
-                                                className={`${styles.modalNavBtn} ${styles.primaryBtn}`}
-                                            >
-                                                Siguiente Lección <ArrowRight size={18} className="inline ml-2" />
-                                            </button>
-                                        )}
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-
-                        {/* Footer only visible during active quiz to hold nav buttons */}
-                        {!quizSession && questions.length > 0 && !generatingQuiz && (
-                            <div className={styles.modalFooter}>
-                                <button
-                                    onClick={handlePreviousQuestion}
-                                    disabled={currentQuestionIndex === 0}
-                                    className={`${styles.modalNavBtn} ${styles.secondaryBtn}`}
-                                >
-                                    Anterior
-                                </button>
-                                {currentQuestionIndex < questions.length - 1 ? (
-                                    <button
-                                        onClick={handleNextQuestion}
-                                        className={`${styles.modalNavBtn} ${styles.primaryBtn}`}
-                                    >
-                                        Siguiente
-                                    </button>
-                                ) : (
-                                    <button
-                                        onClick={handleSubmitQuiz}
-                                        disabled={!allAnswered}
-                                        className={`${styles.modalNavBtn} ${styles.primaryBtn}`}
-                                    >
-                                        Finalizar Evaluación
-                                    </button>
-                                )}
-                            </div>
-                        )}
-                    </div>
-                </div>
+            {/* NEW QUIZ MODAL (Dynamically Loaded) */}
+            {showQuizModal && module && user && (
+                <QuizModal
+                    module={module}
+                    user={user}
+                    canTakeQuiz={canTakeQuiz}
+                    onClose={() => setShowQuizModal(false)}
+                    onQuizPassed={(score: number) => {
+                        setUserProgress(prev => ({
+                            ...prev,
+                            [module.id]: { completed: true, score }
+                        }));
+                    }}
+                    showToast={(message: string, type: ToastType) => setToast({ message, type })}
+                    handleBack={handleBack}
+                />
             )}
 
             {toast && (

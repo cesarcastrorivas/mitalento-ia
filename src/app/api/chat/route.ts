@@ -1,41 +1,43 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { geminiModel } from '@/lib/gemini';
-import { db } from '@/lib/firebase';
-import { doc, getDoc } from 'firebase/firestore';
+import { getAdminDb } from '@/lib/firebase-admin';
+import { getServerUser } from '@/lib/server-auth';
+import { checkRateLimit } from '@/lib/rate-limit';
 
 export async function POST(req: NextRequest) {
     try {
+        const user = await getServerUser();
+        if (!user) {
+            return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+        }
+
+        // 60 mensajes/hora por usuario
+        const rl = await checkRateLimit(user.uid, 'chat', 60);
+        if (!rl.allowed) {
+            return NextResponse.json(
+                { error: 'Demasiadas solicitudes. Intenta de nuevo más tarde.' },
+                { status: 429, headers: { 'Retry-After': String(Math.ceil(rl.resetInMs / 1000)) } }
+            );
+        }
+
         const { message, history } = await req.json();
 
         if (!message) {
             return NextResponse.json({ error: 'Message is required' }, { status: 400 });
         }
 
-        // 1. Fetch System Context from Firestore
+        // Fetch system context from Firestore using Admin SDK (server-side)
         let systemInstruction = '';
         try {
-            // Note: We're using the admin SDK or client SDK in a server environment. 
-            // Since @/lib/firebase exports the client SDK initialized app, it works in Next.js API routes 
-            // (Standard Tier) but strictly speaking for production usually Admin SDK is better.
-            // However, existing code uses client SDK in pages, so it should work here too if env vars are set.
-            // But 'getDoc' is client SDK. API routes run in Node environment.
-            // We need to ensure simple fetch works.
-            const docRef = doc(db, 'knowledge_base', 'sofia');
-            const docSnap = await getDoc(docRef);
-
-            if (docSnap.exists()) {
-                systemInstruction = docSnap.data().content || '';
+            const db = getAdminDb();
+            const docSnap = await db.collection('knowledge_base').doc('sofia').get();
+            if (docSnap.exists) {
+                systemInstruction = docSnap.data()?.content || '';
             }
         } catch (error) {
             console.error('Error fetching knowledge base:', error);
-            // Fallback to basic instruction if DB fails
             systemInstruction = 'Eres Bally IA, una asistente inteligente útil.';
         }
-
-        // 2. Construct Chat Prompt
-        // Gemini API supports 'chat' mode with history, but stateless generateContent is easier for simple Vercel functions
-        // unless we want to manage full history tokens ourselves.
-        // We will construct a text prompt with history.
 
         let prompt = `INSTRUCCIONES DEL SISTEMA:
 ${systemInstruction || 'Eres Bally IA, una asistente inteligente, amigable y experta.'}
@@ -70,7 +72,6 @@ SIGUE ESTE FORMATO SIEMPRE.
 
         prompt += `\nUsuario: ${message}\nBally IA:`;
 
-        // 3. Call Gemini
         const result = await geminiModel.generateContent(prompt);
         const response = result.response.text();
 

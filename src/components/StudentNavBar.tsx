@@ -1,20 +1,20 @@
 'use client';
 
+import { memo } from 'react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useAuth } from '@/contexts/AuthContext';
 import styles from './StudentNavBar.module.css';
-import { Home, User, LogOut, Sparkles, Trophy, Target, GraduationCap } from 'lucide-react';
+import { Home, LogOut, Sparkles, Trophy } from 'lucide-react';
 
 const navItems = [
     { href: '/dashboard', label: 'Inicio', icon: Home },
-    { href: '/certificacion', label: 'Certif.', icon: GraduationCap },
     { href: '/sofia', label: 'Bally IA', icon: Sparkles },
     { href: '/leaderboard', label: 'Ranking', icon: Trophy },
-    { href: '/action-plan', label: 'Plan', icon: Target },
 ];
 
-export default function StudentNavBar() {
+function StudentNavBar() {
     const pathname = usePathname();
     const { user, signOut } = useAuth();
 
@@ -43,10 +43,13 @@ export default function StudentNavBar() {
                         <div className={styles.topRight}>
                             <div className={styles.avatarWrapper}>
                                 {user?.photoURL ? (
-                                    <img
+                                    <Image
                                         src={user.photoURL}
                                         alt={user.displayName || 'Avatar'}
+                                        fill
+                                        sizes="40px"
                                         className={styles.avatarImg}
+                                        style={{ objectFit: 'cover' }}
                                     />
                                 ) : (
                                     <span className={styles.avatarInitial}>{getInitial()}</span>
@@ -88,3 +91,5 @@ export default function StudentNavBar() {
         </>
     );
 }
+
+export default memo(StudentNavBar);

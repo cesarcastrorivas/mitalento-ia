@@ -1,46 +1,65 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/firebase';
-import { doc, getDoc, addDoc, collection, query, where, getDocs, Timestamp } from 'firebase/firestore';
+import { getAdminDb } from '@/lib/firebase-admin';
+import { getServerUser } from '@/lib/server-auth';
+import { checkRateLimit } from '@/lib/rate-limit';
+import { Timestamp } from 'firebase-admin/firestore';
 import crypto from 'crypto';
 import { canGenerateCertificate } from '@/lib/grading-utils';
 
 export async function POST(req: NextRequest) {
     try {
+        const user = await getServerUser();
+        if (!user) {
+            return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+        }
+
         const { userId, pathId } = await req.json();
 
         if (!userId) {
             return NextResponse.json({ error: 'userId is required' }, { status: 400 });
         }
 
+        // Students can only generate their own certificate
+        if (user.role !== 'admin' && userId !== user.uid) {
+            return NextResponse.json({ error: 'Acceso denegado' }, { status: 403 });
+        }
+
+        // 10 intentos/hora por usuario
+        const rl = await checkRateLimit(user.uid, 'generate-certificate', 10);
+        if (!rl.allowed) {
+            return NextResponse.json(
+                { error: 'Demasiadas solicitudes. Intenta de nuevo más tarde.' },
+                { status: 429, headers: { 'Retry-After': String(Math.ceil(rl.resetInMs / 1000)) } }
+            );
+        }
+
+        const db = getAdminDb();
+
         // Get user data
-        const userDoc = await getDoc(doc(db, 'users', userId));
-        if (!userDoc.exists()) {
-            return NextResponse.json({ error: 'User not found' }, { status: 404 });
+        const userDoc = await db.collection('users').doc(userId).get();
+        if (!userDoc.exists) {
+            return NextResponse.json({ error: 'Usuario no encontrado' }, { status: 404 });
         }
 
-        const userData = userDoc.data();
+        const userData = userDoc.data()!;
 
-        // Check if an active certificate already exists for this path (or globally if no pathId)
-        const existingQueryConstraints = [
-            where('userId', '==', userId),
-            where('isActive', '==', true),
-        ];
+        // Check if an active certificate already exists for this path
+        let existingQuery = db.collection('certificates')
+            .where('userId', '==', userId)
+            .where('isActive', '==', true);
+
         if (pathId) {
-            existingQueryConstraints.push(where('pathId', '==', pathId));
+            existingQuery = existingQuery.where('pathId', '==', pathId) as any;
         }
-        const existingQuery = query(
-            collection(db, 'certificates'),
-            ...existingQueryConstraints
-        );
-        const existingSnap = await getDocs(existingQuery);
 
-        // If pathId provided, only match certificates for that specific path
+        const existingSnap = await existingQuery.get();
+
         if (!existingSnap.empty) {
             const existing = { id: existingSnap.docs[0].id, ...existingSnap.docs[0].data() };
             return NextResponse.json({ success: true, certificate: existing });
         }
 
-        // ═══ VALIDACIÓN: Verificar que el usuario completó la ruta ═══
+        // Verify the user completed the path
         const eligibility = await canGenerateCertificate(userId, pathId);
         if (!eligibility.eligible) {
             return NextResponse.json(
@@ -52,10 +71,8 @@ export async function POST(req: NextRequest) {
         const avgScore = eligibility.averageScore;
         const certLevel = eligibility.certificationLevel || userData.certificationLevel || 'fundamental';
 
-        // Generate unique verification code
         const verificationCode = crypto.randomBytes(8).toString('hex').toUpperCase();
 
-        // Create certificate
         const certData: Record<string, any> = {
             userId,
             userName: userData.displayName || 'Asesor Urbanity',
@@ -66,15 +83,10 @@ export async function POST(req: NextRequest) {
             issuedAt: Timestamp.now(),
         };
 
-        // Add path info if available
-        if (eligibility.completedPathId) {
-            certData.pathId = eligibility.completedPathId;
-        }
-        if (eligibility.pathTitle) {
-            certData.pathTitle = eligibility.pathTitle;
-        }
+        if (eligibility.completedPathId) certData.pathId = eligibility.completedPathId;
+        if (eligibility.pathTitle) certData.pathTitle = eligibility.pathTitle;
 
-        const certRef = await addDoc(collection(db, 'certificates'), certData);
+        const certRef = await db.collection('certificates').add(certData);
 
         return NextResponse.json({
             success: true,
@@ -83,9 +95,6 @@ export async function POST(req: NextRequest) {
 
     } catch (error) {
         console.error('Error generating certificate:', error);
-        return NextResponse.json(
-            { error: error instanceof Error ? error.message : 'Error desconocido' },
-            { status: 500 }
-        );
+        return NextResponse.json({ error: 'Error generando certificado' }, { status: 500 });
     }
 }

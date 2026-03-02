@@ -5,6 +5,7 @@ import { collection, query, where, getDocs, doc, getDoc, orderBy } from 'firebas
 import { db } from '@/lib/firebase';
 import { useAuth } from '@/contexts/AuthContext';
 import { Course, LearningPath, Module } from '@/types';
+import { FIXED_PATHS } from '@/lib/constants';
 import Link from 'next/link';
 import styles from './page.module.css';
 import Breadcrumbs from '@/components/Breadcrumbs';
@@ -41,37 +42,50 @@ export default function PathDetailsPage({ params }: { params: Promise<{ pathId: 
 
     const loadPathData = async () => {
         try {
-            // 1. Cargar Path
-            const pathDoc = await getDoc(doc(db, 'learning_paths', pathId));
-            if (!pathDoc.exists()) {
-                setLoading(false);
-                return;
-            }
-            setPath({ id: pathDoc.id, ...pathDoc.data() } as LearningPath);
-
-            // 2. Cargar Cursos del Path
+            // Lanzar queries independientes en paralelo: path + cursos + sesiones
+            // (los módulos deben esperar los courseIds de cursos — waterfall inevitable)
             const coursesQ = query(
                 collection(db, 'courses'),
                 where('pathId', '==', pathId),
                 where('isActive', '==', true),
                 orderBy('order', 'asc')
             );
-            const coursesSnapshot = await getDocs(coursesQ);
-            const coursesData = coursesSnapshot.docs.map(c => ({ id: c.id, ...c.data() } as Course));
-
-            // 3. Cargar Módulos
-            const modulesQ = query(collection(db, 'modules'), where('isActive', '==', true));
-            const modulesSnapshot = await getDocs(modulesQ);
-            const allModules = modulesSnapshot.docs.map(m => ({ id: m.id, ...m.data() } as Module));
-
-            // 4. Cargar Progreso
             const sessionsQ = query(
                 collection(db, 'quiz_sessions'),
                 where('userId', '==', user?.uid),
                 where('passed', '==', true)
             );
-            const sessionsSnapshot = await getDocs(sessionsQ);
+
+            const [pathDoc, coursesSnapshot, sessionsSnapshot] = await Promise.all([
+                getDoc(doc(db, 'learning_paths', pathId)),
+                getDocs(coursesQ),
+                getDocs(sessionsQ),
+            ]);
+
+            // Resolver path
+            if (!pathDoc.exists()) {
+                const fixedPath = FIXED_PATHS.find(p => p.id === pathId);
+                if (!fixedPath) { setLoading(false); return; }
+                setPath(fixedPath);
+            } else {
+                setPath({ id: pathDoc.id, ...pathDoc.data() } as LearningPath);
+            }
+
+            const coursesData = coursesSnapshot.docs.map(c => ({ id: c.id, ...c.data() } as Course));
             const passedModuleIds = new Set(sessionsSnapshot.docs.map(s => s.data().moduleId));
+
+            // Módulos: dependen de courseIds (segunda ronda necesaria)
+            const courseIds = coursesData.map(c => c.id);
+            let allModules: Module[] = [];
+            if (courseIds.length > 0) {
+                const modulesQ = query(
+                    collection(db, 'modules'),
+                    where('courseId', 'in', courseIds),
+                    where('isActive', '==', true)
+                );
+                const modulesSnapshot = await getDocs(modulesQ);
+                allModules = modulesSnapshot.docs.map(m => ({ id: m.id, ...m.data() } as Module));
+            }
 
             // 5. Calcular progreso y bloqueos
             let previousCourseCompleted = true;

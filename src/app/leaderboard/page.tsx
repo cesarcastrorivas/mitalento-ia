@@ -1,21 +1,11 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { collection, query, getDocs, where, orderBy } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
 import { useAuth } from '@/contexts/AuthContext';
-import { User } from '@/types';
 import styles from './page.module.css';
-import { Trophy, Crown } from 'lucide-react';
-
-interface RankedUser {
-    uid: string;
-    displayName: string;
-    photoURL?: string;
-    totalScore: number;
-    passedModules: number;
-    certificationLevel: string;
-}
+import { ArrowLeft } from 'lucide-react';
+import Link from 'next/link';
+import type { LeaderboardEntry } from '@/app/api/leaderboard/route';
 
 const LEVEL_LABELS: Record<string, string> = {
     none: 'En Proceso',
@@ -26,7 +16,7 @@ const LEVEL_LABELS: Record<string, string> = {
 
 export default function LeaderboardPage() {
     const { user } = useAuth();
-    const [ranked, setRanked] = useState<RankedUser[]>([]);
+    const [ranked, setRanked] = useState<LeaderboardEntry[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -35,49 +25,12 @@ export default function LeaderboardPage() {
 
     const loadLeaderboard = async () => {
         try {
-            // Get all students
-            const usersQuery = query(
-                collection(db, 'users'),
-                where('role', '==', 'student')
-            );
-            const usersSnap = await getDocs(usersQuery);
-            const users = usersSnap.docs.map(d => ({ uid: d.id, ...d.data() } as User));
-
-            // Get all quiz sessions
-            const sessionsSnap = await getDocs(collection(db, 'quiz_sessions'));
-            const sessions = sessionsSnap.docs.map(d => d.data());
-
-            // Group sessions by user
-            const userScores = new Map<string, { total: number; count: number; passedModules: Set<string> }>();
-
-            sessions.forEach((s: any) => {
-                if (!userScores.has(s.userId)) {
-                    userScores.set(s.userId, { total: 0, count: 0, passedModules: new Set() });
-                }
-                const entry = userScores.get(s.userId)!;
-                entry.total += s.score;
-                entry.count += 1;
-                if (s.passed) entry.passedModules.add(s.moduleId);
-            });
-
-            // Build ranked list
-            const rankedList: RankedUser[] = users
-                .map(u => {
-                    const scores = userScores.get(u.uid);
-                    return {
-                        uid: u.uid,
-                        displayName: u.displayName,
-                        photoURL: u.photoURL,
-                        totalScore: scores ? Math.round(scores.total / scores.count) : 0,
-                        passedModules: scores ? scores.passedModules.size : 0,
-                        certificationLevel: u.certificationLevel || 'none',
-                    };
-                })
-                .filter(u => u.totalScore > 0)
-                .sort((a, b) => b.totalScore - a.totalScore)
-                .slice(0, 20);
-
-            setRanked(rankedList);
+            // Server-side API: computes ranking with Admin SDK, returns only needed fields.
+            // No raw Firestore reads from the client — no quiz_sessions data exposed.
+            const res = await fetch('/api/leaderboard');
+            if (!res.ok) throw new Error('Error al cargar el leaderboard');
+            const data = await res.json();
+            setRanked(data.ranked ?? []);
         } catch (error) {
             console.error('Error loading leaderboard:', error);
         } finally {
@@ -106,6 +59,13 @@ export default function LeaderboardPage() {
     return (
         <div className={styles.page}>
             <div className={styles.container}>
+                <div className={styles.topNav}>
+                    <Link href="/dashboard" className={styles.backBtn}>
+                        <ArrowLeft size={20} />
+                        <span>Volver</span>
+                    </Link>
+                </div>
+
                 <div className={styles.header}>
                     <h1 className={styles.title}>🏆 Ranking Urbanity Academy</h1>
                     <p className={styles.subtitle}>Top asesores en formación por puntaje promedio</p>
