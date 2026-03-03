@@ -1,39 +1,44 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/firebase';
-import { doc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
+import { getAdminDb } from '@/lib/firebase-admin';
+import { getServerUser } from '@/lib/server-auth';
 
 export async function GET(req: NextRequest) {
     try {
+        const user = await getServerUser();
+        if (!user) {
+            return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+        }
+
         const userId = req.nextUrl.searchParams.get('userId');
         if (!userId) {
             return NextResponse.json({ error: 'userId is required' }, { status: 400 });
         }
 
-        // Get user document
-        const userDoc = await getDoc(doc(db, 'users', userId));
-        if (!userDoc.exists()) {
-            return NextResponse.json({ error: 'User not found' }, { status: 404 });
+        // Students can only query their own status
+        if (user.role !== 'admin' && userId !== user.uid) {
+            return NextResponse.json({ error: 'Acceso denegado' }, { status: 403 });
         }
 
-        const userData = userDoc.data();
+        const db = getAdminDb();
+
+        const userDoc = await db.collection('users').doc(userId).get();
+        if (!userDoc.exists) {
+            return NextResponse.json({ error: 'Usuario no encontrado' }, { status: 404 });
+        }
+
+        const userData = userDoc.data()!;
         const certificationLevel = userData.certificationLevel || 'none';
         const attitudinalStatus = userData.attitudinalStatus || 'pending';
 
-        // Get quiz sessions for this user
-        const sessionsQuery = query(
-            collection(db, 'quiz_sessions'),
-            where('userId', '==', userId)
-        );
-        const sessionsSnap = await getDocs(sessionsQuery);
+        const sessionsSnap = await db.collection('quiz_sessions')
+            .where('userId', '==', userId)
+            .get();
+
         const sessions = sessionsSnap.docs.map(d => d.data());
 
-        // Calculate best scores per module (grouped by day/course if needed)
         const progress = userData.progress || {};
-
-        // Count passed modules
         const passedModules = Object.values(progress).filter((p: any) => p?.completed).length;
 
-        // Average score across all passed sessions
         const passedSessions = sessions.filter((s: any) => s.passed);
         const averageScore = passedSessions.length > 0
             ? Math.round(passedSessions.reduce((sum: number, s: any) => sum + s.score, 0) / passedSessions.length)

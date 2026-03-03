@@ -17,7 +17,7 @@ import {
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { db, storage } from '@/lib/firebase';
 import { useAuth } from '@/contexts/AuthContext';
-import { Module, Course } from '@/types';
+import { Module, Course, Question } from '@/types';
 import { FileText, Wand2 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -31,7 +31,9 @@ import {
     Lightbulb,
     FileVideo,
     UploadCloud,
-    CheckCircle2
+    CheckCircle2,
+    BrainCircuit,
+    Save
 } from 'lucide-react';
 import { Modal } from '@/components/ui/Modal';
 import { Input } from '@/components/ui/Input';
@@ -53,6 +55,8 @@ export default function CourseModulesPage({ params }: { params: Promise<{ course
     const [isUploading, setIsUploading] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isTranscribing, setIsTranscribing] = useState(false);
+    const [isGeneratingQuiz, setIsGeneratingQuiz] = useState(false);
+    const [wizardStep, setWizardStep] = useState(1);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     // Form state
@@ -66,6 +70,7 @@ export default function CourseModulesPage({ params }: { params: Promise<{ course
         requiredWatchPercentage: 80,
         passingScore: 70,
         transcription: '',
+        questions: [] as Question[],
     });
 
     useEffect(() => {
@@ -169,6 +174,72 @@ export default function CourseModulesPage({ params }: { params: Promise<{ course
         }
     };
 
+    const handleGenerateQuiz = async () => {
+        if (!formData.transcription.trim()) {
+            alert('Primero necesitas generar la transcripción para poder crear el examen.');
+            return;
+        }
+
+        setIsGeneratingQuiz(true);
+        try {
+            const response = await fetch('/api/generate-quiz', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    moduleId: editingModule?.id || 'temp-id',
+                    transcription: formData.transcription,
+                    videoTitle: formData.title || 'Video del Módulo',
+                    videoContext: formData.videoContext,
+                    isAdmin: true
+                }),
+            });
+
+            const data = await response.json();
+
+            if (!data.success) {
+                throw new Error(data.error);
+            }
+
+            setFormData(prev => ({ ...prev, questions: data.questions }));
+            alert('Examen generado con éxito. Por favor revisa las preguntas.');
+        } catch (error) {
+            console.error('Error generating quiz:', error);
+            alert('Error al generar el examen. Por favor intenta de nuevo.');
+        } finally {
+            setIsGeneratingQuiz(false);
+        }
+    };
+
+    const handleQuestionChange = (index: number, field: keyof Question, value: any) => {
+        setFormData(prev => {
+            const newQuestions = [...prev.questions];
+            newQuestions[index] = { ...newQuestions[index], [field]: value };
+            return { ...prev, questions: newQuestions };
+        });
+    };
+
+    const handleOptionChange = (questionIndex: number, optionIndex: number, value: string) => {
+        setFormData(prev => {
+            const newQuestions = [...prev.questions];
+            const newOptions = [...newQuestions[questionIndex].options];
+            newOptions[optionIndex] = value;
+            newQuestions[questionIndex] = { ...newQuestions[questionIndex], options: newOptions };
+            return { ...prev, questions: newQuestions };
+        });
+    };
+
+    const handleDeleteQuestion = (index: number) => {
+        if (confirm('¿Estás seguro de que quieres eliminar esta pregunta?')) {
+            setFormData(prev => {
+                const newQuestions = [...prev.questions];
+                newQuestions.splice(index, 1);
+                return { ...prev, questions: newQuestions };
+            });
+        }
+    };
+
     const handleSubmit = async () => {
         if (!formData.title || !formData.videoUrl) {
             alert('Por favor completa el título y sube un video');
@@ -178,6 +249,10 @@ export default function CourseModulesPage({ params }: { params: Promise<{ course
             alert('La transcripción es obligatoria. Genera la transcripción con IA y revísala antes de guardar.');
             return;
         }
+        // if (!formData.questions || formData.questions.length === 0) {
+        //     alert('Debes generar el examen antes de guardar el módulo.');
+        //     return;
+        // }
         setIsSubmitting(true);
 
         try {
@@ -201,6 +276,7 @@ export default function CourseModulesPage({ params }: { params: Promise<{ course
             setShowModal(false);
             resetForm();
             loadData();
+            setWizardStep(1);
         } catch (error: unknown) {
             console.error('Error saving module:', error);
             const firebaseError = error as { code?: string; message?: string };
@@ -212,6 +288,7 @@ export default function CourseModulesPage({ params }: { params: Promise<{ course
 
     const handleEdit = (module: Module) => {
         setEditingModule(module);
+        setWizardStep(1);
         setFormData({
             title: module.title,
             description: module.description,
@@ -222,6 +299,7 @@ export default function CourseModulesPage({ params }: { params: Promise<{ course
             requiredWatchPercentage: module.requiredWatchPercentage,
             passingScore: module.passingScore,
             transcription: module.transcription || '',
+            questions: module.questions || [],
         });
         setShowModal(true);
     };
@@ -249,9 +327,11 @@ export default function CourseModulesPage({ params }: { params: Promise<{ course
             requiredWatchPercentage: 80,
             passingScore: 70,
             transcription: '',
+            questions: [],
         });
         setEditingModule(null);
         setUploadProgress(0);
+        setWizardStep(1);
     };
 
     const openNewModuleModal = () => {
@@ -356,21 +436,6 @@ export default function CourseModulesPage({ params }: { params: Promise<{ course
                                     </div>
                                 </div>
 
-                                <div className="flex items-center gap-6 mt-auto pt-2">
-                                    <div className="flex items-center gap-2 text-sm text-slate-500">
-                                        <div className="flex flex-col">
-                                            <span className="text-xs text-slate-400">Puntuación mín.</span>
-                                            <span className="font-semibold text-slate-700">{module.passingScore}%</span>
-                                        </div>
-                                    </div>
-                                    <div className="w-px h-8 bg-slate-200" />
-                                    <div className="flex items-center gap-2 text-sm text-slate-500">
-                                        <div className="flex flex-col">
-                                            <span className="text-xs text-slate-400">Video req.</span>
-                                            <span className="font-semibold text-slate-700">{module.requiredWatchPercentage}%</span>
-                                        </div>
-                                    </div>
-                                </div>
                             </div>
                         </div>
                     ))}
@@ -385,125 +450,193 @@ export default function CourseModulesPage({ params }: { params: Promise<{ course
                 subtitle="Sube tu video y configura los requisitos de aprobación."
                 maxWidth="xl"
                 footer={
-                    <>
-                        <Button variant="ghost" onClick={() => setShowModal(false)}>
-                            Cancelar
-                        </Button>
-                        <Button onClick={handleSubmit} isLoading={isSubmitting || isUploading} disabled={isUploading || !formData.transcription.trim()}>
-                            {editingModule ? 'Guardar Cambios' : 'Crear Módulo'}
-                        </Button>
-                    </>
-                }
-            >
-                <div className="space-y-6">
-                    {/* Basic Info: Title & Order */}
-                    <div className="flex flex-col md:flex-row gap-5">
-                        <div className="flex-1">
-                            <Input
-                                label="Título del Módulo"
-                                value={formData.title}
-                                onChange={e => setFormData(prev => ({ ...prev, title: e.target.value }))}
-                                placeholder="Ej: Análisis de Mercado"
-                                required
-                            />
-                        </div>
-                        <div className="md:w-32">
-                            <Input
-                                label="Orden"
-                                type="number"
-                                value={formData.order}
-                                onChange={e => setFormData(prev => ({ ...prev, order: parseInt(e.target.value) || 1 }))}
-                                min={1}
-                            />
-                        </div>
-                    </div>
-
-                    <TextArea
-                        label="Descripción"
-                        value={formData.description}
-                        onChange={e => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                        placeholder="Resumen del contenido del video..."
-                        rows={2}
-                        required
-                    />
-
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        {/* Left Column: Video */}
-                        <div className="space-y-4">
-                            <label className="text-sm font-medium text-slate-700 block">Video del Módulo</label>
-                            {formData.videoUrl ? (
-                                <div className="group relative bg-slate-50 rounded-xl border border-slate-200 overflow-hidden">
-                                    <video src={formData.videoUrl} className="w-full aspect-video object-cover" controls />
-                                    <div className="p-3 flex justify-between items-center bg-white border-t border-slate-100">
-                                        <span className="text-xs text-emerald-600 font-medium flex items-center gap-1.5">
-                                            <CheckCircle2 size={14} />
-                                            Video cargado
-                                        </span>
-                                        <button
-                                            type="button"
-                                            onClick={() => setFormData(prev => ({ ...prev, videoUrl: '' }))}
-                                            className="text-xs text-red-500 hover:text-red-700 font-medium hover:underline"
-                                        >
-                                            Cambiar video
-                                        </button>
-                                    </div>
-                                </div>
-                            ) : (
-                                <div
-                                    onClick={() => fileInputRef.current?.click()}
-                                    className={`relative border-2 border-dashed rounded-xl p-6 text-center transition-all cursor-pointer h-full flex flex-col items-center justify-center min-h-[200px] ${isUploading ? 'border-purple-400 bg-purple-50/50' : 'border-slate-300 hover:border-purple-400 hover:bg-purple-50/10'}`}
-                                >
-                                    {isUploading ? (
-                                        <div className="w-full max-w-[200px]">
-                                            <div className="w-12 h-12 mx-auto mb-3 relative flex items-center justify-center">
-                                                <div className="absolute inset-0 rounded-full border-4 border-purple-200 border-t-purple-600 animate-spin" />
-                                            </div>
-                                            <p className="text-purple-700 font-medium text-sm mb-2 text-center">Subiendo video...</p>
-                                            <div className="w-full h-1.5 bg-purple-100 rounded-full overflow-hidden">
-                                                <div className="h-full bg-purple-600 transition-all duration-300" style={{ width: `${uploadProgress}%` }} />
-                                            </div>
-                                        </div>
-                                    ) : (
-                                        <>
-                                            <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center mb-3 shadow-sm text-purple-600 border border-slate-100 group-hover:scale-110 transition-transform">
-                                                <UploadCloud size={24} />
-                                            </div>
-                                            <h4 className="text-slate-900 font-medium text-sm mb-1">Subir Video MP4</h4>
-                                            <p className="text-slate-400 text-xs">Máx. 500MB</p>
-                                        </>
-                                    )}
-                                    <input
-                                        type="file"
-                                        accept="video/mp4,video/*"
-                                        ref={fileInputRef}
-                                        onChange={(e) => e.target.files && handleVideoUpload(e.target.files[0])}
-                                        hidden
-                                    />
-                                </div>
+                    <div className="flex justify-between w-full">
+                        <div>
+                            {wizardStep > 1 && (
+                                <Button variant="secondary" onClick={() => setWizardStep(prev => prev - 1)}>
+                                    Anterior
+                                </Button>
                             )}
                         </div>
+                        <div className="flex gap-2">
+                            <Button variant="ghost" onClick={() => setShowModal(false)}>
+                                Cancelar
+                            </Button>
+                            {wizardStep < 3 ? (
+                                <Button onClick={() => setWizardStep(prev => prev + 1)}>
+                                    Siguiente paso
+                                </Button>
+                            ) : (
+                                <Button onClick={handleSubmit} isLoading={isSubmitting || isUploading} disabled={isUploading || !formData.transcription.trim() || formData.questions.length === 0}>
+                                    {editingModule ? 'Guardar Cambios' : 'Crear Módulo'}
+                                </Button>
+                            )}
+                        </div>
+                    </div>
+                }
+            >
+                <div className="mb-6 px-6 pt-4 pb-2">
+                    {/* Wizard Steps Indicators (Stitch Variant 2 Style) */}
+                    <div className="flex items-center justify-between relative max-w-lg mx-auto">
+                        {/* Progress Line Background */}
+                        <div className="absolute top-1/2 left-0 w-full h-[2px] bg-purple-100 -translate-y-1/2 z-0"></div>
 
-                        {/* Right Column: AI & Transcription */}
-                        <div className="space-y-4 flex flex-col">
-                            <div className="flex-1 space-y-2">
-                                <label className="text-sm font-medium text-slate-700 flex items-center gap-2">
-                                    <Lightbulb size={16} className="text-amber-500" />
-                                    Contexto para IA
-                                </label>
+                        {/* Active Progress Line */}
+                        <div
+                            className="absolute top-1/2 left-0 h-[3px] bg-purple-600 -translate-y-1/2 z-0 transition-all duration-300 ease-in-out"
+                            style={{ width: wizardStep === 1 ? '15%' : wizardStep === 2 ? '50%' : '100%' }}
+                        ></div>
+
+                        {/* Step 1 */}
+                        <div className="relative z-10 flex flex-col items-center gap-2 bg-white px-2">
+                            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-300 ${wizardStep >= 1 ? 'bg-purple-600 text-white shadow-lg shadow-purple-600/30' : 'bg-slate-50 border-2 border-slate-200 text-slate-400'}`}>
+                                1
+                            </div>
+                            <span className={`text-[10px] font-bold uppercase tracking-wider ${wizardStep >= 1 ? 'text-purple-600' : 'text-slate-400'}`}>Información</span>
+                        </div>
+
+                        {/* Step 2 */}
+                        <div className="relative z-10 flex flex-col items-center gap-2 bg-white px-2">
+                            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-300 ${wizardStep >= 2 ? 'bg-purple-600 text-white shadow-lg shadow-purple-600/30' : 'bg-slate-50 border-2 border-slate-200 text-slate-400'}`}>
+                                2
+                            </div>
+                            <span className={`text-[10px] font-bold uppercase tracking-wider ${wizardStep >= 2 ? 'text-purple-600' : 'text-slate-400'}`}>Contenido</span>
+                        </div>
+
+                        {/* Step 3 */}
+                        <div className="relative z-10 flex flex-col items-center gap-2 bg-white px-2">
+                            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-300 ${wizardStep >= 3 ? 'bg-purple-600 text-white shadow-lg shadow-purple-600/30' : 'bg-slate-50 border-2 border-slate-200 text-slate-400'}`}>
+                                3
+                            </div>
+                            <span className={`text-[10px] font-bold uppercase tracking-wider ${wizardStep >= 3 ? 'text-purple-600' : 'text-slate-400'}`}>Examen IA</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="space-y-6">
+                    {wizardStep === 1 && (
+                        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                            {/* Row 1: Title, Order, Active Status */}
+                            <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100/60 space-y-5">
+                                <div className="flex flex-col md:flex-row gap-5">
+                                    <div className="flex-[2]">
+                                        <Input
+                                            label="Título del Módulo"
+                                            value={formData.title}
+                                            onChange={e => setFormData(prev => ({ ...prev, title: e.target.value }))}
+                                            placeholder="Ej: Análisis de Mercado"
+                                            required
+                                            className="bg-slate-50 border border-slate-200 focus:border-purple-500 focus:bg-white transition-colors"
+                                        />
+                                    </div>
+                                    <div className="flex-1 min-w-[120px]">
+                                        <Input
+                                            label="Orden"
+                                            type="number"
+                                            value={formData.order}
+                                            onChange={e => setFormData(prev => ({ ...prev, order: parseInt(e.target.value) || 1 }))}
+                                            min={1}
+                                            className="bg-slate-50 border border-slate-200 text-center focus:border-purple-500 focus:bg-white transition-colors"
+                                        />
+                                    </div>
+                                    <div className="flex-1 flex flex-col justify-end pb-2 pl-2">
+                                        <Switch
+                                            label="Módulo Activo"
+                                            checked={formData.isActive}
+                                            onChange={(checked) => setFormData(prev => ({ ...prev, isActive: checked }))}
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Row 2: Description */}
+                            <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100/60">
                                 <TextArea
-                                    value={formData.videoContext}
-                                    onChange={e => setFormData(prev => ({ ...prev, videoContext: e.target.value }))}
-                                    placeholder="Puntos clave para generar el quiz..."
-                                    rows={3}
-                                    className="bg-amber-50/30 focus:bg-white text-sm"
+                                    label="Descripción"
+                                    value={formData.description}
+                                    onChange={e => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                                    placeholder="Describe los objetivos y alcances de este módulo educativo..."
+                                    rows={4}
+                                    required
+                                    className="bg-slate-50 border border-slate-200 focus:border-purple-500 focus:bg-white transition-colors text-sm"
                                 />
                             </div>
 
-                            <div className="flex-1 space-y-2">
-                                <div className="flex items-center justify-between">
+                            {/* Helper Tip */}
+                            <div className="flex items-start gap-4 p-5 bg-purple-50/50 rounded-2xl border border-purple-100/50">
+                                <div className="p-2 bg-purple-100 text-purple-600 rounded-xl shrink-0">
+                                    <FileText size={18} />
+                                </div>
+                                <p className="text-sm text-slate-600 leading-relaxed font-medium">
+                                    Este es el primer paso para crear tu contenido. Podrás añadir el video y la evaluación generada por IA en los siguientes pasos.
+                                </p>
+                            </div>
+                        </div>
+                    )}
+
+                    {wizardStep === 2 && (
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            {/* Left Column: Video */}
+                            <div className="space-y-4">
+                                <label className="text-sm font-medium text-slate-700 block">Video del Módulo</label>
+                                {formData.videoUrl ? (
+                                    <div className="group relative bg-slate-50 rounded-xl border border-slate-200 overflow-hidden">
+                                        <video src={formData.videoUrl} className="w-full aspect-video object-cover" controls />
+                                        <div className="p-3 flex justify-between items-center bg-white border-t border-slate-100">
+                                            <span className="text-xs text-emerald-600 font-medium flex items-center gap-1.5">
+                                                <CheckCircle2 size={14} />
+                                                Video cargado
+                                            </span>
+                                            <button
+                                                type="button"
+                                                onClick={() => setFormData(prev => ({ ...prev, videoUrl: '' }))}
+                                                className="text-xs text-red-500 hover:text-red-700 font-medium hover:underline"
+                                            >
+                                                Cambiar video
+                                            </button>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div
+                                        onClick={() => fileInputRef.current?.click()}
+                                        className={`relative border-2 border-dashed rounded-xl p-6 text-center transition-all cursor-pointer h-full flex flex-col items-center justify-center min-h-[200px] ${isUploading ? 'border-purple-400 bg-purple-50/50' : 'border-slate-300 hover:border-purple-400 hover:bg-purple-50/10'}`}
+                                    >
+                                        {isUploading ? (
+                                            <div className="w-full max-w-[200px]">
+                                                <div className="w-12 h-12 mx-auto mb-3 relative flex items-center justify-center">
+                                                    <div className="absolute inset-0 rounded-full border-4 border-purple-200 border-t-purple-600 animate-spin" />
+                                                </div>
+                                                <p className="text-purple-700 font-medium text-sm mb-2 text-center">Subiendo video...</p>
+                                                <div className="w-full h-1.5 bg-purple-100 rounded-full overflow-hidden">
+                                                    <div className="h-full bg-purple-600 transition-all duration-300" style={{ width: `${uploadProgress}%` }} />
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <>
+                                                <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center mb-3 shadow-sm text-purple-600 border border-slate-100 group-hover:scale-110 transition-transform">
+                                                    <UploadCloud size={24} />
+                                                </div>
+                                                <h4 className="text-slate-900 font-medium text-sm mb-1">Subir Video MP4</h4>
+                                                <p className="text-slate-400 text-xs">Máx. 500MB</p>
+                                            </>
+                                        )}
+                                        <input
+                                            type="file"
+                                            accept="video/mp4,video/*"
+                                            ref={fileInputRef}
+                                            onChange={(e) => e.target.files && handleVideoUpload(e.target.files[0])}
+                                            hidden
+                                        />
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Right Column: Transcription */}
+                            <div className="flex flex-col h-full bg-white rounded-xl border border-slate-200 overflow-hidden">
+                                <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
                                     <label className="text-sm font-medium text-slate-700 flex items-center gap-2">
                                         <FileText size={16} className="text-purple-600" />
-                                        Transcripción
+                                        Transcripción del Video
                                     </label>
                                     <Button
                                         type="button"
@@ -513,77 +646,132 @@ export default function CourseModulesPage({ params }: { params: Promise<{ course
                                         disabled={!formData.videoUrl || isTranscribing}
                                         leftIcon={isTranscribing ? <div className="animate-spin rounded-full h-3 w-3 border-2 border-purple-600 border-t-transparent" /> : <Wand2 size={12} />}
                                     >
-                                        {isTranscribing ? 'Generando...' : 'Generar'}
+                                        {isTranscribing ? 'Generando...' : 'Generar Automáticamente'}
                                     </Button>
                                 </div>
-                                <TextArea
+                                <textarea
                                     value={formData.transcription}
                                     onChange={e => setFormData(prev => ({ ...prev, transcription: e.target.value }))}
-                                    placeholder="Texto del video..."
-                                    rows={4}
-                                    className="font-mono text-xs leading-relaxed"
+                                    placeholder="La IA extraerá el texto del video, pero también puedes pegarlo aquí o editarlo libremente..."
+                                    className="flex-1 w-full p-4 font-mono text-sm leading-relaxed text-slate-700 resize-none focus:outline-none focus:ring-0 border-0"
+                                    style={{ minHeight: '300px' }}
                                 />
                             </div>
                         </div>
-                    </div>
+                    )}
 
-                    {/* Requirements Footer Section */}
-                    <div className="bg-slate-50 rounded-xl p-5 border border-slate-100">
-                        <h3 className="text-sm font-bold text-slate-900 mb-4 flex items-center gap-2">
-                            <CheckCircle2 size={16} className="text-slate-400" />
-                            Configuración de Aprobación
-                        </h3>
+                    {wizardStep === 3 && (
+                        <div className="bg-purple-50/50 rounded-xl p-5 border border-purple-100">
+                            <div className="flex items-center justify-between mb-4">
+                                <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                                    <BrainCircuit size={16} className="text-purple-600" />
+                                    Examen del Módulo ({formData.questions.length} preguntas)
+                                </h3>
+                            </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-center">
-                            {/* Watch % */}
-                            <div className="space-y-3">
-                                <div className="flex justify-between items-center">
-                                    <span className="text-xs font-medium text-slate-500">Video Requerido</span>
-                                    <span className="text-sm font-bold text-slate-700 bg-white px-2 py-0.5 rounded border border-slate-200 shadow-sm">
-                                        {formData.requiredWatchPercentage}%
-                                    </span>
+                            <div className="bg-white p-4 rounded-lg border border-slate-200 mb-6 space-y-3">
+                                <label className="text-sm font-medium text-slate-700 flex items-center gap-2">
+                                    <Lightbulb size={16} className="text-amber-500" />
+                                    Contexto para IA (Opcional)
+                                </label>
+                                <p className="text-xs text-slate-500">
+                                    Escribe aquí puntos clave, temas específicos o directrices que la IA debe seguir para no alucinar al formular las preguntas.
+                                </p>
+                                <TextArea
+                                    value={formData.videoContext}
+                                    onChange={e => setFormData(prev => ({ ...prev, videoContext: e.target.value }))}
+                                    placeholder="Ej. Enfócate solo en la sección donde hablo sobre las métricas de negocio..."
+                                    rows={3}
+                                    className="bg-amber-50/10 focus:bg-white text-sm"
+                                />
+                                <div className="flex justify-end pt-2">
+                                    <Button
+                                        type="button"
+                                        size="sm"
+                                        onClick={handleGenerateQuiz}
+                                        isLoading={isGeneratingQuiz}
+                                        disabled={!formData.transcription}
+                                        leftIcon={!isGeneratingQuiz && <Wand2 size={16} />}
+                                    >
+                                        Generar Preguntas con IA
+                                    </Button>
                                 </div>
-                                <input
-                                    type="range"
-                                    min="0"
-                                    max="100"
-                                    value={formData.requiredWatchPercentage}
-                                    onChange={(e) => setFormData(prev => ({ ...prev, requiredWatchPercentage: parseInt(e.target.value) }))}
-                                    className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-purple-600"
-                                />
                             </div>
 
-                            {/* Passing Score */}
-                            <div className="space-y-3">
-                                <div className="flex justify-between items-center">
-                                    <span className="text-xs font-medium text-slate-500">Nota Mínima</span>
-                                    <span className="text-sm font-bold text-slate-700 bg-white px-2 py-0.5 rounded border border-slate-200 shadow-sm">
-                                        {formData.passingScore}%
-                                    </span>
+                            {!formData.transcription && (
+                                <div className="p-4 bg-orange-50 border border-orange-200 rounded-lg text-orange-800 text-sm mb-4">
+                                    Debes generar la transcripción del video en el paso anterior para poder crear preguntas para este examen.
                                 </div>
-                                <input
-                                    type="range"
-                                    min="0"
-                                    max="100"
-                                    value={formData.passingScore}
-                                    onChange={(e) => setFormData(prev => ({ ...prev, passingScore: parseInt(e.target.value) }))}
-                                    className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-purple-600"
-                                />
-                            </div>
+                            )}
 
-                            {/* Active Switch */}
-                            <div className="flex justify-end border-l border-slate-200 pl-8">
-                                <Switch
-                                    label="Módulo Activo"
-                                    description="Visible para estudiantes"
-                                    checked={formData.isActive}
-                                    onChange={(checked) => setFormData(prev => ({ ...prev, isActive: checked }))}
-                                />
-                            </div>
+                            {formData.questions.length > 0 && (
+                                <div className="space-y-6 mt-4">
+                                    {formData.questions.map((q, qIndex) => (
+                                        <div key={qIndex} className="bg-white p-4 rounded-lg border border-slate-200 shadow-sm space-y-4">
+                                            <div className="flex items-start justify-between gap-3">
+                                                <div className="flex items-start gap-3 flex-1">
+                                                    <span className="flex-shrink-0 w-6 h-6 rounded-full bg-purple-100 text-purple-700 flex items-center justify-center text-xs font-bold mt-1">
+                                                        {qIndex + 1}
+                                                    </span>
+                                                    <div className="flex-1">
+                                                        <TextArea
+                                                            label="Pregunta"
+                                                            value={q.text}
+                                                            onChange={(e) => handleQuestionChange(qIndex, 'text', e.target.value)}
+                                                            rows={2}
+                                                            className="text-sm font-medium"
+                                                        />
+                                                    </div>
+                                                </div>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handleDeleteQuestion(qIndex)}
+                                                    className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors mt-6"
+                                                    title="Eliminar pregunta"
+                                                >
+                                                    <Trash2 size={16} />
+                                                </button>
+                                            </div>
+
+                                            <div className="pl-9 space-y-3">
+                                                <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider block">Opciones</label>
+                                                {q.options.map((opt, optIndex) => (
+                                                    <div key={optIndex} className="flex items-center gap-3">
+                                                        <input
+                                                            type="radio"
+                                                            name={`correct-${qIndex}`}
+                                                            checked={q.correctIndex === optIndex}
+                                                            onChange={() => handleQuestionChange(qIndex, 'correctIndex', optIndex)}
+                                                            className="w-4 h-4 text-purple-600 focus:ring-purple-500 border-slate-300 cursor-pointer"
+                                                        />
+                                                        <input
+                                                            type="text"
+                                                            value={opt}
+                                                            onChange={(e) => handleOptionChange(qIndex, optIndex, e.target.value)}
+                                                            className={`flex-1 text-sm rounded-md border-slate-200 focus:border-purple-500 focus:ring-purple-500 ${q.correctIndex === optIndex ? 'bg-emerald-50/50 border-emerald-200 font-medium' : ''}`}
+                                                        />
+                                                    </div>
+                                                ))}
+
+                                                <div className="pt-2">
+                                                    <TextArea
+                                                        label="Explicación (opcional)"
+                                                        value={q.explanation}
+                                                        onChange={(e) => handleQuestionChange(qIndex, 'explanation', e.target.value)}
+                                                        rows={1}
+                                                        className="text-xs text-slate-500"
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
                         </div>
-                    </div>
-                </div>
-            </Modal>
-        </div>
+                    )
+                    }
+                </div >
+            </Modal >
+        </div >
     );
 }

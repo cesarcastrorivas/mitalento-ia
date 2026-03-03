@@ -14,8 +14,9 @@ export const Input: React.FC<InputProps> = ({
     id,
     ...props
 }) => {
-    const generatedId = useId();
-    const inputId = id || props.name || generatedId;
+    // We must avoid React.useId() to prevent hydration mismatches if it is somehow leaking or caching differently.
+    // Instead we rely on `id` or `name`, and gracefully fallback to a generic string (which is deterministic).
+    const inputId = id || props.name || 'input-field';
 
     return (
         <div className="flex flex-col gap-1.5 w-full">
@@ -45,6 +46,7 @@ export const Input: React.FC<InputProps> = ({
             ${error ? 'bg-red-50 text-red-900 placeholder:text-red-300' : ''}
             ${className}
           `}
+                    suppressHydrationWarning
                     {...props}
                 />
             </div>

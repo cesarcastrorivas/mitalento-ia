@@ -5,6 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import styles from './page.module.css';
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
+// eslint-disable-next-line @next/next/no-img-element
 import type { LeaderboardEntry } from '@/app/api/leaderboard/route';
 
 const LEVEL_LABELS: Record<string, string> = {
@@ -85,7 +86,11 @@ export default function LeaderboardPage() {
                                 {/* 2nd place */}
                                 <div className={`${styles.podiumItem} ${styles.second}`}>
                                     <div className={styles.podiumAvatar}>
-                                        {getInitials(top3[1].displayName)}
+                                        {top3[1].photoURL ? (
+                                            <img src={top3[1].photoURL} alt={top3[1].displayName} className={styles.avatarImg} />
+                                        ) : (
+                                            getInitials(top3[1].displayName)
+                                        )}
                                         <span className={styles.podiumBadge}>🥈</span>
                                     </div>
                                     <span className={styles.podiumName}>{top3[1].displayName.split(' ')[0]}</span>
@@ -96,7 +101,11 @@ export default function LeaderboardPage() {
                                 {/* 1st place */}
                                 <div className={`${styles.podiumItem} ${styles.first}`}>
                                     <div className={styles.podiumAvatar}>
-                                        {getInitials(top3[0].displayName)}
+                                        {top3[0].photoURL ? (
+                                            <img src={top3[0].photoURL} alt={top3[0].displayName} className={styles.avatarImg} />
+                                        ) : (
+                                            getInitials(top3[0].displayName)
+                                        )}
                                         <span className={styles.podiumBadge}>👑</span>
                                     </div>
                                     <span className={styles.podiumName}>{top3[0].displayName.split(' ')[0]}</span>
@@ -107,7 +116,11 @@ export default function LeaderboardPage() {
                                 {/* 3rd place */}
                                 <div className={`${styles.podiumItem} ${styles.third}`}>
                                     <div className={styles.podiumAvatar}>
-                                        {getInitials(top3[2].displayName)}
+                                        {top3[2].photoURL ? (
+                                            <img src={top3[2].photoURL} alt={top3[2].displayName} className={styles.avatarImg} />
+                                        ) : (
+                                            getInitials(top3[2].displayName)
+                                        )}
                                         <span className={styles.podiumBadge}>🥉</span>
                                     </div>
                                     <span className={styles.podiumName}>{top3[2].displayName.split(' ')[0]}</span>
@@ -133,7 +146,11 @@ export default function LeaderboardPage() {
                                     >
                                         <span className={styles.rank}>#{position}</span>
                                         <div className={styles.listAvatar}>
-                                            {getInitials(entry.displayName)}
+                                            {entry.photoURL ? (
+                                                <img src={entry.photoURL} alt={entry.displayName} className={styles.avatarImg} />
+                                            ) : (
+                                                getInitials(entry.displayName)
+                                            )}
                                         </div>
                                         <div className={styles.listInfo}>
                                             <div className={styles.listName}>

@@ -197,7 +197,15 @@ export default function ModulePage() {
         setShowQuizModal(true);
     };
 
-    // ... (Mantener lógica de quiz)
+    const currentIndex = courseModules.findIndex(m => m.id === module?.id);
+    const nextModule = currentIndex >= 0 && currentIndex < courseModules.length - 1 ? courseModules[currentIndex + 1] : null;
+    const isNextLocked = nextModule && module ? !userProgress[module.id]?.completed : true;
+
+    const handleNext = () => {
+        if (nextModule && !isNextLocked) {
+            router.push(`/modules/${nextModule.id}`);
+        }
+    };
 
     if (loading) {
         return <LoadingScreen message="Cargando módulo..." />;
@@ -272,10 +280,24 @@ export default function ModulePage() {
                     </div>
 
                     <div className="flex items-center gap-3">
-                        {/* Fake Siguiente Button based on design, disabled for now or hooked up if there's a next module */}
-                        <button className={styles.nextLink} title="Siguiente Lección" disabled>
-                            <span className="hidden sm:inline">Siguiente</span> <ChevronRight size={16} />
-                        </button>
+                        {nextModule ? (
+                            <button
+                                onClick={handleNext}
+                                className={`${styles.nextLink} ${isNextLocked ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                title={isNextLocked ? 'Completa esta lección para continuar' : 'Siguiente Lección'}
+                                disabled={isNextLocked}
+                            >
+                                <span className="hidden sm:inline">Siguiente</span> <ChevronRight size={16} />
+                            </button>
+                        ) : (
+                            <button
+                                onClick={handleBack}
+                                className={styles.nextLink}
+                                title="Volver al curso"
+                            >
+                                <span className="hidden sm:inline">Finalizar</span> <CheckCircle size={16} className="ml-1" />
+                            </button>
+                        )}
 
                         <button
                             onClick={() => setInfoOpen(!infoOpen)}

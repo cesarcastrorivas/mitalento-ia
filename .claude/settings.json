@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx firebase firestore:indexes)",
+      "Bash(npx tsc --noEmit)",
+      "Bash(grep -c \"useEffect\" /c/Users/cesar/mitalento-ia/src/app/dashboard/page.tsx /c/Users/cesar/mitalento-ia/src/app/modules/[id]/page.tsx /c/Users/cesar/mitalento-ia/src/app/paths/[pathId]/page.tsx)",
+      "Bash(grep \"firebase-admin\" /c/Users/cesar/mitalento-ia/.firebase/mitalento-ia/functions/.next/server/chunks/[root-of-the-server]__38d16e10._.js)",
+      "Bash(firebase deploy --only hosting,functions)",
+      "Bash(python3 -c \":*)"
+    ]
+  }
+}

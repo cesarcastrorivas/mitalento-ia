@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getAdminDb } from '@/lib/firebase-admin';
+import { getAdminDb, getFirestoreTimestamp } from '@/lib/firebase-admin';
 import { getServerUser } from '@/lib/server-auth';
 import { checkRateLimit } from '@/lib/rate-limit';
-import { Timestamp } from 'firebase-admin/firestore';
 import crypto from 'crypto';
 import { canGenerateCertificate } from '@/lib/grading-utils';
 
@@ -80,7 +79,7 @@ export async function POST(req: NextRequest) {
             score: avgScore,
             verificationCode,
             isActive: true,
-            issuedAt: Timestamp.now(),
+            issuedAt: getFirestoreTimestamp().now(),
         };
 
         if (eligibility.completedPathId) certData.pathId = eligibility.completedPathId;

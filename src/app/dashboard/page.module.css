@@ -320,9 +320,22 @@
 }
 
 /* ===== Path Card ===== */
+@keyframes slideUpFade {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
 .pathLink {
     text-decoration: none;
     display: block;
+    animation: slideUpFade 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 .pathCard {
@@ -338,6 +351,11 @@
     box-shadow:
         0 4px 6px -1px rgba(0, 0, 0, 0.05),
         0 2px 4px -1px rgba(0, 0, 0, 0.03);
+    -webkit-tap-highlight-color: transparent;
+}
+
+.pathCard:active {
+    transform: scale(0.97);
 }
 
 .pathCard:hover {
@@ -403,6 +421,7 @@
     line-height: 1.6;
     display: -webkit-box;
     -webkit-line-clamp: 3;
+    line-clamp: 3;
     -webkit-box-orient: vertical;
     overflow: hidden;
 }
@@ -532,18 +551,18 @@
     }
 
     .statsRow {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(2, 1fr);
         gap: 0.75rem;
     }
 
     .statCard {
-        flex-direction: row;
-        align-items: center;
+        flex-direction: column;
+        align-items: flex-start;
         padding: 1rem 1.25rem;
     }
 
     .statIcon {
-        margin-bottom: 0;
+        margin-bottom: 0.5rem;
     }
 
     .pathsGrid {
@@ -557,7 +576,9 @@
     }
 
     .hero {
-        padding: 2.5rem 1.5rem;
+        margin: 0 -1rem 2rem -1rem;
+        padding: calc(env(safe-area-inset-top, 10px) + 2rem) 1.5rem 2rem 1.5rem;
+        border-radius: 0 0 32px 32px;
     }
 
     .greetingRow {
@@ -570,10 +591,79 @@
     }
 
     .heroSubtitle {
-        font-size: 1rem;
+        font-size: 0.95rem;
+        margin-bottom: 2rem;
+    }
+
+    .statsRow {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.5rem;
+    }
+
+    .statCard {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        padding: 0.75rem 0.5rem;
+    }
+
+    .statIcon {
+        width: 2.25rem;
+        height: 2.25rem;
+        font-size: 1.1rem;
+        margin-bottom: 0.5rem;
+        display: flex;
+        justify-content: center;
+    }
+
+    .statNumber {
+        font-size: 1.15rem;
+        margin-bottom: 0.15rem;
+    }
+
+    .statLabel {
+        font-size: 0.65rem;
+        line-height: 1.1;
     }
 
     .sectionTitle {
         font-size: 1.5rem;
+    }
+
+    .pathsGrid {
+        gap: 1rem;
+    }
+
+    .pathCard {
+        border-radius: 24px;
+    }
+
+    .pathIconWrapper {
+        height: 110px;
+    }
+
+    .pathEmoji {
+        font-size: 3.5rem;
+    }
+
+    .pathBody {
+        padding: 1.25rem 1.5rem 1rem;
+    }
+
+    .pathTitle {
+        font-size: 1.25rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .pathDescription {
+        font-size: 0.9rem;
+        -webkit-line-clamp: 2;
+        line-clamp: 2;
+        margin-bottom: 0;
+    }
+
+    .pathFooter {
+        padding: 1rem 1.5rem;
     }
 }

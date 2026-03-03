@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import { createContext, useContext, useEffect, useRef, useState, ReactNode } from 'react';
 import {
     User as FirebaseUser,
     onAuthStateChanged,
@@ -8,7 +8,7 @@ import {
     signOut as firebaseSignOut,
     createUserWithEmailAndPassword
 } from 'firebase/auth';
-import { doc, getDoc, setDoc, Timestamp } from 'firebase/firestore';
+import { doc, setDoc, Timestamp } from 'firebase/firestore';
 import { auth, db, secondaryAuth } from '@/lib/firebase';
 import { User, UserRole } from '@/types';
 
@@ -29,41 +29,45 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const [user, setUser] = useState<User | null>(null);
     const [firebaseUser, setFirebaseUser] = useState<FirebaseUser | null>(null);
     const [loading, setLoading] = useState(true);
+    // Previene que onAuthStateChanged interfiera mientras signIn() está creando la sesión
+    const isSigningIn = useRef(false);
 
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, async (fbUser) => {
             setFirebaseUser(fbUser);
 
             if (fbUser) {
+                // Si signIn() está en curso, él maneja la sesión — evitar condición de carrera
+                if (isSigningIn.current) {
+                    setLoading(false);
+                    return;
+                }
+
+                // Recarga de página: sincronizar un token fresco al servidor
+                // Firebase SDK refresca el token automáticamente si está por vencer
                 try {
-                    // Obtener datos del usuario de Firestore
-                    const userDoc = await getDoc(doc(db, 'users', fbUser.uid));
-                    if (userDoc.exists()) {
-                        setUser({ uid: fbUser.uid, ...userDoc.data() } as User);
-                    } else {
-                        console.warn('User document does not exist in Firestore, using basic auth profile');
-                        setUser({
-                            uid: fbUser.uid,
-                            email: fbUser.email || '',
-                            displayName: fbUser.displayName || 'Usuario',
-                            role: 'student', // Default role for safety
-                            createdAt: Timestamp.now(),
-                            createdBy: 'system',
-                            isActive: true
-                        });
-                    }
-                } catch (error: any) {
-                    console.error('Error fetching user profile (likely permissions or network):', error);
-                    // Fallback para permitir login incluso si Firestore falla
-                    setUser({
-                        uid: fbUser.uid,
-                        email: fbUser.email || '',
-                        displayName: fbUser.displayName || 'Usuario (Sin Perfil)',
-                        role: 'student', // Asumimos estudiante si falla la lectura
-                        createdAt: Timestamp.now(),
-                        createdBy: 'system',
-                        isActive: true
+                    const freshToken = await fbUser.getIdToken();
+                    const sessionResponse = await fetch('/api/auth/session', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ idToken: freshToken }),
                     });
+
+                    if (sessionResponse.ok) {
+                        const meResponse = await fetch('/api/auth/me');
+                        if (meResponse.ok) {
+                            setUser(await meResponse.json() as User);
+                        } else {
+                            await firebaseSignOut(auth);
+                            setUser(null);
+                        }
+                    } else {
+                        await firebaseSignOut(auth);
+                        setUser(null);
+                    }
+                } catch {
+                    await firebaseSignOut(auth);
+                    setUser(null);
                 }
             } else {
                 setUser(null);
@@ -76,10 +80,39 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }, []);
 
     const signIn = async (email: string, password: string) => {
-        await signInWithEmailAndPassword(auth, email, password);
+        isSigningIn.current = true;
+        try {
+            // 1. Autenticar con Firebase Auth
+            const credential = await signInWithEmailAndPassword(auth, email, password);
+
+            // 2. Sincronizar token al servidor (verifyIdToken — no necesita permisos IAM especiales)
+            const idToken = await credential.user.getIdToken();
+            const sessionResponse = await fetch('/api/auth/session', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ idToken }),
+            });
+
+            if (!sessionResponse.ok) {
+                const errBody = await sessionResponse.json().catch(() => ({}));
+                await firebaseSignOut(auth);
+                throw new Error(errBody.detail || 'Error al crear la sesión. Por favor intenta de nuevo.');
+            }
+
+            // 3. Obtener perfil del usuario (rol verificado por Admin SDK)
+            const meResponse = await fetch('/api/auth/me');
+            if (!meResponse.ok) {
+                await firebaseSignOut(auth);
+                throw new Error('No se pudo obtener el perfil. Por favor intenta de nuevo.');
+            }
+            setUser(await meResponse.json() as User);
+        } finally {
+            isSigningIn.current = false;
+        }
     };
 
     const signOut = async () => {
+        await fetch('/api/auth/session', { method: 'DELETE' });
         await firebaseSignOut(auth);
         setUser(null);
     };
@@ -129,15 +162,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
 
     const refreshUser = async () => {
-        if (firebaseUser) {
-            try {
-                const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
-                if (userDoc.exists()) {
-                    setUser({ uid: firebaseUser.uid, ...userDoc.data() } as User);
-                }
-            } catch (error) {
-                console.error('Error refreshing user:', error);
+        if (!firebaseUser) return;
+        try {
+            const meResponse = await fetch('/api/auth/me');
+            if (meResponse.ok) {
+                const userData = await meResponse.json();
+                setUser(userData as User);
             }
+        } catch (error) {
+            console.error('Error refreshing user:', error);
         }
     };
 

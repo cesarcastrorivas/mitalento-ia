@@ -1,6 +1,24 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Prevent Next.js/Turbopack/esbuild from bundling firebase-admin.
+  // Without this, Turbopack renames the module with a content hash
+  // (e.g. firebase-admin-c80223cff3f2baca) which cannot be resolved at
+  // runtime in the Cloud Run container.
+  serverExternalPackages: [
+    'firebase-admin',
+    'firebase-admin/app',
+    'firebase-admin/auth',
+    'firebase-admin/firestore',
+    'firebase-admin/storage',
+    'firebase-admin/messaging',
+    '@firebase/admin',
+    'google-auth-library',
+    'google-gax',
+    '@grpc/grpc-js',
+    '@grpc/proto-loader',
+  ],
+
   images: {
     formats: ['image/avif', 'image/webp'],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920],
@@ -30,12 +48,15 @@ const nextConfig: NextConfig = {
       'https://*.firebaseio.com',
       'wss://*.firebaseio.com',
       'https://*.firebasestorage.app',
+      // Firebase Auth SDK cross-origin session iframe communicates via postMessage
+      // from mitalento-ia.firebaseapp.com — required for signInWithEmailAndPassword
+      'https://*.firebaseapp.com',
     ].join(' ');
 
     const csp = [
       "default-src 'self'",
-      // Next.js requires 'unsafe-inline' for hydration; tighten with nonces in the future
-      "script-src 'self' 'unsafe-inline'",
+      // Next.js requires 'unsafe-inline' and 'unsafe-eval' for some hydration/framework internals
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
       "style-src 'self' 'unsafe-inline'",
       // Allow images from Firebase Storage, Google Auth avatars, and data URIs
       "img-src 'self' https: data: blob:",
@@ -44,8 +65,10 @@ const nextConfig: NextConfig = {
       `connect-src 'self' ${firebaseDomains}`,
       // Videos served from Firebase Storage
       "media-src 'self' https: blob:",
-      // Block all frame embedding (protects against clickjacking)
-      "frame-src 'none'",
+      // Firebase Auth SDK loads a hidden iframe from firebaseapp.com for cross-origin
+      // session persistence between mitalento-ia.web.app and mitalento-ia.firebaseapp.com.
+      // Blocking this iframe causes auth/network-request-failed on signIn.
+      "frame-src https://mitalento-ia.firebaseapp.com",
       "frame-ancestors 'none'",
       "object-src 'none'",
       "base-uri 'self'",

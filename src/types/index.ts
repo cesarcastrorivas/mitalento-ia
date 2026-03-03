@@ -82,6 +82,7 @@ export interface Module {
     requiredWatchPercentage: number; // % del video que debe verse antes del quiz
     passingScore: number; // Puntuación mínima para aprobar (0-100)
     transcription?: string; // Transcripción del video generada por IA
+    questions?: Question[]; // Preguntas del quiz generadas y aprobadas por el admin
 }
 
 // Pregunta generada por IA

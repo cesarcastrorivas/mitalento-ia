@@ -10,18 +10,18 @@ export interface ServerUser {
 export async function getServerUser(): Promise<ServerUser | null> {
     try {
         const nextCookies = await cookies();
-        const sessionCookie = nextCookies.get('__session')?.value;
+        const idToken = nextCookies.get('__session')?.value;
 
-        if (!sessionCookie) {
+        if (!idToken) {
             return null;
         }
 
         const auth = getAdminAuth();
-        const decodedClaims = await auth.verifySessionCookie(sessionCookie, true);
+        // verifyIdToken usa verificación por clave pública — no necesita permisos IAM especiales
+        const decodedToken = await auth.verifyIdToken(idToken);
 
-        // Fetch role from Firestore — roles live in the user document, not in Firebase claims
         const db = getAdminDb();
-        const userDoc = await db.collection('users').doc(decodedClaims.uid).get();
+        const userDoc = await db.collection('users').doc(decodedToken.uid).get();
 
         if (!userDoc.exists) {
             return null;
@@ -30,8 +30,8 @@ export async function getServerUser(): Promise<ServerUser | null> {
         const userData = userDoc.data();
 
         return {
-            uid: decodedClaims.uid,
-            email: decodedClaims.email,
+            uid: decodedToken.uid,
+            email: decodedToken.email,
             role: userData?.role === 'admin' ? 'admin' : 'student',
         };
     } catch {

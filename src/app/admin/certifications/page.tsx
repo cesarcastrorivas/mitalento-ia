@@ -4,15 +4,23 @@ import React, { useEffect, useState, useMemo } from 'react';
 import { collection, query, where, getDocs, doc, updateDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { User, CertificationLevel } from '@/types';
-import { Award, Check, X, Loader2, Users, BookOpen, Briefcase, ChevronRight, CheckCircle2, Circle, Search } from 'lucide-react';
+import { Award, Loader2, Users, BookOpen, Briefcase, Search } from 'lucide-react';
+import dynamic from 'next/dynamic';
+import Image from 'next/image';
 import styles from './page.module.css';
+
+// Lazy load the drawer component
+const StudentDetailDrawer = dynamic(() => import('@/components/admin/StudentDetailDrawer'), {
+    ssr: false,
+    loading: () => <div className={styles.loadingContainer}><Loader2 className={styles.spin} size={40} color="#4f46e5" /></div>
+});
 
 interface EvalResponse {
     question: string;
     answer: string;
 }
 
-interface StudentRow {
+export interface StudentRow {
     uid: string;
     displayName: string;
     email: string;
@@ -28,10 +36,38 @@ interface StudentRow {
 }
 
 const STAGE_REQUIREMENTS: Record<string, string[]> = {
-    none: ['Documentación de Identidad', 'Evaluación Enviada', 'Entrevista Inicial'],
-    fundamental: ['Compromiso Firmado', 'Prueba Técnica Fundamental', 'Validación de Antecedentes'],
-    professional: ['Proyecto Entregado', 'Evaluación 360', 'Casos Prácticos Aprobados'],
-    elite: ['Mentoría Completada', 'Certificación Externa', 'Entrevista Final con Director'],
+    none: [
+        'Documento de identidad verificado',
+        'Primera entrevista realizada',
+        'Datos de contacto completos',
+        'Contrato de confidencialidad firmado',
+    ],
+    fundamental: [
+        'Módulos completados (Cultura, Marco Legal y ADN Urbanity)',
+        'Evaluación actitudinal completada',
+        'Compromiso de estándares firmado',
+    ],
+    professional: [
+        'Módulos completados (Método Comercial)',
+        'Uso de Script oficial Urbanity',
+        'Checklist obligatorio de visita completado',
+        'Simulación grabada de cierre aprobada',
+        'Validación por supervisor obtenida',
+    ],
+    elite: [
+        'Módulos completados (Alto Desempeño y Liderazgo)',
+        'Caso práctico estratégico resuelto',
+        'Presentación de plan de acción 30-60-90 días',
+        'Evaluación actitudinal final completada',
+    ],
+};
+
+// Etiqueta del score a validar por etapa
+const SCORE_LABELS: Record<string, string> = {
+    none: '',
+    fundamental: 'Examen Día 1 (teórico + caso real)',
+    professional: 'Evaluación teórica estructurada',
+    elite: 'Ranking interno / Evaluación final',
 };
 
 const PIPELINE_STAGES = [
@@ -43,6 +79,17 @@ const PIPELINE_STAGES = [
 
 // Lookup map para acceso O(1) por id
 const STAGE_BY_ID = Object.fromEntries(PIPELINE_STAGES.map(s => [s.id, s]));
+
+// Score mínimo requerido para avanzar de etapa
+const MIN_SCORE_TO_PROMOTE = 80;
+
+// Texto del botón de promoción por etapa actual
+const PROMOTE_BUTTON_LABELS: Record<string, string> = {
+    none: 'Admitir',
+    fundamental: 'Aprobar Fundamental',
+    professional: 'Aprobar Profesional',
+    elite: 'Aprobar Élite',
+};
 
 // Colores más suaves y elegantes para los badges
 const SEMAPHORE_LABELS: Record<string, string> = {
@@ -67,8 +114,6 @@ export default function AdminCertificationsPage() {
 
     // Drawer state
     const [drawerTarget, setDrawerTarget] = useState<StudentRow | null>(null);
-    const [supervisorNote, setSupervisorNote] = useState('');
-    const [savingNote, setSavingNote] = useState(false);
 
     useEffect(() => {
         loadStudents();
@@ -151,58 +196,53 @@ export default function AdminCertificationsPage() {
 
     const openDrawer = (student: StudentRow) => {
         setDrawerTarget(student);
-        setSupervisorNote(student.supervisorFeedback || '');
     };
 
-    // P3: Optimistic update
-    const toggleChecklist = async (student: StudentRow, requirement: string, isChecked: boolean) => {
-        const newChecklist = { ...student.stageChecklist, [requirement]: isChecked };
-        const updatedStudent = { ...student, stageChecklist: newChecklist };
+    // Validación: ¿puede el estudiante ser promovido?
+    const canPromote = (student: StudentRow): boolean => {
+        const hasNext = !!STAGE_BY_ID[student.certificationLevel]?.next;
+        if (!hasNext) return false;
 
-        // Actualizar UI primero (optimistic)
-        setStudents(prev => prev.map(s => s.uid === student.uid ? updatedStudent : s));
-        setDrawerTarget(prev => prev && prev.uid === student.uid ? updatedStudent : prev);
+        const reqs = STAGE_REQUIREMENTS[student.certificationLevel] || [];
+        const allChecked = reqs.length === 0 || reqs.every(r => !!student.stageChecklist?.[r]);
 
-        try {
-            await updateDoc(doc(db, 'users', student.uid), {
-                stageChecklist: newChecklist
-            });
-        } catch (error) {
-            console.error('Error updating checklist:', error);
-            // Rollback
-            setStudents(prev => prev.map(s => s.uid === student.uid ? student : s));
-            setDrawerTarget(prev => prev && prev.uid === student.uid ? student : prev);
-        }
+        // Candidatos (none): solo requiere checklist, sin score mínimo
+        if (student.certificationLevel === 'none') return allChecked;
+        const scoreOk = student.avgScore >= MIN_SCORE_TO_PROMOTE;
+        return allChecked && scoreOk;
     };
 
-    const saveSupervisorNote = async () => {
-        if (!drawerTarget) return;
-        setSavingNote(true);
-        try {
-            const trimmed = supervisorNote.trim();
-            await updateDoc(doc(db, 'users', drawerTarget.uid), {
-                supervisorFeedback: trimmed,
-            });
+    // Razones de bloqueo para mostrar al admin
+    const getBlockedReasons = (student: StudentRow): string[] => {
 
-            // B1: Functional state update
-            const uid = drawerTarget.uid;
-            setStudents(prev => prev.map(s => s.uid === uid ? { ...s, supervisorFeedback: trimmed } : s));
-            setDrawerTarget(prev => prev && prev.uid === uid ? { ...prev, supervisorFeedback: trimmed } : prev);
-        } catch (error) {
-            console.error('Error saving note:', error);
-        } finally {
-            setSavingNote(false);
+        const reasons: string[] = [];
+        const reqs = STAGE_REQUIREMENTS[student.certificationLevel] || [];
+        const reqsChecked = reqs.filter(r => !!student.stageChecklist?.[r]).length;
+        if (reqsChecked < reqs.length) {
+            reasons.push(`Requisitos: ${reqsChecked}/${reqs.length} completados`);
         }
+        // Candidatos no requieren score mínimo
+        if (student.certificationLevel !== 'none') {
+            const scoreLabel = SCORE_LABELS[student.certificationLevel] || 'Score';
+            if (student.avgScore < MIN_SCORE_TO_PROMOTE) {
+                reasons.push(`${scoreLabel}: ${student.avgScore}/${MIN_SCORE_TO_PROMOTE} mínimo`);
+            }
+        }
+        return reasons;
     };
 
     const handlePromote = async (student: StudentRow) => {
         const nextLevel = STAGE_BY_ID[student.certificationLevel]?.next;
         if (!nextLevel) return;
 
+        // Guardia de validación (defensa extra, el botón ya debería estar bloqueado)
+        if (!canPromote(student)) return;
+
         try {
             await updateDoc(doc(db, 'users', student.uid), {
                 attitudinalStatus: 'green',
                 certificationLevel: nextLevel,
+                stageChecklist: {}, // Reset checklist para la nueva etapa
             });
 
             if (student.evaluationId) {
@@ -214,8 +254,8 @@ export default function AdminCertificationsPage() {
 
             // B1: Functional update
             const uid = student.uid;
-            setStudents(prev => prev.map(s => s.uid === uid ? { ...s, attitudinalStatus: 'green', certificationLevel: nextLevel as CertificationLevel } : s));
-            setDrawerTarget(prev => prev && prev.uid === uid ? { ...prev, attitudinalStatus: 'green', certificationLevel: nextLevel as CertificationLevel } : prev);
+            setStudents(prev => prev.map(s => s.uid === uid ? { ...s, attitudinalStatus: 'green', certificationLevel: nextLevel as CertificationLevel, stageChecklist: {} } : s));
+            setDrawerTarget(prev => prev && prev.uid === uid ? { ...prev, attitudinalStatus: 'green', certificationLevel: nextLevel as CertificationLevel, stageChecklist: {} } : prev);
         } catch (error) {
             console.error('Error promoting:', error);
         }
@@ -336,9 +376,9 @@ export default function AdminCertificationsPage() {
                                                 <div key={student.uid} className={styles.kanbanCard} onClick={() => openDrawer(student)}>
                                                     <div className={styles.cardHeaderRow}>
                                                         <div className={styles.cardAvatarGroup}>
-                                                            <div className={styles.avatarWrapper} style={{ borderColor: theme.dot }}>
+                                                            <div className={styles.avatarWrapper} style={{ borderColor: theme.dot, position: 'relative', overflow: 'hidden' }}>
                                                                 {student.photoURL ? (
-                                                                    <img src={student.photoURL} alt={student.displayName} className={styles.avatarImg} />
+                                                                    <Image src={student.photoURL} alt={student.displayName} fill className="object-cover" sizes="48px" />
                                                                 ) : (
                                                                     <div className={styles.avatarFallback}>{initial}</div>
                                                                 )}
@@ -377,137 +417,27 @@ export default function AdminCertificationsPage() {
                 </div>
             )}
 
-            {/* ========== PREMIUM DRAWER ========== */}
+            {/* ========== PREMIUM DRAWER (Dynamically Loaded) ========== */}
             {drawerTarget && (
-                <>
-                    <div className={styles.drawerOverlay} onClick={() => setDrawerTarget(null)} />
-                    <div className={styles.drawer}>
-                        <div className={styles.drawerNavbar}>
-                            <button onClick={() => setDrawerTarget(null)} className={styles.drawerBackBtn}>
-                                <ChevronRight size={20} /> Detalle del Candidato
-                            </button>
-                            <button onClick={() => setDrawerTarget(null)} className={styles.drawerCloseIcon}>
-                                <X size={20} />
-                            </button>
-                        </div>
-
-                        <div className={styles.drawerBody}>
-                            {/* Profile Header Centered */}
-                            <div className={styles.drawerProfileCenter}>
-                                <div className={styles.hugeAvatarWrapper} style={{ borderColor: SEMAPHORE_THEMES[drawerTarget.attitudinalStatus]?.dot || '#cbd5e1' }}>
-                                    {drawerTarget.photoURL ? (
-                                        <img src={drawerTarget.photoURL} alt={drawerTarget.displayName} className={styles.hugeAvatarImg} />
-                                    ) : (
-                                        <div className={styles.hugeAvatarFallback}>{drawerTarget.displayName?.charAt(0).toUpperCase()}</div>
-                                    )}
-                                </div>
-                                <h2 className={styles.profileName}>{drawerTarget.displayName}</h2>
-                                <p className={styles.profileEmail}>{drawerTarget.email}</p>
-
-                                <div className={styles.profileBadgesGroup}>
-                                    <span className={styles.profileLevelBadge} style={{ backgroundColor: STAGE_BY_ID[drawerTarget.certificationLevel]?.lightColor, color: STAGE_BY_ID[drawerTarget.certificationLevel]?.color }}>
-                                        <CheckCircle2 size={12} /> {STAGE_BY_ID[drawerTarget.certificationLevel]?.label || 'Sin Nivel'}
-                                    </span>
-                                    <span className={styles.profileIdBadge}>ID: {generateDisplayId(drawerTarget.uid)}</span>
-                                </div>
-                            </div>
-
-                            <hr className={styles.divider} />
-
-                            {/* Checklist Premium */}
-                            <div className={styles.drawerSection}>
-                                <h3 className={styles.sectionHeading}>Requisitos de la Etapa</h3>
-                                <div className={styles.checklistGrid}>
-                                    {STAGE_REQUIREMENTS[drawerTarget.certificationLevel || 'none']?.map((req, i) => {
-                                        const isChecked = !!drawerTarget.stageChecklist?.[req];
-                                        return (
-                                            <div key={i} className={styles.checkRow} onClick={() => toggleChecklist(drawerTarget, req, !isChecked)}>
-                                                <div className={styles.checkIconBox}>
-                                                    {isChecked ? <CheckCircle2 size={24} color="#10b981" /> : <Circle size={24} color="#cbd5e1" />}
-                                                </div>
-                                                <span className={`${styles.checkText} ${isChecked ? styles.checkTextDone : ''}`}>{req}</span>
-                                                <span className={`${styles.checkStatus} ${isChecked ? styles.statusCursado : styles.statusProceso}`}>
-                                                    {isChecked ? 'COMPLETADO' : 'EN PROCESO'}
-                                                </span>
-                                            </div>
-                                        );
-                                    })}
-                                    {(!STAGE_REQUIREMENTS[drawerTarget.certificationLevel || 'none'] || STAGE_REQUIREMENTS[drawerTarget.certificationLevel || 'none'].length === 0) && (
-                                        <p className={styles.emptyNotice}>No hay requisitos configurados para esta etapa.</p>
-                                    )}
-                                </div>
-                            </div>
-
-                            {/* Evaluations - Grid layout */}
-                            <div className={styles.drawerSection}>
-                                <h3 className={styles.sectionHeading}>Evaluación Actitudinal</h3>
-                                {drawerTarget.responses.length === 0 ? (
-                                    <div className={styles.emptyCardBox}>No ha completado su evaluación.</div>
-                                ) : (
-                                    <div className={styles.evaluationsGrid}>
-                                        {drawerTarget.responses.map((r, i) => {
-                                            // Simulate concise titles from the prompt design
-                                            const shortTitle = r.question.length > 35 ? r.question.substring(0, 35) + '...' : r.question;
-                                            return (
-                                                <div key={i} className={styles.evalGridCard}>
-                                                    <div className={styles.evalGridTitle}>
-                                                        PREGUNTA {i + 1}
-                                                    </div>
-                                                    <div className={styles.evalGridQuestion}>{shortTitle}</div>
-                                                    <div className={styles.evalGridAnswer}>{r.answer}</div>
-                                                </div>
-                                            )
-                                        })}
-                                    </div>
-                                )}
-                            </div>
-
-                            {/* Supervisor Note */}
-                            <div className={styles.drawerSection}>
-                                <div className={styles.headingWithAction}>
-                                    <h3 className={styles.sectionHeading}>Nota del Supervisor</h3>
-                                    <button onClick={saveSupervisorNote} disabled={savingNote} className={styles.ghostSaveBtn}>
-                                        {savingNote ? <Loader2 size={14} className={styles.spin} /> : 'Guardar cambios'}
-                                    </button>
-                                </div>
-                                <div className={styles.textareaWrapper}>
-                                    <textarea
-                                        className={styles.premiumTextarea}
-                                        value={supervisorNote}
-                                        onChange={e => setSupervisorNote(e.target.value)}
-                                        placeholder="Candidato con alto potencial técnico y excelente comunicación. Se recomienda su paso directo a la etapa profesional..."
-                                        rows={3}
-                                    />
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Sticky Footer Actions */}
-                        <div className={styles.drawerActionFooter}>
-                            <button
-                                onClick={() => handleReject(drawerTarget)}
-                                className={styles.actionBtnReject}
-                                disabled={drawerTarget.attitudinalStatus === 'red'}
-                            >
-                                {drawerTarget.attitudinalStatus === 'red' ? 'Rechazado' : 'Rechazar'}
-                            </button>
-
-                            {(() => {
-                                const current = STAGE_BY_ID[drawerTarget.certificationLevel];
-                                const nextLabel = current?.next ? STAGE_BY_ID[current.next]?.label : null;
-                                return nextLabel ? (
-                                    <button onClick={() => handlePromote(drawerTarget)} className={styles.actionBtnApprove}>
-                                        Aprobar a {nextLabel}
-                                    </button>
-                                ) : (
-                                    <button className={styles.actionBtnApprove} disabled style={{ opacity: 0.5 }}>
-                                        Certificación Completa
-                                    </button>
-                                );
-                            })()}
-                        </div>
-                    </div>
-                </>
+                <StudentDetailDrawer
+                    student={drawerTarget}
+                    onClose={() => setDrawerTarget(null)}
+                    onUpdate={(updatedStudent) => {
+                        setStudents(prev => prev.map(s => s.uid === updatedStudent.uid ? updatedStudent : s));
+                        setDrawerTarget(updatedStudent);
+                    }}
+                    stageRequirements={STAGE_REQUIREMENTS}
+                    stageById={STAGE_BY_ID}
+                    scoreLabels={SCORE_LABELS}
+                    minScoreToPromote={MIN_SCORE_TO_PROMOTE}
+                    semaphoreThemes={SEMAPHORE_THEMES}
+                    promoteButtonLabels={PROMOTE_BUTTON_LABELS}
+                    canPromote={canPromote}
+                    getBlockedReasons={getBlockedReasons}
+                    handlePromote={handlePromote}
+                    handleReject={handleReject}
+                    generateDisplayId={generateDisplayId}
+                />
             )}
         </div>
     );

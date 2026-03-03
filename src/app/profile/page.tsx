@@ -1,12 +1,13 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { doc, updateDoc, getDoc } from 'firebase/firestore';
+import { doc, updateDoc } from 'firebase/firestore';
 import { db, storage } from '@/lib/firebase';
 import styles from './page.module.css';
 import { Camera, Mail, Shield, Calendar, CheckCircle, MessageSquare } from 'lucide-react';
+import Image from 'next/image';
 import Toast, { ToastType } from '@/components/Toast';
 
 export default function ProfilePage() {
@@ -15,17 +16,8 @@ export default function ProfilePage() {
     const [uploading, setUploading] = useState(false);
     const [photoURL, setPhotoURL] = useState(user?.photoURL || '');
     const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
-    const [feedback, setFeedback] = useState<string>('');
-
-    useEffect(() => {
-        if (user) {
-            getDoc(doc(db, 'users', user.uid)).then(snap => {
-                if (snap.exists()) {
-                    setFeedback(snap.data().supervisorFeedback || '');
-                }
-            });
-        }
-    }, [user]);
+    // supervisorFeedback comes from the user profile already loaded in AuthContext — no extra Firestore read needed
+    const feedback: string = (user as any)?.supervisorFeedback || '';
 
     if (!user) return null;
 
@@ -80,9 +72,9 @@ export default function ProfilePage() {
                 {/* Profile Header */}
                 <div className={styles.profileHeader}>
                     <div className={styles.avatarSection}>
-                        <div className={styles.avatarContainer}>
+                        <div className={styles.avatarContainer} style={{ position: 'relative', overflow: 'hidden' }}>
                             {photoURL ? (
-                                <img src={photoURL} alt="Avatar" className={styles.avatarImage} />
+                                <Image src={photoURL} alt="Avatar" fill className="object-cover" sizes="150px" />
                             ) : (
                                 <span className={styles.avatarInitial}>{getInitial()}</span>
                             )}

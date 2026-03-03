@@ -5,6 +5,7 @@ import { getAdminDb } from '@/lib/firebase-admin';
 export interface LeaderboardEntry {
     uid: string;
     displayName: string;
+    photoURL?: string;
     totalScore: number;
     passedModules: number;
     certificationLevel: string;
@@ -56,6 +57,7 @@ export async function GET() {
                 return {
                     uid: doc.id,
                     displayName: u.displayName ?? 'Usuario',
+                    photoURL: u.photoURL || undefined,
                     totalScore: scores ? Math.round(scores.total / scores.count) : 0,
                     passedModules: scores ? scores.passedModules.size : 0,
                     certificationLevel: u.certificationLevel ?? 'none',

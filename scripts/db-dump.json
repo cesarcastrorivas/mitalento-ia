@@ -1,0 +1,107 @@
+{
+  "paths": [],
+  "courses": [
+    {
+      "id": "2jCgf0za0sYLwhGzcYSi",
+      "title": "curso de ventas",
+      "pathId": "bKMhA7KPy4xVM3VVRlmL",
+      "isActive": true
+    },
+    {
+      "id": "AdKtbTytH9g6VioKS1dO",
+      "title": "VENTAS",
+      "pathId": "bKMhA7KPy4xVM3VVRlmL",
+      "isActive": true
+    },
+    {
+      "id": "B597V8C5yWFypTTqLwWO",
+      "title": "VENTAS 1",
+      "pathId": "bKMhA7KPy4xVM3VVRlmL",
+      "isActive": true
+    },
+    {
+      "id": "UVF6kYiX3LImrDbvbGLN",
+      "title": "ventas efectivas",
+      "pathId": "bKMhA7KPy4xVM3VVRlmL",
+      "isActive": true
+    },
+    {
+      "id": "aIIrfGwfWlA4DJnC2R5s",
+      "title": "Limpieza",
+      "pathId": "TtMdtUUA9I8cHwDJMsDw",
+      "isActive": true
+    },
+    {
+      "id": "asK9Sro2HkIXd5nLMIZP",
+      "title": "Cierres de venta",
+      "pathId": "bKMhA7KPy4xVM3VVRlmL",
+      "isActive": true
+    },
+    {
+      "id": "d71ewh0VjsU3Q8xBX06f",
+      "title": "TECNICAS DE VENTAS",
+      "pathId": "HvmOdHUzMDqYNrZgbza5",
+      "isActive": true
+    },
+    {
+      "id": "iwemP1LVdf2fqGe6wKxc",
+      "title": "Regenera",
+      "pathId": "TtMdtUUA9I8cHwDJMsDw",
+      "isActive": true
+    },
+    {
+      "id": "lxqqXs2S97sAgLpHQPXY",
+      "title": "Cultura y estándares Urbanity ",
+      "pathId": "7lbj19sPopHmMeXG99sx",
+      "isActive": true
+    },
+    {
+      "id": "oppMOjpSthuXKHWl4SOd",
+      "title": "Cultura y estándares Urbanity ",
+      "pathId": "path-fundamental",
+      "isActive": true
+    },
+    {
+      "id": "qWHxyhN3Hqi7urL6jiDu",
+      "title": "VENDEDOR TRIPLE A",
+      "pathId": "qFxQjgOfqGVvnGUpyXSf",
+      "isActive": true
+    }
+  ],
+  "modules": [
+    {
+      "id": "5O3l2IQms29p3lNSI2TG",
+      "title": "Conoce nuestro proyecto ",
+      "courseId": "lxqqXs2S97sAgLpHQPXY",
+      "isActive": true
+    },
+    {
+      "id": "UXBvI9ixq6dfST2s0SdW",
+      "title": "dropshipping",
+      "isActive": true
+    },
+    {
+      "id": "WVi7RStB63gSIbnALQqP",
+      "title": "PACK 5/14",
+      "isActive": true
+    },
+    {
+      "id": "WfiHOniDEq91iuFutZdo",
+      "title": "prunex 1",
+      "courseId": "aIIrfGwfWlA4DJnC2R5s",
+      "isActive": true
+    },
+    {
+      "id": "YI9d0MrYwOqT4nzlzJkv",
+      "title": "Passion",
+      "courseId": "d71ewh0VjsU3Q8xBX06f",
+      "isActive": true
+    },
+    {
+      "id": "Z4zzbs2UdxHecXR60Aqo",
+      "title": "Cultura y estándares Urbanity ",
+      "courseId": "oppMOjpSthuXKHWl4SOd",
+      "isActive": true
+    }
+  ]
+}

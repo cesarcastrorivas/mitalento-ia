@@ -88,8 +88,8 @@ export const Modal: React.FC<ModalProps> = ({
                     </button>
                 </div>
 
-                {/* Body */}
-                <div className="px-6 py-5 max-h-[65vh] overflow-y-auto space-y-5">
+                {/* Body - Increased max height and added better scrolling padding */}
+                <div className="px-6 py-5 max-h-[75vh] min-h-[40vh] overflow-y-auto overflow-x-hidden space-y-5 custom-scrollbar">
                     {children}
                 </div>
 
@@ -115,6 +115,21 @@ export const Modal: React.FC<ModalProps> = ({
                         opacity: 1;
                         transform: scale(1) translateY(0);
                     }
+                }
+                
+                /* Estilos personalizados para el scrollbar dentro del modal */
+                .custom-scrollbar::-webkit-scrollbar {
+                    width: 6px;
+                }
+                .custom-scrollbar::-webkit-scrollbar-track {
+                    background: transparent;
+                }
+                .custom-scrollbar::-webkit-scrollbar-thumb {
+                    background-color: #cbd5e1;
+                    border-radius: 20px;
+                }
+                .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+                    background-color: #94a3b8;
                 }
             `}</style>
         </div>

@@ -1,7 +1,7 @@
 // Mi Talento PWA Service Worker
 // Cache-first for static assets, Network-first for API calls
 
-const CACHE_VERSION = 'mi-talento-v1';
+const CACHE_VERSION = 'mi-talento-v2';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const DYNAMIC_CACHE = `${CACHE_VERSION}-dynamic`;
 
@@ -47,6 +47,10 @@ self.addEventListener('activate', (event) => {
 // Fetch — smart caching strategies
 self.addEventListener('fetch', (event) => {
     const { request } = event;
+
+    // Skip non-cacheable schemes (chrome-extension://, data:, blob:, etc.)
+    if (!request.url.startsWith('http')) return;
+
     const url = new URL(request.url);
 
     // Skip non-GET requests

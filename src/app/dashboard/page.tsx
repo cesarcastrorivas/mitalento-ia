@@ -1,210 +1,142 @@
-'use client';
-
-import { useEffect, useState, useMemo } from 'react';
-import { collection, query, where, getDocs, doc, getDoc } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
-import { useAuth } from '@/contexts/AuthContext';
+import { getAdminDb } from '@/lib/firebase-admin';
+import { getServerUser } from '@/lib/server-auth';
 import { LearningPath, User, Certificate, Course } from '@/types';
 import { FIXED_PATHS } from '@/lib/constants';
 import Link from 'next/link';
+import { redirect } from 'next/navigation';
 import styles from './page.module.css';
 import { Award } from 'lucide-react';
 
-export default function StudentDashboard() {
-    const { user } = useAuth();
-    const [paths, setPaths] = useState<LearningPath[]>([]);
-    const [certificates, setCertificates] = useState<Certificate[]>([]);
-    const [loading, setLoading] = useState(true);
+export default async function StudentDashboard() {
+    const userClaims = await getServerUser();
+    if (!userClaims) {
+        // Return null instead of redirecting; DashboardGuard in layout.tsx will handle the redirect.
+        return null;
+    }
 
-    // Saludo personalizado basado en la hora del día
-    const greeting = useMemo(() => {
-        // Usar zona horaria de Lima, Perú (UTC-5)
-        const limaTime = new Date().toLocaleString('en-US', { timeZone: 'America/Lima', hour: 'numeric', hour12: false });
-        const hour = parseInt(limaTime, 10);
-        if (hour >= 5 && hour < 12) return { text: 'Buenos días', emoji: '☀️', period: 'morning' };
-        if (hour >= 12 && hour < 18) return { text: 'Buenas tardes', emoji: '🌤️', period: 'afternoon' };
-        return { text: 'Buenas noches', emoji: '🌙', period: 'evening' };
-    }, []);
+    const uid = userClaims.uid;
+    const db = getAdminDb();
 
-    // Extraer primer nombre
-    const firstName = useMemo(() => {
-        if (!user?.displayName) return '';
-        return user.displayName.split(' ')[0];
-    }, [user?.displayName]);
+    // 1. Fetch user data
+    const userDoc = await db.collection('users').doc(uid).get();
+    const userData = userDoc.exists ? userDoc.data() as User : null;
 
-    // Frases motivacionales aleatorias
-    const motivationalPhrase = useMemo(() => {
-        const phrases = [
-            'El éxito no es una opción, es tu obligación. ¡Acción masiva! 🔥',
-            'No te conformes con lo promedio. Multiplica tus metas por 10X. 🚀',
-            'Mientras otros duermen, tú estás construyendo un imperio. 💪',
-            'La obsesión no es una enfermedad, es un don. ¡Úsalo! ⚡',
-            'Los que dicen que es imposible nunca lo intentaron con todo. 🏆',
-            'No necesitas suerte, necesitas acción masiva. ¡AHORA! 🎯',
-            'Tu competencia debería preocuparse, no tú. Domina el juego. 👊',
-            'El miedo es un indicador: estás a punto de crecer. ¡Hazlo! 💥',
-            'Deja de pensar en pequeño. Piensa en GRANDE, actúa en GRANDE. 🦁',
-            'No sigas el plan B. Haz que el plan A funcione con todo. 🔥',
-        ];
-        return phrases[Math.floor(Math.random() * phrases.length)];
-    }, []);
+    // 2. Determine paths
+    const assignedIds = userData?.assignedPathIds || [];
+    const allPathIds = [...FIXED_PATHS.map(p => p.id), ...assignedIds];
+    const uniquePathIds = [...new Set(allPathIds)];
 
-    // Estados para progreso
-    const [progressStats, setProgressStats] = useState({
-        totalModules: 0,
-        completedModules: 0,
-        averageScore: 0,
-        totalAttempts: 0,
-        progressPercent: 0,
-        routesCompleted: 0,
-        totalRoutes: 0,
+    // 3. Prepare all parallel queries
+    let pathsPromise = Promise.resolve([] as any[]);
+    if (assignedIds.length > 0) {
+        // firebase-admin 'in' query works up to 10 elements. Assuming assignedIds < 10.
+        pathsPromise = db.collection('learning_paths').where('__name__', 'in', assignedIds).get()
+            .then(snap => snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    }
+
+    const certsPromise = db.collection('certificates').where('userId', '==', uid).where('isActive', '==', true).get()
+        .then(snap => snap.docs.map(d => ({ id: d.id, ...d.data() } as Certificate)));
+
+    // Filter courses only from the user's assigned paths (Firestore 'in' supports up to 30 values)
+    const pathIdsToQuery = uniquePathIds.slice(0, 30);
+    const coursesPromise = pathIdsToQuery.length > 0
+        ? db.collection('courses')
+            .where('pathId', 'in', pathIdsToQuery)
+            .where('isActive', '==', true)
+            .get()
+            .then(snap => snap.docs.map(d => ({ id: d.id, ...d.data() } as Course)))
+        : Promise.resolve([] as Course[]);
+
+    const sessionsPromise = db.collection('quiz_sessions').where('userId', '==', uid).get()
+        .then(snap => snap.docs.map(d => d.data() as any));
+
+    // 4. Execute independent queries in parallel
+    const [dynamicPaths, certs, allCourses, sessions] = await Promise.all([
+        pathsPromise,
+        certsPromise,
+        coursesPromise,
+        sessionsPromise,
+    ]);
+
+    // 4b. Fetch modules filtered by the user's course IDs (depends on allCourses)
+    const courseIds = allCourses.map((c: Course) => c.id).slice(0, 30);
+    const allModules = courseIds.length > 0
+        ? await db.collection('modules')
+            .where('courseId', 'in', courseIds)
+            .where('isActive', '==', true)
+            .get()
+            .then(snap => snap.docs.map(d => ({ id: d.id, ...d.data() } as any)))
+        : [];
+
+    // 5. Process Paths
+    const paths = [...FIXED_PATHS, ...dynamicPaths as LearningPath[]]
+        .sort((a, b) => (a.order || 99) - (b.order || 99));
+    const certificates = certs;
+
+    // 6. Process Progress Data
+    const totalRoutes = uniquePathIds.length;
+    const routesCompleted = (userData?.completedPaths || []).length;
+
+    // Courses and modules are already filtered server-side by pathId/courseId
+    const totalModules = allModules.length;
+
+    const passedModules = new Set<string>();
+    const bestScorePerModule = new Map<string, number>();
+
+    sessions.forEach((session: any) => {
+        if (session.passed) passedModules.add(session.moduleId);
+        const current = bestScorePerModule.get(session.moduleId) || 0;
+        if (session.score > current) {
+            bestScorePerModule.set(session.moduleId, session.score);
+        }
     });
 
-    useEffect(() => {
-        if (user) {
-            loadPaths();
-            loadProgressData();
-            loadCertificates();
-        }
-    }, [user]);
+    const completedModules = passedModules.size;
+    const bestScores = Array.from(bestScorePerModule.values());
+    const averageScore = bestScores.length > 0
+        ? Math.round(bestScores.reduce((sum, s) => sum + s, 0) / bestScores.length)
+        : 0;
+    const progressPercent = totalModules > 0 ? Math.round((completedModules / totalModules) * 100) : 0;
 
-    const loadCertificates = async () => {
-        try {
-            if (!user?.uid) return;
-            const certsSnap = await getDocs(
-                query(
-                    collection(db, 'certificates'),
-                    where('userId', '==', user.uid),
-                    where('isActive', '==', true)
-                )
-            );
-            const certs = certsSnap.docs.map(d => ({ id: d.id, ...d.data() } as Certificate));
-            setCertificates(certs);
-        } catch (error) {
-            console.error('Error loading certificates:', error);
-        }
+    const progressStats = {
+        totalModules,
+        completedModules,
+        averageScore,
+        totalAttempts: sessions.length,
+        progressPercent,
+        routesCompleted,
+        totalRoutes,
     };
 
-    const loadProgressData = async () => {
-        try {
-            if (!user?.uid) return;
-
-            // 1. Obtener las rutas del estudiante (fijas + asignadas)
-            const userDoc = await getDoc(doc(db, 'users', user.uid));
-            const userData = userDoc.exists() ? userDoc.data() as User : null;
-            const assignedPathIds = userData?.assignedPathIds || [];
-            const allPathIds = [...FIXED_PATHS.map(p => p.id), ...assignedPathIds];
-            const uniquePathIds = [...new Set(allPathIds)];
-            const totalRoutes = uniquePathIds.length;
-            const routesCompleted = (userData?.completedPaths || []).length;
-
-            // 2. Obtener cursos de esas rutas
-            const coursesSnapshot = await getDocs(collection(db, 'courses'));
-            const studentCourses = coursesSnapshot.docs
-                .map(d => ({ id: d.id, ...d.data() } as Course))
-                .filter(c => uniquePathIds.includes(c.pathId) && c.isActive);
-            const studentCourseIds = new Set(studentCourses.map(c => c.id));
-
-            // 3. Obtener módulos solo de los cursos del estudiante
-            const modulesSnapshot = await getDocs(
-                query(collection(db, 'modules'), where('isActive', '==', true))
-            );
-            const studentModules = modulesSnapshot.docs
-                .map(d => ({ id: d.id, ...d.data() } as any))
-                .filter((m: any) => studentCourseIds.has(m.courseId));
-            const totalModules = studentModules.length;
-
-            // 4. Sesiones del usuario
-            const sessionsQuery = query(
-                collection(db, 'quiz_sessions'),
-                where('userId', '==', user.uid)
-            );
-            const sessionsSnapshot = await getDocs(sessionsQuery);
-            const sessions = sessionsSnapshot.docs.map(doc => doc.data() as any);
-
-            // 5. Calcular mejor score por módulo (no promediar intentos fallidos)
-            const passedModules = new Set<string>();
-            const bestScorePerModule = new Map<string, number>();
-
-            sessions.forEach((session: any) => {
-                if (session.passed) passedModules.add(session.moduleId);
-                const current = bestScorePerModule.get(session.moduleId) || 0;
-                if (session.score > current) {
-                    bestScorePerModule.set(session.moduleId, session.score);
-                }
-            });
-
-            const completedModules = passedModules.size;
-            // Promedio usando el mejor score de cada módulo intentado
-            const bestScores = Array.from(bestScorePerModule.values());
-            const averageScore = bestScores.length > 0
-                ? Math.round(bestScores.reduce((sum, s) => sum + s, 0) / bestScores.length)
-                : 0;
-            const progressPercent = totalModules > 0 ? Math.round((completedModules / totalModules) * 100) : 0;
-
-            setProgressStats({
-                totalModules,
-                completedModules,
-                averageScore,
-                totalAttempts: sessions.length,
-                progressPercent,
-                routesCompleted,
-                totalRoutes,
-            });
-
-        } catch (error) {
-            console.error('Error loading progress:', error);
-        }
+    // Saludo estático según hora de servidor
+    const getGreeting = () => {
+        const limaTime = new Date().toLocaleString('en-US', { timeZone: 'America/Lima', hour: 'numeric', hour12: false });
+        const hour = parseInt(limaTime, 10);
+        if (hour >= 5 && hour < 12) return { text: 'Buenos días', emoji: '☀️' };
+        if (hour >= 12 && hour < 18) return { text: 'Buenas tardes', emoji: '🌤️' };
+        return { text: 'Buenas noches', emoji: '🌙' };
     };
+    const greeting = getGreeting();
 
-    const loadPaths = async () => {
-        try {
-            if (!user) return;
+    const firstName = (userClaims as any).name ? (userClaims as any).name.split(' ')[0] : (userData?.displayName?.split(' ')[0] || '');
 
-            // 1. Empezamos con las 3 rutas obligatorias (Fijas)
-            let finalPaths: LearningPath[] = [...FIXED_PATHS];
-
-            // 2. Cargar perfil de usuario para ver si tiene rutas adicionales asignadas
-            const userDoc = await getDoc(doc(db, 'users', user.uid));
-            if (userDoc.exists()) {
-                const userData = userDoc.data() as User;
-                const assignedIds = userData.assignedPathIds || [];
-
-                // 3. Si tiene rutas asignadas, las verificamos en Firestore
-                if (assignedIds.length > 0) {
-                    const pathsQ = query(collection(db, 'learning_paths'), where('__name__', 'in', assignedIds));
-                    const pathsSnapshot = await getDocs(pathsQ);
-
-                    const dynamicPaths = pathsSnapshot.docs.map(doc => ({
-                        id: doc.id,
-                        ...doc.data()
-                    } as LearningPath));
-
-                    // Fusionar y ordenar (el orden por defecto es 'order' o 99 si no existe)
-                    finalPaths = [...finalPaths, ...dynamicPaths].sort((a, b) => (a.order || 99) - (b.order || 99));
-                }
-            }
-
-            setPaths(finalPaths);
-        } catch (error) {
-            console.error('Error loading paths:', error);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    if (loading) {
-        return (
-            <div className={styles.loadingContainer}>
-                <div className={styles.loadingSpinner}></div>
-                <p className={styles.loadingText}>Preparando tu experiencia...</p>
-            </div>
-        );
-    }
+    const phrases = [
+        'El éxito no es una opción, es tu obligación. ¡Acción masiva! 🔥',
+        'No te conformes con lo promedio. Multiplica tus metas por 10X. 🚀',
+        'Mientras otros duermen, tú estás construyendo un imperio. 💪',
+        'La obsesión no es una enfermedad, es un don. ¡Úsalo! ⚡',
+        'Los que dicen que es imposible nunca lo intentaron con todo. 🏆',
+        'No necesitas suerte, necesitas acción masiva. ¡AHORA! 🎯',
+        'Tu competencia debería preocuparse, no tú. Domina el juego. 👊',
+        'El miedo es un indicador: estás a punto de crecer. ¡Hazlo! 💥',
+        'Deja de pensar en pequeño. Piensa en GRANDE, actúa en GRANDE. 🦁',
+        'No sigas el plan B. Haz que el plan A funcione con todo. 🔥',
+    ];
+    const motivationalPhrase = phrases[Math.floor(Math.random() * phrases.length)];
 
     return (
         <div className={styles.page}>
-            {/* Hero Section con Saludo Personalizado */}
+            {/* Hero Section */}
             <header className={styles.hero}>
                 <div className={styles.heroBackground}>
                     <div className={styles.heroOrb1}></div>
