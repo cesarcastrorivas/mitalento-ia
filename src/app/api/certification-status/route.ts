@@ -34,7 +34,7 @@ export async function GET(req: NextRequest) {
             .where('userId', '==', userId)
             .get();
 
-        const sessions = sessionsSnap.docs.map(d => d.data());
+        const sessions = sessionsSnap.docs.map((d: any) => d.data());
 
         const progress = userData.progress || {};
         const passedModules = Object.values(progress).filter((p: any) => p?.completed).length;

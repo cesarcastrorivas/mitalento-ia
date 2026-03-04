@@ -1,0 +1,118 @@
+2026-03-03T18:59:39.461042Z ? ssrmitalentoia: Session error: The default Firebase app does not exist. Make sure you call initializeApp() before using any of the Firebase services.
+
+2026-03-03T19:10:52.749206386Z N ssrmitalentoia: {"@type":"type.googleapis.com/google.cloud.audit.AuditLog","authenticationInfo":{"principalEmail":"ccastro.fuxion@gmail.com","principalSubject":"user:ccastro.fuxion@gmail.com","oauthInfo":{"oauthClientId":"563584335869-fgrhgmd47bqnekij5i8b5pr03ho849e6.apps.googleusercontent.com"}},"requestMetadata":{"callerIp":"64.43.117.185","callerSuppliedUserAgent":"FirebaseCLI/13.35.1,gzip(gfe),gzip(gfe)","requestAttributes":{"time":"2026-03-03T19:10:51.987102001Z","auth":{}},"destinationAttributes":{}},"serviceName":"cloudfunctions.googleapis.com","methodName":"google.cloud.functions.v2.FunctionService.UpdateFunction","authorizationInfo":[{"resource":"projects/mitalento-ia/locations/us-central1/functions/ssrmitalentoia","permission":"cloudfunctions.functions.update","granted":true,"resourceAttributes":{"service":"cloudfunctions.googleapis.com","name":"projects/mitalento-ia/locations/us-central1/functions/ssrmitalentoia","type":"cloudfunctions.googleapis.com/Function"},"permissionType":"ADMIN_WRITE"}],"resourceName":"projects/mitalento-ia/locations/us-central1/functions/ssrmitalentoia","request":{"update_mask":{"paths":["name","build_config.runtime","build_config.entry_point","build_config.source.storage_source.bucket","build_config.source.storage_source.object","build_config.environment_variables","build_config.source_token","service_config.environment_variables","service_config.ingress_settings","service_config.timeout_seconds","service_config.service_account_email","service_config.available_memory","service_config.min_instance_count","service_config.max_instance_count","service_config.max_instance_request_concurrency","service_config.available_cpu","service_config.vpc_connector","service_config.vpc_connector_egress_settings","labels","build_config.build_environment_variables"]},"function":{"service_config":{"available_cpu":"1","max_instance_request_concurrency":80,"available_memory":"256Mi"},"build_config":{"entry_point":"ssrmitalentoia","runtime":"nodejs20","source":{}},"name":"projects/mitalento-ia/locations/us-central1/functions/ssrmitalentoia","labels":{"firebase-functions-hash":"fd15f902968df11f0040bc6af584061ac608dee0","firebase-functions-codebase":"firebase-frameworks-mitalento-ia","deployment-tool":"cli-firebase"}},"@type":"type.googleapis.com/google.cloud.functions.v2.UpdateFunctionRequest"},"response":{"@type":"type.googleapis.com/google.longrunning.Operation"},"resourceLocation":{"currentLocations":["us-central1"]}}
+2026-03-03T19:14:03.888317Z I ssrmitalentoia: Starting new instance. Reason: DEPLOYMENT_ROLLOUT - Instance started due to traffic shifting between revisions due to deployment, traffic split adjustment, or deployment health check.
+2026-03-03T19:14:05.535041Z I ssrmitalentoia: Default STARTUP TCP probe succeeded after 1 attempt for container "worker" on port 8080.
+2026-03-03T19:14:09.847091643Z N ssrmitalentoia: {"@type":"type.googleapis.com/google.cloud.audit.AuditLog","status":{},"authenticationInfo":{"principalEmail":"ccastro.fuxion@gmail.com","principalSubject":"user:ccastro.fuxion@gmail.com","oauthInfo":{"oauthClientId":"563584335869-fgrhgmd47bqnekij5i8b5pr03ho849e6.apps.googleusercontent.com"}},"requestMetadata":{"requestAttributes":{},"destinationAttributes":{}},"serviceName":"cloudfunctions.googleapis.com","methodName":"google.cloud.functions.v2.FunctionService.UpdateFunction","resourceName":"projects/mitalento-ia/locations/us-central1/functions/ssrmitalentoia","response":{"@type":"type.googleapis.com/google.cloud.functions.v2.Function","labels":{"deployment-tool":"cli-firebase","firebase-functions-codebase":"firebase-frameworks-mitalento-ia","firebase-functions-hash":"fd15f902968df11f0040bc6af584061ac608dee0"},"buildConfig":{"entryPoint":"ssrmitalentoia","source":{},"dockerRegistry":"ARTIFACT_REGISTRY","dockerRepository":"projects/mitalento-ia/locations/us-central1/repositories/gcf-artifacts","serviceAccount":"projects/mitalento-ia/serviceAccounts/836679235433-compute@developer.gserviceaccount.com","automaticUpdatePolicy":{},"runtime":"nodejs20"},"serviceConfig":{"uri":"https://ssrmitalentoia-awexrf4v2q-uc.a.run.app","allTrafficOnLatestRevision":true,"revision":"ssrmitalentoia-00051-jiq","availableCpu":"1","ingressSettings":"ALLOW_ALL","serviceAccountEmail":"836679235433-compute@developer.gserviceaccount.com","maxInstanceRequestConcurrency":80,"timeoutSeconds":60,"availableMemory":"256Mi","maxInstanceCount":20},"url":"https://us-central1-mitalento-ia.cloudfunctions.net/ssrmitalentoia","name":"projects/mitalento-ia/locations/us-central1/functions/ssrmitalentoia","state":"ACTIVE","satisfiesPzi":true,"updateTime":"2026-03-03T19:10:52.737435108Z","environment":"GEN_2","createTime":"2026-03-02T20:30:05.171808651Z"},"resourceLocation":{"currentLocations":["us-central1"]}}
+2026-03-03T19:14:24.951563Z E ssrmitalentoia: 
+2026-03-03T19:14:24.992824Z ? ssrmitalentoia: Session error: The default Firebase app does not exist. Make sure you call initializeApp() before using any of the Firebase services.
+
+2026-03-03T19:15:06.625435Z I ssrmitalentoia: 
+2026-03-03T19:15:23.724913Z E ssrmitalentoia: 
+2026-03-03T19:15:23.786174Z ? ssrmitalentoia: ⨯ Error: Failed to load external module firebase-admin-e80223cff3f2baca/app: Error [ERR_MODULE_NOT_FOUND]: Cannot find package 'firebase-admin-e80223cff3f2baca' imported from /workspace/.next/server/chunks/[turbopack]_runtime.js
+    at Context.externalImport [as y] (.next/server/chunks/[turbopack]_runtime.js:518:15)
+    at async (.next/server/chunks/[root-of-the-server]__abaa2d65._.js:1:899)
+
+2026-03-03T19:15:44.455838Z E ssrmitalentoia: 
+2026-03-03T19:15:44.537828Z ? ssrmitalentoia: ⨯ Error: Failed to load external module firebase-admin-e80223cff3f2baca/app: Error [ERR_MODULE_NOT_FOUND]: Cannot find package 'firebase-admin-e80223cff3f2baca' imported from /workspace/.next/server/chunks/[turbopack]_runtime.js
+    at Context.externalImport [as y] (.next/server/chunks/[turbopack]_runtime.js:518:15)
+    at async (.next/server/chunks/[root-of-the-server]__abaa2d65._.js:1:899)
+
+2026-03-03T19:26:56.587566002Z N ssrmitalentoia: {"@type":"type.googleapis.com/google.cloud.audit.AuditLog","authenticationInfo":{"principalEmail":"ccastro.fuxion@gmail.com","principalSubject":"user:ccastro.fuxion@gmail.com","oauthInfo":{"oauthClientId":"563584335869-fgrhgmd47bqnekij5i8b5pr03ho849e6.apps.googleusercontent.com"}},"requestMetadata":{"callerIp":"64.43.117.185","callerSuppliedUserAgent":"FirebaseCLI/13.35.1,gzip(gfe),gzip(gfe)","requestAttributes":{"time":"2026-03-03T19:26:55.864244777Z","auth":{}},"destinationAttributes":{}},"serviceName":"cloudfunctions.googleapis.com","methodName":"google.cloud.functions.v2.FunctionService.UpdateFunction","authorizationInfo":[{"resource":"projects/mitalento-ia/locations/us-central1/functions/ssrmitalentoia","permission":"cloudfunctions.functions.update","granted":true,"resourceAttributes":{"service":"cloudfunctions.googleapis.com","name":"projects/mitalento-ia/locations/us-central1/functions/ssrmitalentoia","type":"cloudfunctions.googleapis.com/Function"},"permissionType":"ADMIN_WRITE"}],"resourceName":"projects/mitalento-ia/locations/us-central1/functions/ssrmitalentoia","request":{"update_mask":{"paths":["name","build_config.runtime","build_config.entry_point","build_config.source.storage_source.bucket","build_config.source.storage_source.object","build_config.environment_variables","build_config.source_token","service_config.environment_variables","service_config.ingress_settings","service_config.timeout_seconds","service_config.service_account_email","service_config.available_memory","service_config.min_instance_count","service_config.max_instance_count","service_config.max_instance_request_concurrency","service_config.available_cpu","service_config.vpc_connector","service_config.vpc_connector_egress_settings","labels","build_config.build_environment_variables"]},"function":{"name":"projects/mitalento-ia/locations/us-central1/functions/ssrmitalentoia","labels":{"firebase-functions-codebase":"firebase-frameworks-mitalento-ia","deployment-tool":"cli-firebase","firebase-functions-hash":"8b583369bbe33f1509d3d14eecc8976b8696ff46"},"build_config":{"entry_point":"ssrmitalentoia","runtime":"nodejs20","source":{}},"service_config":{"available_memory":"256Mi","max_instance_request_concurrency":80,"available_cpu":"1"}},"@type":"type.googleapis.com/google.cloud.functions.v2.UpdateFunctionRequest"},"response":{"@type":"type.googleapis.com/google.longrunning.Operation"},"resourceLocation":{"currentLocations":["us-central1"]}}
+2026-03-03T19:28:09.701974Z I ssrmitalentoia: 
+2026-03-03T19:28:21.681954Z E ssrmitalentoia: 
+2026-03-03T19:28:21.710240Z ? ssrmitalentoia: ⨯ Error: Failed to load external module firebase-admin-e80223cff3f2baca/app: Error [ERR_MODULE_NOT_FOUND]: Cannot find package 'firebase-admin-e80223cff3f2baca' imported from /workspace/.next/server/chunks/[turbopack]_runtime.js
+    at Context.externalImport [as y] (.next/server/chunks/[turbopack]_runtime.js:518:15)
+    at async (.next/server/chunks/[root-of-the-server]__abaa2d65._.js:1:899)
+
+2026-03-03T19:30:25.301533Z I ssrmitalentoia: Starting new instance. Reason: DEPLOYMENT_ROLLOUT - Instance started due to traffic shifting between revisions due to deployment, traffic split adjustment, or deployment health check.
+2026-03-03T19:30:26.795713Z I ssrmitalentoia: Default STARTUP TCP probe succeeded after 1 attempt for container "worker" on port 8080.
+2026-03-03T19:30:27.563420Z I ssrmitalentoia: Starting new instance. Reason: AUTOSCALING - Instance started due to configured scaling factors (e.g. CPU utilization, request throughput, etc.) or no existing capacity for current traffic.
+2026-03-03T19:30:29.041233Z I ssrmitalentoia: Default STARTUP TCP probe succeeded after 1 attempt for container "worker" on port 8080.
+2026-03-03T19:30:30.915124744Z N ssrmitalentoia: {"@type":"type.googleapis.com/google.cloud.audit.AuditLog","status":{},"authenticationInfo":{"principalEmail":"ccastro.fuxion@gmail.com","principalSubject":"user:ccastro.fuxion@gmail.com","oauthInfo":{"oauthClientId":"563584335869-fgrhgmd47bqnekij5i8b5pr03ho849e6.apps.googleusercontent.com"}},"requestMetadata":{"requestAttributes":{},"destinationAttributes":{}},"serviceName":"cloudfunctions.googleapis.com","methodName":"google.cloud.functions.v2.FunctionService.UpdateFunction","resourceName":"projects/mitalento-ia/locations/us-central1/functions/ssrmitalentoia","response":{"serviceConfig":{"maxInstanceCount":20,"availableMemory":"256Mi","serviceAccountEmail":"836679235433-compute@developer.gserviceaccount.com","maxInstanceRequestConcurrency":80,"availableCpu":"1","ingressSettings":"ALLOW_ALL","allTrafficOnLatestRevision":true,"uri":"https://ssrmitalentoia-awexrf4v2q-uc.a.run.app","revision":"ssrmitalentoia-00053-yag","timeoutSeconds":60},"state":"ACTIVE","updateTime":"2026-03-03T19:26:56.574467452Z","labels":{"deployment-tool":"cli-firebase","firebase-functions-codebase":"firebase-frameworks-mitalento-ia","firebase-functions-hash":"8b583369bbe33f1509d3d14eecc8976b8696ff46"},"environment":"GEN_2","name":"projects/mitalento-ia/locations/us-central1/functions/ssrmitalentoia","buildConfig":{"serviceAccount":"projects/mitalento-ia/serviceAccounts/836679235433-compute@developer.gserviceaccount.com","automaticUpdatePolicy":{},"runtime":"nodejs20","entryPoint":"ssrmitalentoia","source":{},"dockerRegistry":"ARTIFACT_REGISTRY","dockerRepository":"projects/mitalento-ia/locations/us-central1/repositories/gcf-artifacts"},"createTime":"2026-03-02T20:30:05.171808651Z","url":"https://us-central1-mitalento-ia.cloudfunctions.net/ssrmitalentoia","satisfiesPzi":true,"@type":"type.googleapis.com/google.cloud.functions.v2.Function"},"resourceLocation":{"currentLocations":["us-central1"]}}
+2026-03-03T19:32:15.182343Z I ssrmitalentoia: 
+2026-03-03T19:32:25.545055Z E ssrmitalentoia: 
+2026-03-03T19:32:25.592351Z ? ssrmitalentoia: ⨯ Error: Failed to load external module firebase-admin-e80223cff3f2baca/app: Error: Cannot find module 'firebase-admin-e80223cff3f2baca/app'
+Require stack:
+- /workspace/.next/server/chunks/[root-of-the-server]__a05c816d._.js
+- /workspace/.next/server/chunks/[turbopack]_runtime.js
+- /workspace/.next/server/instrumentation.js
+- /workspace/node_modules/next/dist/server/lib/router-utils/instrumentation-globals.external.js
+- /workspace/node_modules/next/dist/server/next-server.js
+- /workspace/node_modules/next/dist/server/next.js
+    at Context.externalRequire [as x] (.next/server/chunks/[turbopack]_runtime.js:535:15)
+    at module evaluation (.next/server/chunks/[root-of-the-server]__a05c816d._.js:1:892)
+    at instantiateModule (.next/server/chunks/[turbopack]_runtime.js:740:9)
+    at getOrInstantiateModuleFromParent (.next/server/chunks/[turbopack]_runtime.js:763:12)
+    at Context.commonJsRequire [as r] (.next/server/chunks/[turbopack]_runtime.js:249:12)
+    at module evaluation (.next/server/chunks/mitalento-ia_f30b134d._.js:1:89)
+    at instantiateModule (.next/server/chunks/[turbopack]_runtime.js:740:9)
+    at getOrInstantiateModuleFromParent (.next/server/chunks/[turbopack]_runtime.js:763:12)
+    at Context.esmImport [as i] (.next/server/chunks/[turbopack]_runtime.js:228:20)
+    at module evaluation (.next/server/chunks/[root-of-the-server]__a05c816d._.js:1:1954)
+
+2026-03-03T19:32:45.374105Z I ssrmitalentoia: 
+2026-03-03T19:33:21.826561Z E ssrmitalentoia: 
+2026-03-03T19:33:21.855878Z ? ssrmitalentoia: ⨯ Error: Failed to load external module firebase-admin-e80223cff3f2baca/app: Error: Cannot find module 'firebase-admin-e80223cff3f2baca/app'
+Require stack:
+- /workspace/.next/server/chunks/[root-of-the-server]__a05c816d._.js
+- /workspace/.next/server/chunks/[turbopack]_runtime.js
+- /workspace/.next/server/instrumentation.js
+- /workspace/node_modules/next/dist/server/lib/router-utils/instrumentation-globals.external.js
+- /workspace/node_modules/next/dist/server/next-server.js
+- /workspace/node_modules/next/dist/server/next.js
+    at Context.externalRequire [as x] (.next/server/chunks/[turbopack]_runtime.js:535:15)
+    at module evaluation (.next/server/chunks/[root-of-the-server]__a05c816d._.js:1:892)
+    at instantiateModule (.next/server/chunks/[turbopack]_runtime.js:740:9)
+    at getOrInstantiateModuleFromParent (.next/server/chunks/[turbopack]_runtime.js:763:12)
+    at Context.commonJsRequire [as r] (.next/server/chunks/[turbopack]_runtime.js:249:12)
+    at module evaluation (.next/server/chunks/mitalento-ia_f30b134d._.js:1:89)
+    at instantiateModule (.next/server/chunks/[turbopack]_runtime.js:740:9)
+    at getOrInstantiateModuleFromParent (.next/server/chunks/[turbopack]_runtime.js:763:12)
+    at Context.esmImport [as i] (.next/server/chunks/[turbopack]_runtime.js:228:20)
+    at module evaluation (.next/server/chunks/[root-of-the-server]__a05c816d._.js:1:1954)
+
+2026-03-03T19:33:22.052309Z E ssrmitalentoia: 
+2026-03-03T19:33:22.075453Z ? ssrmitalentoia: ⨯ Error: Failed to load external module firebase-admin-e80223cff3f2baca/app: Error: Cannot find module 'firebase-admin-e80223cff3f2baca/app'
+Require stack:
+- /workspace/.next/server/chunks/[root-of-the-server]__a05c816d._.js
+- /workspace/.next/server/chunks/[turbopack]_runtime.js
+- /workspace/.next/server/instrumentation.js
+- /workspace/node_modules/next/dist/server/lib/router-utils/instrumentation-globals.external.js
+- /workspace/node_modules/next/dist/server/next-server.js
+- /workspace/node_modules/next/dist/server/next.js
+    at Context.externalRequire [as x] (.next/server/chunks/[turbopack]_runtime.js:535:15)
+    at module evaluation (.next/server/chunks/[root-of-the-server]__a05c816d._.js:1:892)
+    at instantiateModule (.next/server/chunks/[turbopack]_runtime.js:740:9)
+    at getOrInstantiateModuleFromParent (.next/server/chunks/[turbopack]_runtime.js:763:12)
+    at Context.commonJsRequire [as r] (.next/server/chunks/[turbopack]_runtime.js:249:12)
+    at module evaluation (.next/server/chunks/mitalento-ia_f30b134d._.js:1:89)
+    at instantiateModule (.next/server/chunks/[turbopack]_runtime.js:740:9)
+    at getOrInstantiateModuleFromParent (.next/server/chunks/[turbopack]_runtime.js:763:12)
+    at Context.esmImport [as i] (.next/server/chunks/[turbopack]_runtime.js:228:20)
+    at module evaluation (.next/server/chunks/[root-of-the-server]__a05c816d._.js:1:1954)
+
+2026-03-03T19:34:26.236592Z E ssrmitalentoia: 
+2026-03-03T19:34:26.270463Z ? ssrmitalentoia: ⨯ Error: Failed to load external module firebase-admin-e80223cff3f2baca/app: Error: Cannot find module 'firebase-admin-e80223cff3f2baca/app'
+Require stack:
+- /workspace/.next/server/chunks/[root-of-the-server]__a05c816d._.js
+- /workspace/.next/server/chunks/[turbopack]_runtime.js
+- /workspace/.next/server/instrumentation.js
+- /workspace/node_modules/next/dist/server/lib/router-utils/instrumentation-globals.external.js
+- /workspace/node_modules/next/dist/server/next-server.js
+- /workspace/node_modules/next/dist/server/next.js
+    at Context.externalRequire [as x] (.next/server/chunks/[turbopack]_runtime.js:535:15)
+    at module evaluation (.next/server/chunks/[root-of-the-server]__a05c816d._.js:1:892)
+    at instantiateModule (.next/server/chunks/[turbopack]_runtime.js:740:9)
+    at getOrInstantiateModuleFromParent (.next/server/chunks/[turbopack]_runtime.js:763:12)
+    at Context.commonJsRequire [as r] (.next/server/chunks/[turbopack]_runtime.js:249:12)
+    at module evaluation (.next/server/chunks/mitalento-ia_f30b134d._.js:1:89)
+    at instantiateModule (.next/server/chunks/[turbopack]_runtime.js:740:9)
+    at getOrInstantiateModuleFromParent (.next/server/chunks/[turbopack]_runtime.js:763:12)
+    at Context.esmImport [as i] (.next/server/chunks/[turbopack]_runtime.js:228:20)
+    at module evaluation (.next/server/chunks/[root-of-the-server]__a05c816d._.js:1:1954)
+
+2026-03-03T19:52:12.891623Z I ssrmitalentoia: 
+2026-03-03T19:52:12.899205Z I ssrmitalentoia: Starting new instance. Reason: AUTOSCALING - Instance started due to configured scaling factors (e.g. CPU utilization, request throughput, etc.) or no existing capacity for current traffic.
+2026-03-03T19:52:14.103136Z I ssrmitalentoia: Default STARTUP TCP probe succeeded after 1 attempt for container "worker" on port 8080.
+2026-03-03T19:52:19.162613Z I ssrmitalentoia: 

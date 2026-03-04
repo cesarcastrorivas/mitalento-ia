@@ -31,11 +31,11 @@ export default async function StudentDashboard() {
     if (assignedIds.length > 0) {
         // firebase-admin 'in' query works up to 10 elements. Assuming assignedIds < 10.
         pathsPromise = db.collection('learning_paths').where('__name__', 'in', assignedIds).get()
-            .then(snap => snap.docs.map(d => ({ id: d.id, ...d.data() })));
+            .then((snap: any) => snap.docs.map((d: any) => ({ id: d.id, ...d.data() })));
     }
 
     const certsPromise = db.collection('certificates').where('userId', '==', uid).where('isActive', '==', true).get()
-        .then(snap => snap.docs.map(d => ({ id: d.id, ...d.data() } as Certificate)));
+        .then((snap: any) => snap.docs.map((d: any) => ({ id: d.id, ...d.data() } as Certificate)));
 
     // Filter courses only from the user's assigned paths (Firestore 'in' supports up to 30 values)
     const pathIdsToQuery = uniquePathIds.slice(0, 30);
@@ -44,11 +44,11 @@ export default async function StudentDashboard() {
             .where('pathId', 'in', pathIdsToQuery)
             .where('isActive', '==', true)
             .get()
-            .then(snap => snap.docs.map(d => ({ id: d.id, ...d.data() } as Course)))
+            .then((snap: any) => snap.docs.map((d: any) => ({ id: d.id, ...d.data() } as Course)))
         : Promise.resolve([] as Course[]);
 
     const sessionsPromise = db.collection('quiz_sessions').where('userId', '==', uid).get()
-        .then(snap => snap.docs.map(d => d.data() as any));
+        .then((snap: any) => snap.docs.map((d: any) => d.data() as any));
 
     // 4. Execute independent queries in parallel
     const [dynamicPaths, certs, allCourses, sessions] = await Promise.all([
@@ -65,7 +65,7 @@ export default async function StudentDashboard() {
             .where('courseId', 'in', courseIds)
             .where('isActive', '==', true)
             .get()
-            .then(snap => snap.docs.map(d => ({ id: d.id, ...d.data() } as any)))
+            .then((snap: any) => snap.docs.map((d: any) => ({ id: d.id, ...d.data() } as any)))
         : [];
 
     // 5. Process Paths
@@ -243,7 +243,7 @@ export default async function StudentDashboard() {
                     </div>
 
                     <div className={styles.pathsGrid}>
-                        {certificates.map((cert, index) => {
+                        {certificates.map((cert: any, index: number) => {
                             const CERT_COLORS: Record<string, string> = {
                                 fundamental: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
                                 professional: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',

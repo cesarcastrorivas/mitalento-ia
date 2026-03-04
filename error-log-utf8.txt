@@ -1,0 +1,91 @@
+﻿2026-03-04T02:41:38.274815Z I ssrmitalentoia: Starting new instance. Reason: DEPLOYMENT_ROLLOUT - Instance started due to traffic shifting between revisions due to deployment, traffic split adjustment, or deployment health check.
+2026-03-04T02:41:39.627317Z I ssrmitalentoia: Default STARTUP TCP probe succeeded after 1 attempt for container "worker" on port 8080.
+2026-03-04T02:41:41.776724867Z N ssrmitalentoia: {"@type":"type.googleapis.com/google.cloud.audit.AuditLog","status":{},"authenticationInfo":{"principalEmail":"ccastro.fuxion@gmail.com","principalSubject":"user:ccastro.fuxion@gmail.com","oauthInfo":{"oauthClientId":"563584335869-fgrhgmd47bqnekij5i8b5pr03ho849e6.apps.googleusercontent.com"}},"requestMetadata":{"requestAttributes":{},"destinationAttributes":{}},"serviceName":"cloudfunctions.googleapis.com","methodName":"google.cloud.functions.v2.FunctionService.UpdateFunction","resourceName":"projects/mitalento-ia/locations/us-central1/functions/ssrmitalentoia","response":{"name":"projects/mitalento-ia/locations/us-central1/functions/ssrmitalentoia","buildConfig":{"dockerRegistry":"ARTIFACT_REGISTRY","dockerRepository":"projects/mitalento-ia/locations/us-central1/repositories/gcf-artifacts","serviceAccount":"projects/mitalento-ia/serviceAccounts/836679235433-compute@developer.gserviceaccount.com","automaticUpdatePolicy":{},"runtime":"nodejs22","entryPoint":"ssrmitalentoia","source":{}},"serviceConfig":{"availableCpu":"1","ingressSettings":"ALLOW_ALL","maxInstanceRequestConcurrency":80,"timeoutSeconds":60,"maxInstanceCount":20,"availableMemory":"256Mi","uri":"https://ssrmitalentoia-awexrf4v2q-uc.a.run.app","serviceAccountEmail":"836679235433-compute@developer.gserviceaccount.com","allTrafficOnLatestRevision":true,"revision":"ssrmitalentoia-00055-fuv"},"state":"ACTIVE","labels":{"deployment-tool":"cli-firebase","firebase-functions-codebase":"firebase-frameworks-mitalento-ia","firebase-functions-hash":"85bbfd8e95f992127e6d94a673ff6002b6d6214b"},"environment":"GEN_2","url":"https://us-central1-mitalento-ia.cloudfunctions.net/ssrmitalentoia","satisfiesPzi":true,"createTime":"2026-03-02T20:30:05.171808651Z","updateTime":"2026-03-04T02:38:09.513158938Z","@type":"type.googleapis.com/google.cloud.functions.v2.Function"},"resourceLocation":{"currentLocations":["us-central1"]}}
+2026-03-04T02:42:44.514373Z I ssrmitalentoia: 
+2026-03-04T02:42:56.689215Z E ssrmitalentoia: 
+2026-03-04T02:42:56.753066Z ? ssrmitalentoia: Session error: The default Firebase app does not exist. Make sure you call initializeApp() before using any of the Firebase services.
+
+2026-03-04T02:44:06.968294Z E ssrmitalentoia: 
+2026-03-04T02:44:06.999861Z ? ssrmitalentoia: Session error: The default Firebase app does not exist. Make sure you call initializeApp() before using any of the Firebase services.
+
+2026-03-04T02:44:08.304108Z E ssrmitalentoia: 
+2026-03-04T02:44:08.323302Z ? ssrmitalentoia: Session error: The default Firebase app does not exist. Make sure you call initializeApp() before using any of the Firebase services.
+
+2026-03-04T02:44:27.230632Z E ssrmitalentoia: 
+2026-03-04T02:44:27.247722Z ? ssrmitalentoia: Session error: The default Firebase app does not exist. Make sure you call initializeApp() before using any of the Firebase services.
+
+2026-03-04T02:46:14.628398Z E ssrmitalentoia: 
+2026-03-04T02:46:14.660083Z ? ssrmitalentoia: Session error: The default Firebase app does not exist. Make sure you call initializeApp() before using any of the Firebase services.
+
+2026-03-04T02:46:34.799061Z E ssrmitalentoia: 
+2026-03-04T02:46:34.822804Z ? ssrmitalentoia: (node:1) MaxListenersExceededWarning: Possible EventEmitter memory leak detected. 11 uncaughtException listeners added to [process]. MaxListeners is 10. Use emitter.setMaxListeners() to increase limit
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+2026-03-04T02:46:34.823490Z ? ssrmitalentoia: Session error: The default Firebase app does not exist. Make sure you call initializeApp() before using any of the Firebase services.
+
+2026-03-04T02:52:37.734783Z I ssrmitalentoia: 
+2026-03-04T02:52:47.339339Z E ssrmitalentoia: 
+2026-03-04T02:52:47.358019Z ? ssrmitalentoia: Session error: The default Firebase app does not exist. Make sure you call initializeApp() before using any of the Firebase services.
+
+2026-03-04T02:53:01.626846Z E ssrmitalentoia: 
+2026-03-04T02:53:01.643076Z ? ssrmitalentoia: Session error: The default Firebase app does not exist. Make sure you call initializeApp() before using any of the Firebase services.
+
+2026-03-04T02:55:20.947899Z I ssrmitalentoia: 
+2026-03-04T02:55:31.413590Z E ssrmitalentoia: 
+2026-03-04T02:55:31.434814Z ? ssrmitalentoia: Session error: The default Firebase app does not exist. Make sure you call initializeApp() before using any of the Firebase services.
+
+2026-03-04T03:26:34.109734364Z N ssrmitalentoia: {"@type":"type.googleapis.com/google.cloud.audit.AuditLog","authenticationInfo":{"principalEmail":"ccastro.fuxion@gmail.com","principalSubject":"user:ccastro.fuxion@gmail.com","oauthInfo":{"oauthClientId":"563584335869-fgrhgmd47bqnekij5i8b5pr03ho849e6.apps.googleusercontent.com"}},"requestMetadata":{"callerIp":"64.43.117.185","callerSuppliedUserAgent":"FirebaseCLI/15.8.0 agent-name/claude_code,gzip(gfe),gzip(gfe)","requestAttributes":{"time":"2026-03-04T03:26:33.280521522Z","auth":{}},"destinationAttributes":{}},"serviceName":"cloudfunctions.googleapis.com","methodName":"google.cloud.functions.v2.FunctionService.UpdateFunction","authorizationInfo":[{"resource":"projects/mitalento-ia/locations/us-central1/functions/ssrmitalentoia","permission":"cloudfunctions.functions.update","granted":true,"resourceAttributes":{"service":"cloudfunctions.googleapis.com","name":"projects/mitalento-ia/locations/us-central1/functions/ssrmitalentoia","type":"cloudfunctions.googleapis.com/Function"},"permissionType":"ADMIN_WRITE"}],"resourceName":"projects/mitalento-ia/locations/us-central1/functions/ssrmitalentoia","request":{"function":{"labels":{"firebase-functions-codebase":"firebase-frameworks-mitalento-ia","firebase-functions-hash":"28b13278fee10642d6129220c8ab4e12ed2d4163","deployment-tool":"cli-firebase"},"build_config":{"runtime":"nodejs22","source":{},"entry_point":"ssrmitalentoia"},"service_config":{"available_memory":"256Mi","available_cpu":"1","max_instance_request_concurrency":80},"name":"projects/mitalento-ia/locations/us-central1/functions/ssrmitalentoia"},"update_mask":{"paths":["name","build_config.runtime","build_config.entry_point","build_config.source.storage_source.bucket","build_config.source.storage_source.object","build_config.environment_variables","build_config.source_token","service_config.environment_variables","service_config.ingress_settings","service_config.timeout_seconds","service_config.service_account_email","service_config.available_memory","service_config.min_instance_count","service_config.max_instance_count","service_config.max_instance_request_concurrency","service_config.available_cpu","service_config.vpc_connector","service_config.vpc_connector_egress_settings","labels"]},"@type":"type.googleapis.com/google.cloud.functions.v2.UpdateFunctionRequest"},"response":{"@type":"type.googleapis.com/google.longrunning.Operation"},"resourceLocation":{"currentLocations":["us-central1"]}}
+2026-03-04T03:29:29.897574Z I ssrmitalentoia: Starting new instance. Reason: DEPLOYMENT_ROLLOUT - Instance started due to traffic shifting between revisions due to deployment, traffic split adjustment, or deployment health check.
+2026-03-04T03:29:31.412207Z I ssrmitalentoia: Default STARTUP TCP probe succeeded after 1 attempt for container "worker" on port 8080.
+2026-03-04T03:29:33.379854604Z N ssrmitalentoia: {"@type":"type.googleapis.com/google.cloud.audit.AuditLog","status":{},"authenticationInfo":{"principalEmail":"ccastro.fuxion@gmail.com","principalSubject":"user:ccastro.fuxion@gmail.com","oauthInfo":{"oauthClientId":"563584335869-fgrhgmd47bqnekij5i8b5pr03ho849e6.apps.googleusercontent.com"}},"requestMetadata":{"requestAttributes":{},"destinationAttributes":{}},"serviceName":"cloudfunctions.googleapis.com","methodName":"google.cloud.functions.v2.FunctionService.UpdateFunction","resourceName":"projects/mitalento-ia/locations/us-central1/functions/ssrmitalentoia","response":{"name":"projects/mitalento-ia/locations/us-central1/functions/ssrmitalentoia","buildConfig":{"automaticUpdatePolicy":{},"runtime":"nodejs22","entryPoint":"ssrmitalentoia","source":{},"dockerRegistry":"ARTIFACT_REGISTRY","dockerRepository":"projects/mitalento-ia/locations/us-central1/repositories/gcf-artifacts","serviceAccount":"projects/mitalento-ia/serviceAccounts/836679235433-compute@developer.gserviceaccount.com"},"labels":{"deployment-tool":"cli-firebase","firebase-functions-codebase":"firebase-frameworks-mitalento-ia","firebase-functions-hash":"28b13278fee10642d6129220c8ab4e12ed2d4163"},"url":"https://us-central1-mitalento-ia.cloudfunctions.net/ssrmitalentoia","serviceConfig":{"maxInstanceRequestConcurrency":80,"timeoutSeconds":60,"allTrafficOnLatestRevision":true,"revision":"ssrmitalentoia-00057-tox","availableMemory":"256Mi","availableCpu":"1","maxInstanceCount":20,"uri":"https://ssrmitalentoia-awexrf4v2q-uc.a.run.app","ingressSettings":"ALLOW_ALL","serviceAccountEmail":"836679235433-compute@developer.gserviceaccount.com"},"state":"ACTIVE","environment":"GEN_2","createTime":"2026-03-02T20:30:05.171808651Z","updateTime":"2026-03-04T03:26:34.098127090Z","satisfiesPzi":true,"@type":"type.googleapis.com/google.cloud.functions.v2.Function"},"resourceLocation":{"currentLocations":["us-central1"]}}
+2026-03-04T03:30:52.299587Z I ssrmitalentoia: 
+2026-03-04T03:31:08.223388Z E ssrmitalentoia: 
+2026-03-04T03:31:08.347354Z ? ssrmitalentoia: Session error: The default Firebase app does not exist. Make sure you call initializeApp() before using any of the Firebase services.
+
+2026-03-04T03:31:31.997885Z E ssrmitalentoia: 
+2026-03-04T03:31:32.029420Z ? ssrmitalentoia: Session error: The default Firebase app does not exist. Make sure you call initializeApp() before using any of the Firebase services.
+
+2026-03-04T03:36:03.841797Z E ssrmitalentoia: 
+2026-03-04T03:36:03.868964Z ? ssrmitalentoia: Session error: The default Firebase app does not exist. Make sure you call initializeApp() before using any of the Firebase services.
+
+2026-03-04T03:43:15.191173851Z N ssrmitalentoia: {"@type":"type.googleapis.com/google.cloud.audit.AuditLog","authenticationInfo":{"principalEmail":"ccastro.fuxion@gmail.com","principalSubject":"user:ccastro.fuxion@gmail.com","oauthInfo":{"oauthClientId":"563584335869-fgrhgmd47bqnekij5i8b5pr03ho849e6.apps.googleusercontent.com"}},"requestMetadata":{"callerIp":"64.43.117.185","callerSuppliedUserAgent":"FirebaseCLI/15.8.0 agent-name/antigravity,gzip(gfe),gzip(gfe)","requestAttributes":{"time":"2026-03-04T03:43:14.273228468Z","auth":{}},"destinationAttributes":{}},"serviceName":"cloudfunctions.googleapis.com","methodName":"google.cloud.functions.v2.FunctionService.UpdateFunction","authorizationInfo":[{"resource":"projects/mitalento-ia/locations/us-central1/functions/ssrmitalentoia","permission":"cloudfunctions.functions.update","granted":true,"resourceAttributes":{"service":"cloudfunctions.googleapis.com","name":"projects/mitalento-ia/locations/us-central1/functions/ssrmitalentoia","type":"cloudfunctions.googleapis.com/Function"},"permissionType":"ADMIN_WRITE"}],"resourceName":"projects/mitalento-ia/locations/us-central1/functions/ssrmitalentoia","request":{"update_mask":{"paths":["name","build_config.runtime","build_config.entry_point","build_config.source.storage_source.bucket","build_config.source.storage_source.object","build_config.environment_variables","build_config.source_token","service_config.environment_variables","service_config.ingress_settings","service_config.timeout_seconds","service_config.service_account_email","service_config.available_memory","service_config.min_instance_count","service_config.max_instance_count","service_config.max_instance_request_concurrency","service_config.available_cpu","service_config.vpc_connector","service_config.vpc_connector_egress_settings","labels"]},"@type":"type.googleapis.com/google.cloud.functions.v2.UpdateFunctionRequest","function":{"labels":{"firebase-functions-hash":"f15ee6e52d09dc0195e111fb2a20284dc657c786","firebase-functions-codebase":"firebase-frameworks-mitalento-ia","deployment-tool":"cli-firebase"},"service_config":{"available_cpu":"1","available_memory":"256Mi","max_instance_request_concurrency":80},"build_config":{"entry_point":"ssrmitalentoia","runtime":"nodejs22","source":{}},"name":"projects/mitalento-ia/locations/us-central1/functions/ssrmitalentoia"}},"response":{"@type":"type.googleapis.com/google.longrunning.Operation"},"resourceLocation":{"currentLocations":["us-central1"]}}
+2026-03-04T03:45:45.872055Z I ssrmitalentoia: Starting new instance. Reason: DEPLOYMENT_ROLLOUT - Instance started due to traffic shifting between revisions due to deployment, traffic split adjustment, or deployment health check.
+2026-03-04T03:45:47.464700Z I ssrmitalentoia: Default STARTUP TCP probe succeeded after 1 attempt for container "worker" on port 8080.
+2026-03-04T03:45:48.918898Z I ssrmitalentoia: Starting new instance. Reason: AUTOSCALING - Instance started due to configured scaling factors (e.g. CPU utilization, request throughput, etc.) or no existing capacity for current traffic.
+2026-03-04T03:45:50.296637Z I ssrmitalentoia: Default STARTUP TCP probe succeeded after 1 attempt for container "worker" on port 8080.
+2026-03-04T03:45:51.169299604Z N ssrmitalentoia: {"@type":"type.googleapis.com/google.cloud.audit.AuditLog","status":{},"authenticationInfo":{"principalEmail":"ccastro.fuxion@gmail.com","principalSubject":"user:ccastro.fuxion@gmail.com","oauthInfo":{"oauthClientId":"563584335869-fgrhgmd47bqnekij5i8b5pr03ho849e6.apps.googleusercontent.com"}},"requestMetadata":{"requestAttributes":{},"destinationAttributes":{}},"serviceName":"cloudfunctions.googleapis.com","methodName":"google.cloud.functions.v2.FunctionService.UpdateFunction","resourceName":"projects/mitalento-ia/locations/us-central1/functions/ssrmitalentoia","response":{"satisfiesPzi":true,"state":"ACTIVE","environment":"GEN_2","url":"https://us-central1-mitalento-ia.cloudfunctions.net/ssrmitalentoia","createTime":"2026-03-02T20:30:05.171808651Z","serviceConfig":{"maxInstanceCount":20,"serviceAccountEmail":"836679235433-compute@developer.gserviceaccount.com","maxInstanceRequestConcurrency":80,"availableCpu":"1","revision":"ssrmitalentoia-00059-zix","timeoutSeconds":60,"ingressSettings":"ALLOW_ALL","uri":"https://ssrmitalentoia-awexrf4v2q-uc.a.run.app","allTrafficOnLatestRevision":true,"availableMemory":"256Mi"},"@type":"type.googleapis.com/google.cloud.functions.v2.Function","name":"projects/mitalento-ia/locations/us-central1/functions/ssrmitalentoia","buildConfig":{"dockerRegistry":"ARTIFACT_REGISTRY","dockerRepository":"projects/mitalento-ia/locations/us-central1/repositories/gcf-artifacts","serviceAccount":"projects/mitalento-ia/serviceAccounts/836679235433-compute@developer.gserviceaccount.com","automaticUpdatePolicy":{},"runtime":"nodejs22","entryPoint":"ssrmitalentoia","source":{}},"labels":{"firebase-functions-codebase":"firebase-frameworks-mitalento-ia","firebase-functions-hash":"f15ee6e52d09dc0195e111fb2a20284dc657c786","deployment-tool":"cli-firebase"},"updateTime":"2026-03-04T03:43:15.179206479Z"},"resourceLocation":{"currentLocations":["us-central1"]}}
+2026-03-04T03:46:49.701391Z I ssrmitalentoia: 
+2026-03-04T03:47:45.583609Z E ssrmitalentoia: 
+2026-03-04T03:47:45.646714Z ? ssrmitalentoia: Ô¿» Error: The default Firebase app does not exist. Make sure you call initializeApp() before using any of the Firebase services.
+    at module evaluation (.next/server/chunks/_f6eb5d89._.js:1:465)
+    at instantiateModule (.next/server/chunks/[turbopack]_runtime.js:740:9)
+    at getOrInstantiateModuleFromParent (.next/server/chunks/[turbopack]_runtime.js:763:12)
+    at Context.esmImport [as i] (.next/server/chunks/[turbopack]_runtime.js:228:20)
+    at module evaluation (.next/server/chunks/[root-of-the-server]__0cbc3fbd._.js:1:1689) {
+  errorInfo: [Object],
+  codePrefix: 'app'
+}
+
+2026-03-04T03:47:53.019915Z I ssrmitalentoia: 
+2026-03-04T03:48:27.591761Z E ssrmitalentoia: 
+2026-03-04T03:48:27.612775Z ? ssrmitalentoia: Ô¿» Error: The default Firebase app does not exist. Make sure you call initializeApp() before using any of the Firebase services.
+    at module evaluation (.next/server/chunks/_f6eb5d89._.js:1:465)
+    at instantiateModule (.next/server/chunks/[turbopack]_runtime.js:740:9)
+    at getOrInstantiateModuleFromParent (.next/server/chunks/[turbopack]_runtime.js:763:12)
+    at Context.esmImport [as i] (.next/server/chunks/[turbopack]_runtime.js:228:20)
+    at module evaluation (.next/server/chunks/[root-of-the-server]__0cbc3fbd._.js:1:1689) {
+  errorInfo: [Object],
+  codePrefix: 'app'
+}
+
+2026-03-04T03:51:22.126224Z E ssrmitalentoia: 
+2026-03-04T03:51:22.147563Z ? ssrmitalentoia: Ô¿» Error: The default Firebase app does not exist. Make sure you call initializeApp() before using any of the Firebase services.
+    at module evaluation (.next/server/chunks/_f6eb5d89._.js:1:465)
+    at instantiateModule (.next/server/chunks/[turbopack]_runtime.js:740:9)
+    at getOrInstantiateModuleFromParent (.next/server/chunks/[turbopack]_runtime.js:763:12)
+    at Context.esmImport [as i] (.next/server/chunks/[turbopack]_runtime.js:228:20)
+    at module evaluation (.next/server/chunks/[root-of-the-server]__0cbc3fbd._.js:1:1689) {
+  errorInfo: [Object],
+  codePrefix: 'app'
+}
+

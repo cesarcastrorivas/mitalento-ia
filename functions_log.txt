@@ -1,0 +1,200 @@
+﻿2026-03-04T04:51:34.063896Z ? ssrmitalentoia: Firebase session cookie has incorrect "iss" (issuer) claim. Expected "https://session.firebase.google.com/mitalento-ia" but got "https://securetoken.google.com/mitalento-ia". Make sure the session cookie comes from the same Firebase project as the service account used to authenticate this SDK. See https://firebase.google.com/docs/auth/admin/manage-cookies for details on how to retrieve a session cookie.
+
+2026-03-04T04:51:34.066344Z ? ssrmitalentoia: Firebase session cookie has incorrect "iss" (issuer) claim. Expected "https://session.firebase.google.com/mitalento-ia" but got "https://securetoken.google.com/mitalento-ia". Make sure the session cookie comes from the same Firebase project as the service account used to authenticate this SDK. See https://firebase.google.com/docs/auth/admin/manage-cookies for details on how to retrieve a session cookie.
+
+2026-03-04T04:51:34.255096Z I ssrmitalentoia: 
+2026-03-04T04:51:34.260385Z ? ssrmitalentoia: Firebase session cookie has incorrect "iss" (issuer) claim. Expected "https://session.firebase.google.com/mitalento-ia" but got "https://securetoken.google.com/mitalento-ia". Make sure the session cookie comes from the same Firebase project as the service account used to authenticate this SDK. See https://firebase.google.com/docs/auth/admin/manage-cookies for details on how to retrieve a session cookie.
+
+2026-03-04T04:51:34.283601Z I ssrmitalentoia: 
+2026-03-04T04:51:34.286250Z I ssrmitalentoia: 
+2026-03-04T04:51:34.294889Z ? ssrmitalentoia: Firebase session cookie has incorrect "iss" (issuer) claim. Expected "https://session.firebase.google.com/mitalento-ia" but got "https://securetoken.google.com/mitalento-ia". Make sure the session cookie comes from the same Firebase project as the service account used to authenticate this SDK. See https://firebase.google.com/docs/auth/admin/manage-cookies for details on how to retrieve a session cookie.
+
+2026-03-04T04:51:34.296334Z ? ssrmitalentoia: Firebase session cookie has incorrect "iss" (issuer) claim. Expected "https://session.firebase.google.com/mitalento-ia" but got "https://securetoken.google.com/mitalento-ia". Make sure the session cookie comes from the same Firebase project as the service account used to authenticate this SDK. See https://firebase.google.com/docs/auth/admin/manage-cookies for details on how to retrieve a session cookie.
+
+2026-03-04T04:51:44.468146Z I ssrmitalentoia: 
+2026-03-04T04:51:44.481785Z ? ssrmitalentoia: Firebase session cookie has incorrect "iss" (issuer) claim. Expected "https://session.firebase.google.com/mitalento-ia" but got "https://securetoken.google.com/mitalento-ia". Make sure the session cookie comes from the same Firebase project as the service account used to authenticate this SDK. See https://firebase.google.com/docs/auth/admin/manage-cookies for details on how to retrieve a session cookie.
+
+2026-03-04T04:51:48.110449Z I ssrmitalentoia: 
+2026-03-04T04:51:48.114754Z ? ssrmitalentoia: Firebase session cookie has incorrect "iss" (issuer) claim. Expected "https://session.firebase.google.com/mitalento-ia" but got "https://securetoken.google.com/mitalento-ia". Make sure the session cookie comes from the same Firebase project as the service account used to authenticate this SDK. See https://firebase.google.com/docs/auth/admin/manage-cookies for details on how to retrieve a session cookie.
+
+2026-03-04T04:51:51.353792Z I ssrmitalentoia: 
+2026-03-04T04:51:51.357926Z ? ssrmitalentoia: Firebase session cookie has incorrect "iss" (issuer) claim. Expected "https://session.firebase.google.com/mitalento-ia" but got "https://securetoken.google.com/mitalento-ia". Make sure the session cookie comes from the same Firebase project as the service account used to authenticate this SDK. See https://firebase.google.com/docs/auth/admin/manage-cookies for details on how to retrieve a session cookie.
+
+2026-03-04T04:51:54.047694Z I ssrmitalentoia: 
+2026-03-04T04:51:54.053382Z ? ssrmitalentoia: Firebase session cookie has incorrect "iss" (issuer) claim. Expected "https://session.firebase.google.com/mitalento-ia" but got "https://securetoken.google.com/mitalento-ia". Make sure the session cookie comes from the same Firebase project as the service account used to authenticate this SDK. See https://firebase.google.com/docs/auth/admin/manage-cookies for details on how to retrieve a session cookie.
+
+2026-03-04T04:51:56.628358Z I ssrmitalentoia: 
+2026-03-04T04:51:56.632382Z ? ssrmitalentoia: Firebase session cookie has incorrect "iss" (issuer) claim. Expected "https://session.firebase.google.com/mitalento-ia" but got "https://securetoken.google.com/mitalento-ia". Make sure the session cookie comes from the same Firebase project as the service account used to authenticate this SDK. See https://firebase.google.com/docs/auth/admin/manage-cookies for details on how to retrieve a session cookie.
+
+2026-03-04T04:51:58.063583Z I ssrmitalentoia: 
+2026-03-04T04:51:58.068468Z ? ssrmitalentoia: Firebase session cookie has incorrect "iss" (issuer) claim. Expected "https://session.firebase.google.com/mitalento-ia" but got "https://securetoken.google.com/mitalento-ia". Make sure the session cookie comes from the same Firebase project as the service account used to authenticate this SDK. See https://firebase.google.com/docs/auth/admin/manage-cookies for details on how to retrieve a session cookie.
+
+2026-03-04T04:51:58.287072Z I ssrmitalentoia: 
+2026-03-04T04:52:09.392901Z I ssrmitalentoia: 
+2026-03-04T04:52:09.611116Z I ssrmitalentoia: 
+2026-03-04T04:52:09.615328Z ? ssrmitalentoia: Firebase session cookie has incorrect "iss" (issuer) claim. Expected "https://session.firebase.google.com/mitalento-ia" but got "https://securetoken.google.com/mitalento-ia". Make sure the session cookie comes from the same Firebase project as the service account used to authenticate this SDK. See https://firebase.google.com/docs/auth/admin/manage-cookies for details on how to retrieve a session cookie.
+
+2026-03-04T04:52:09.953226Z E ssrmitalentoia: 
+2026-03-04T04:52:09.957456Z ? ssrmitalentoia: Firebase session cookie has incorrect "iss" (issuer) claim. Expected "https://session.firebase.google.com/mitalento-ia" but got "https://securetoken.google.com/mitalento-ia". Make sure the session cookie comes from the same Firebase project as the service account used to authenticate this SDK. See https://firebase.google.com/docs/auth/admin/manage-cookies for details on how to retrieve a session cookie.
+
+2026-03-04T04:52:09.980950Z ? ssrmitalentoia: Ô¿» Error: Failed to load external module @grpc/grpc-js-a3bed6b460f5f8b6: Error: Cannot find module '@grpc/grpc-js-a3bed6b460f5f8b6'
+Require stack:
+- /workspace/.next/server/chunks/ssr/[root-of-the-server]__ca9dd3a1._.js
+- /workspace/.next/server/chunks/ssr/[turbopack]_runtime.js
+- /workspace/.next/server/app/_global-error/page.js
+- /workspace/node_modules/next/dist/server/require.js
+- /workspace/node_modules/next/dist/server/next-server.js
+- /workspace/node_modules/next/dist/server/next.js
+    at Context.externalRequire [as x] (.next/server/chunks/ssr/[turbopack]_runtime.js:535:15)
+    at module evaluation (.next/server/chunks/ssr/[root-of-the-server]__ca9dd3a1._.js:1:108)
+    at instantiateModule (.next/server/chunks/ssr/[turbopack]_runtime.js:740:9)
+    at getOrInstantiateModuleFromParent (.next/server/chunks/ssr/[turbopack]_runtime.js:763:12)
+    at Context.esmImport [as i] (.next/server/chunks/ssr/[turbopack]_runtime.js:228:20)
+    at module evaluation (.next/server/chunks/ssr/_9c94ae33._.js:1:30607)
+    at instantiateModule (.next/server/chunks/ssr/[turbopack]_runtime.js:740:9)
+    at getOrInstantiateModuleFromParent (.next/server/chunks/ssr/[turbopack]_runtime.js:763:12)
+    at Context.esmImport [as i] (.next/server/chunks/ssr/[turbopack]_runtime.js:228:20)
+    at module evaluation (.next/server/chunks/ssr/_ba7ffe6d._.js:1:60)
+
+2026-03-04T04:52:09.984462Z ? ssrmitalentoia: Ô¿» Error: Failed to load external module @grpc/grpc-js-a3bed6b460f5f8b6: Error: Cannot find module '@grpc/grpc-js-a3bed6b460f5f8b6'
+Require stack:
+- /workspace/.next/server/chunks/ssr/[root-of-the-server]__ca9dd3a1._.js
+- /workspace/.next/server/chunks/ssr/[turbopack]_runtime.js
+- /workspace/.next/server/app/_global-error/page.js
+- /workspace/node_modules/next/dist/server/require.js
+- /workspace/node_modules/next/dist/server/next-server.js
+- /workspace/node_modules/next/dist/server/next.js
+    at Context.externalRequire [as x] (.next/server/chunks/ssr/[turbopack]_runtime.js:535:15)
+    at module evaluation (.next/server/chunks/ssr/[root-of-the-server]__ca9dd3a1._.js:1:108)
+    at instantiateModule (.next/server/chunks/ssr/[turbopack]_runtime.js:740:9)
+    at getOrInstantiateModuleFromParent (.next/server/chunks/ssr/[turbopack]_runtime.js:763:12)
+    at Context.esmImport [as i] (.next/server/chunks/ssr/[turbopack]_runtime.js:228:20)
+    at module evaluation (.next/server/chunks/ssr/_9c94ae33._.js:1:30607)
+    at instantiateModule (.next/server/chunks/ssr/[turbopack]_runtime.js:740:9)
+    at getOrInstantiateModuleFromParent (.next/server/chunks/ssr/[turbopack]_runtime.js:763:12)
+    at Context.esmImport [as i] (.next/server/chunks/ssr/[turbopack]_runtime.js:228:20)
+    at module evaluation (.next/server/chunks/ssr/_ba7ffe6d._.js:1:60)
+
+2026-03-04T04:52:10.137648Z E ssrmitalentoia: 
+2026-03-04T04:52:10.142548Z ? ssrmitalentoia: Firebase session cookie has incorrect "iss" (issuer) claim. Expected "https://session.firebase.google.com/mitalento-ia" but got "https://securetoken.google.com/mitalento-ia". Make sure the session cookie comes from the same Firebase project as the service account used to authenticate this SDK. See https://firebase.google.com/docs/auth/admin/manage-cookies for details on how to retrieve a session cookie.
+
+2026-03-04T04:52:10.159674Z ? ssrmitalentoia: Ô¿» Error: Failed to load external module @grpc/grpc-js-a3bed6b460f5f8b6: Error: Cannot find module '@grpc/grpc-js-a3bed6b460f5f8b6'
+Require stack:
+- /workspace/.next/server/chunks/ssr/[root-of-the-server]__ca9dd3a1._.js
+- /workspace/.next/server/chunks/ssr/[turbopack]_runtime.js
+- /workspace/.next/server/app/_global-error/page.js
+- /workspace/node_modules/next/dist/server/require.js
+- /workspace/node_modules/next/dist/server/next-server.js
+- /workspace/node_modules/next/dist/server/next.js
+    at Context.externalRequire [as x] (.next/server/chunks/ssr/[turbopack]_runtime.js:535:15)
+    at module evaluation (.next/server/chunks/ssr/[root-of-the-server]__ca9dd3a1._.js:1:108)
+    at instantiateModule (.next/server/chunks/ssr/[turbopack]_runtime.js:740:9)
+    at getOrInstantiateModuleFromParent (.next/server/chunks/ssr/[turbopack]_runtime.js:763:12)
+    at Context.esmImport [as i] (.next/server/chunks/ssr/[turbopack]_runtime.js:228:20)
+    at module evaluation (.next/server/chunks/ssr/_9c94ae33._.js:1:30607)
+    at instantiateModule (.next/server/chunks/ssr/[turbopack]_runtime.js:740:9)
+    at getOrInstantiateModuleFromParent (.next/server/chunks/ssr/[turbopack]_runtime.js:763:12)
+    at Context.esmImport [as i] (.next/server/chunks/ssr/[turbopack]_runtime.js:228:20)
+    at module evaluation (.next/server/chunks/ssr/_ba7ffe6d._.js:1:60)
+
+2026-03-04T04:52:10.160878Z ? ssrmitalentoia: Ô¿» Error: Failed to load external module @grpc/grpc-js-a3bed6b460f5f8b6: Error: Cannot find module '@grpc/grpc-js-a3bed6b460f5f8b6'
+Require stack:
+- /workspace/.next/server/chunks/ssr/[root-of-the-server]__ca9dd3a1._.js
+- /workspace/.next/server/chunks/ssr/[turbopack]_runtime.js
+- /workspace/.next/server/app/_global-error/page.js
+- /workspace/node_modules/next/dist/server/require.js
+- /workspace/node_modules/next/dist/server/next-server.js
+- /workspace/node_modules/next/dist/server/next.js
+    at Context.externalRequire [as x] (.next/server/chunks/ssr/[turbopack]_runtime.js:535:15)
+    at module evaluation (.next/server/chunks/ssr/[root-of-the-server]__ca9dd3a1._.js:1:108)
+    at instantiateModule (.next/server/chunks/ssr/[turbopack]_runtime.js:740:9)
+    at getOrInstantiateModuleFromParent (.next/server/chunks/ssr/[turbopack]_runtime.js:763:12)
+    at Context.esmImport [as i] (.next/server/chunks/ssr/[turbopack]_runtime.js:228:20)
+    at module evaluation (.next/server/chunks/ssr/_9c94ae33._.js:1:30607)
+    at instantiateModule (.next/server/chunks/ssr/[turbopack]_runtime.js:740:9)
+    at getOrInstantiateModuleFromParent (.next/server/chunks/ssr/[turbopack]_runtime.js:763:12)
+    at Context.esmImport [as i] (.next/server/chunks/ssr/[turbopack]_runtime.js:228:20)
+    at module evaluation (.next/server/chunks/ssr/_ba7ffe6d._.js:1:60)
+
+2026-03-04T04:52:10.370227Z E ssrmitalentoia: 
+2026-03-04T04:52:10.376067Z ? ssrmitalentoia: Firebase session cookie has incorrect "iss" (issuer) claim. Expected "https://session.firebase.google.com/mitalento-ia" but got "https://securetoken.google.com/mitalento-ia". Make sure the session cookie comes from the same Firebase project as the service account used to authenticate this SDK. See https://firebase.google.com/docs/auth/admin/manage-cookies for details on how to retrieve a session cookie.
+
+2026-03-04T04:52:10.402755Z ? ssrmitalentoia: Ô¿» Error: Failed to load external module @grpc/grpc-js-a3bed6b460f5f8b6: Error: Cannot find module '@grpc/grpc-js-a3bed6b460f5f8b6'
+Require stack:
+- /workspace/.next/server/chunks/ssr/[root-of-the-server]__ca9dd3a1._.js
+- /workspace/.next/server/chunks/ssr/[turbopack]_runtime.js
+- /workspace/.next/server/app/_global-error/page.js
+- /workspace/node_modules/next/dist/server/require.js
+- /workspace/node_modules/next/dist/server/next-server.js
+- /workspace/node_modules/next/dist/server/next.js
+    at Context.externalRequire [as x] (.next/server/chunks/ssr/[turbopack]_runtime.js:535:15)
+    at module evaluation (.next/server/chunks/ssr/[root-of-the-server]__ca9dd3a1._.js:1:108)
+    at instantiateModule (.next/server/chunks/ssr/[turbopack]_runtime.js:740:9)
+    at getOrInstantiateModuleFromParent (.next/server/chunks/ssr/[turbopack]_runtime.js:763:12)
+    at Context.esmImport [as i] (.next/server/chunks/ssr/[turbopack]_runtime.js:228:20)
+    at module evaluation (.next/server/chunks/ssr/_9c94ae33._.js:1:30607)
+    at instantiateModule (.next/server/chunks/ssr/[turbopack]_runtime.js:740:9)
+    at getOrInstantiateModuleFromParent (.next/server/chunks/ssr/[turbopack]_runtime.js:763:12)
+    at Context.esmImport [as i] (.next/server/chunks/ssr/[turbopack]_runtime.js:228:20)
+    at module evaluation (.next/server/chunks/ssr/_ba7ffe6d._.js:1:60)
+
+2026-03-04T04:52:10.404286Z ? ssrmitalentoia: Ô¿» Error: Failed to load external module @grpc/grpc-js-a3bed6b460f5f8b6: Error: Cannot find module '@grpc/grpc-js-a3bed6b460f5f8b6'
+Require stack:
+- /workspace/.next/server/chunks/ssr/[root-of-the-server]__ca9dd3a1._.js
+- /workspace/.next/server/chunks/ssr/[turbopack]_runtime.js
+- /workspace/.next/server/app/_global-error/page.js
+- /workspace/node_modules/next/dist/server/require.js
+- /workspace/node_modules/next/dist/server/next-server.js
+- /workspace/node_modules/next/dist/server/next.js
+    at Context.externalRequire [as x] (.next/server/chunks/ssr/[turbopack]_runtime.js:535:15)
+    at module evaluation (.next/server/chunks/ssr/[root-of-the-server]__ca9dd3a1._.js:1:108)
+    at instantiateModule (.next/server/chunks/ssr/[turbopack]_runtime.js:740:9)
+    at getOrInstantiateModuleFromParent (.next/server/chunks/ssr/[turbopack]_runtime.js:763:12)
+    at Context.esmImport [as i] (.next/server/chunks/ssr/[turbopack]_runtime.js:228:20)
+    at module evaluation (.next/server/chunks/ssr/_9c94ae33._.js:1:30607)
+    at instantiateModule (.next/server/chunks/ssr/[turbopack]_runtime.js:740:9)
+    at getOrInstantiateModuleFromParent (.next/server/chunks/ssr/[turbopack]_runtime.js:763:12)
+    at Context.esmImport [as i] (.next/server/chunks/ssr/[turbopack]_runtime.js:228:20)
+    at module evaluation (.next/server/chunks/ssr/_ba7ffe6d._.js:1:60)
+
+2026-03-04T04:52:10.485753Z E ssrmitalentoia: 
+2026-03-04T04:52:10.490379Z ? ssrmitalentoia: Firebase session cookie has incorrect "iss" (issuer) claim. Expected "https://session.firebase.google.com/mitalento-ia" but got "https://securetoken.google.com/mitalento-ia". Make sure the session cookie comes from the same Firebase project as the service account used to authenticate this SDK. See https://firebase.google.com/docs/auth/admin/manage-cookies for details on how to retrieve a session cookie.
+
+2026-03-04T04:52:10.506178Z ? ssrmitalentoia: Ô¿» Error: Failed to load external module @grpc/grpc-js-a3bed6b460f5f8b6: Error: Cannot find module '@grpc/grpc-js-a3bed6b460f5f8b6'
+Require stack:
+- /workspace/.next/server/chunks/ssr/[root-of-the-server]__ca9dd3a1._.js
+- /workspace/.next/server/chunks/ssr/[turbopack]_runtime.js
+- /workspace/.next/server/app/_global-error/page.js
+- /workspace/node_modules/next/dist/server/require.js
+- /workspace/node_modules/next/dist/server/next-server.js
+- /workspace/node_modules/next/dist/server/next.js
+    at Context.externalRequire [as x] (.next/server/chunks/ssr/[turbopack]_runtime.js:535:15)
+    at module evaluation (.next/server/chunks/ssr/[root-of-the-server]__ca9dd3a1._.js:1:108)
+    at instantiateModule (.next/server/chunks/ssr/[turbopack]_runtime.js:740:9)
+    at getOrInstantiateModuleFromParent (.next/server/chunks/ssr/[turbopack]_runtime.js:763:12)
+    at Context.esmImport [as i] (.next/server/chunks/ssr/[turbopack]_runtime.js:228:20)
+    at module evaluation (.next/server/chunks/ssr/_9c94ae33._.js:1:30607)
+    at instantiateModule (.next/server/chunks/ssr/[turbopack]_runtime.js:740:9)
+    at getOrInstantiateModuleFromParent (.next/server/chunks/ssr/[turbopack]_runtime.js:763:12)
+    at Context.esmImport [as i] (.next/server/chunks/ssr/[turbopack]_runtime.js:228:20)
+    at module evaluation (.next/server/chunks/ssr/_ba7ffe6d._.js:1:60)
+
+2026-03-04T04:52:10.508193Z ? ssrmitalentoia: Ô¿» Error: Failed to load external module @grpc/grpc-js-a3bed6b460f5f8b6: Error: Cannot find module '@grpc/grpc-js-a3bed6b460f5f8b6'
+Require stack:
+- /workspace/.next/server/chunks/ssr/[root-of-the-server]__ca9dd3a1._.js
+- /workspace/.next/server/chunks/ssr/[turbopack]_runtime.js
+- /workspace/.next/server/app/_global-error/page.js
+- /workspace/node_modules/next/dist/server/require.js
+- /workspace/node_modules/next/dist/server/next-server.js
+- /workspace/node_modules/next/dist/server/next.js
+    at Context.externalRequire [as x] (.next/server/chunks/ssr/[turbopack]_runtime.js:535:15)
+    at module evaluation (.next/server/chunks/ssr/[root-of-the-server]__ca9dd3a1._.js:1:108)
+    at instantiateModule (.next/server/chunks/ssr/[turbopack]_runtime.js:740:9)
+    at getOrInstantiateModuleFromParent (.next/server/chunks/ssr/[turbopack]_runtime.js:763:12)
+    at Context.esmImport [as i] (.next/server/chunks/ssr/[turbopack]_runtime.js:228:20)
+    at module evaluation (.next/server/chunks/ssr/_9c94ae33._.js:1:30607)
+    at instantiateModule (.next/server/chunks/ssr/[turbopack]_runtime.js:740:9)
+    at getOrInstantiateModuleFromParent (.next/server/chunks/ssr/[turbopack]_runtime.js:763:12)
+    at Context.esmImport [as i] (.next/server/chunks/ssr/[turbopack]_runtime.js:228:20)
+    at module evaluation (.next/server/chunks/ssr/_ba7ffe6d._.js:1:60)
+

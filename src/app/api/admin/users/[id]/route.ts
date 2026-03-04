@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getAdminAuth, getAdminDb } from '@/lib/firebase-admin';
 import { getServerUser } from '@/lib/server-auth';
 
+export const runtime = 'nodejs';
+
 /**
  * Verifies the request Origin matches the expected app origin.
  * Defense-in-depth against CSRF (primary protection is already SameSite=lax cookie,

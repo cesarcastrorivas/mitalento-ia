@@ -27,9 +27,12 @@ export async function register() {
     const original = Module._load.bind(Module);
 
     Module._load = function patchedLoad(request, parent, isMain) {
-      // Redirect any Turbopack-hashed firebase-admin require to the real package.
-      if (/^firebase-admin-[0-9a-f]{16}$/.test(request)) {
-        return original('firebase-admin', parent, isMain);
+      // Redirect any Turbopack-hashed require for Next.js external packages to the real package
+      const match = /^(firebase-admin|google-auth-library|google-gax|@grpc\/grpc-js|@grpc\/proto-loader)-[0-9a-f]{16}(\/.*)?$/.exec(request);
+      if (match) {
+        const pkg = match[1];
+        const subpath = match[2] || '';
+        return original(`${pkg}${subpath}`, parent, isMain);
       }
       return original(request, parent, isMain);
     };

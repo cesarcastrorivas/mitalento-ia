@@ -38,7 +38,7 @@ export async function GET() {
         // Aggregate scores per user
         const userScores = new Map<string, { total: number; count: number; passedModules: Set<string> }>();
 
-        sessionsSnap.docs.forEach(doc => {
+        sessionsSnap.docs.forEach((doc: any) => {
             const s = doc.data();
             if (!userScores.has(s.userId)) {
                 userScores.set(s.userId, { total: 0, count: 0, passedModules: new Set() });
@@ -51,7 +51,7 @@ export async function GET() {
 
         // Build and rank — return only the fields the UI needs
         const ranked: LeaderboardEntry[] = usersSnap.docs
-            .map(doc => {
+            .map((doc: any) => {
                 const u = doc.data();
                 const scores = userScores.get(doc.id);
                 return {
@@ -63,8 +63,8 @@ export async function GET() {
                     certificationLevel: u.certificationLevel ?? 'none',
                 };
             })
-            .filter(u => u.totalScore > 0)
-            .sort((a, b) => b.totalScore - a.totalScore)
+            .filter((u: any) => u.totalScore > 0)
+            .sort((a: any, b: any) => b.totalScore - a.totalScore)
             .slice(0, 20);
 
         return NextResponse.json(

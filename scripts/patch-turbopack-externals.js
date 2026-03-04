@@ -21,10 +21,10 @@ const path = require('path');
 const CHUNKS_DIR = path.join(__dirname, '..', '.next', 'server', 'chunks');
 
 // Matches any package name followed by a 16-hex-char Turbopack hash, e.g.
-//   "firebase-admin-e80223cff3f2baca"
+//   "firebase-admin-e80223cff3f2baca" or "firebase-admin-e80223cff3f2baca/app"
 // Only fixes packages that are in serverExternalPackages (firebase-admin, grpc…)
 // by matching the specific pattern used by Turbopack externals.
-const HASH_PATTERN = /(["'])(firebase-admin|google-auth-library|google-gax|@grpc\/grpc-js|@grpc\/proto-loader)-([0-9a-f]{16})(["'])/g;
+const HASH_PATTERN = /(["'])(firebase-admin|google-auth-library|google-gax|@grpc\/grpc-js|@grpc\/proto-loader)-([0-9a-f]{16})(\/?.*?)(["'])/g;
 
 function walkDir(dir) {
   if (!fs.existsSync(dir)) return [];
@@ -45,7 +45,7 @@ for (const file of walkDir(CHUNKS_DIR)) {
   if (!HASH_PATTERN.test(original)) continue;
 
   HASH_PATTERN.lastIndex = 0; // reset after test()
-  const patched = original.replace(HASH_PATTERN, '$1$2$4');
+  const patched = original.replace(HASH_PATTERN, '$1$2$4$5');
   if (patched === original) continue;
 
   const occurrences = (original.match(HASH_PATTERN) || []).length;
