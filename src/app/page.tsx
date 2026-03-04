@@ -12,7 +12,6 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [showDemoModal, setShowDemoModal] = useState(false);
   const { signIn, user } = useAuth();
   const router = useRouter();
 
@@ -54,30 +53,6 @@ export default function LoginPage() {
       setLoading(false);
     }
   };
-
-  const handleDemoLogin = async (role: 'admin' | 'student') => {
-    // Reemplaza estas credenciales con las que uses para pruebas reales.
-    const demoEmail = role === 'admin' ? 'admin@urbanity.com' : 'alumno@urbanity.com';
-    const demoPassword = 'password123';
-
-    setEmail(demoEmail);
-    setPassword(demoPassword);
-
-    setError('');
-    setLoading(true);
-
-    try {
-      await signIn(demoEmail, demoPassword);
-    } catch (err: any) {
-      console.error('Demo Auth error:', err);
-      const firebaseError = err as { code?: string; message?: string };
-      setError(`Error Demo: ${firebaseError.message || firebaseError.code || 'Error desconocido'}`);
-    } finally {
-      setLoading(false);
-      setShowDemoModal(false);
-    }
-  };
-
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-slate-50 relative overflow-hidden font-sans">
       {/* Animated Mesh Gradient Background Elements */}
@@ -156,30 +131,12 @@ export default function LoginPage() {
             </Button>
           </form>
 
-          {/* Quick Access Demo Button */}
-          <div className="mt-8 relative z-10">
-            <div className="relative flex items-center justify-center mb-6">
-              <div className="absolute inset-x-0 h-px bg-gradient-to-r from-transparent via-gray-300 to-transparent"></div>
-              <span className="relative bg-white/80 backdrop-blur-3xl px-4 text-xs font-semibold text-gray-400 uppercase tracking-widest rounded-full">O probar con</span>
-            </div>
-
-            <button
-              type="button"
-              onClick={() => setShowDemoModal(true)}
-              className="w-full flex items-center justify-center gap-2 py-4 px-6 rounded-2xl border-2 border-purple-100 bg-purple-50/50 hover:bg-purple-100/50 text-purple-700 font-bold transition-all hover:scale-[1.02] active:scale-95 group"
-            >
-              <span className="text-xl group-hover:animate-bounce">🚀</span>
-              Acceso Rápido (Demo)
-            </button>
-          </div>
 
           {/* Minimal Footer */}
           <div className="flex flex-col items-center gap-4 mt-6 opacity-80 relative z-10">
             <p className="text-center text-xs sm:text-sm font-medium flex-col sm:flex-row flex items-center justify-center gap-1.5 opacity-90 hover:opacity-100 transition-opacity">
               <span className="text-slate-500">Diseñado por</span>
               <span className="font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-purple-500 to-blue-500 tracking-wide">PROLEV AI</span>
-              <span className="hidden sm:inline text-slate-400">·</span>
-              <span className="text-slate-500 italic">Ingeniería en Apalancamiento</span>
             </p>
             <div className="flex justify-center gap-6 opacity-60">
               <span className="text-[10px] sm:text-xs font-semibold text-slate-500 tracking-wider uppercase hover:text-slate-800 transition-colors cursor-pointer">Innovación</span>
@@ -189,86 +146,6 @@ export default function LoginPage() {
           </div>
         </Card>
       </div>
-
-      {/* Demo Modal */}
-      {showDemoModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-md animate-fade-in">
-          <div
-            className="absolute inset-0"
-            onClick={() => setShowDemoModal(false)}
-          />
-          <Card className="relative w-full max-w-sm !rounded-[32px] p-8 shadow-2xl animate-scale-in">
-            <button
-              onClick={() => setShowDemoModal(false)}
-              className="absolute top-4 right-4 p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-            </button>
-
-            <div className="text-center mb-8">
-              <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-100 to-blue-100 mb-4 text-2xl shadow-inner">
-                ⚡
-              </div>
-              <h3 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-gray-600">
-                Selecciona tu Rol
-              </h3>
-              <p className="text-sm text-gray-500 mt-2">
-                Ingresa directamente para probar la plataforma.
-              </p>
-            </div>
-
-            <div className="space-y-4">
-              <button
-                onClick={() => handleDemoLogin('admin')}
-                disabled={loading}
-                className="w-full relative overflow-hidden group flex items-center justify-between p-4 rounded-2xl border-2 border-slate-100 hover:border-purple-200 bg-white hover:bg-purple-50/50 transition-all text-left disabled:opacity-50"
-              >
-                <div className="flex items-center gap-4 relative z-10">
-                  <div className="w-10 h-10 rounded-xl bg-purple-100 text-purple-600 flex items-center justify-center text-lg">
-                    👑
-                  </div>
-                  <div>
-                    <span className="block font-bold text-gray-900 group-hover:text-purple-700 transition-colors">Administrador</span>
-                    <span className="block text-xs text-gray-500 font-medium">Acceso total al panel</span>
-                  </div>
-                </div>
-                <div className="text-purple-300 group-hover:text-purple-500 transition-colors relative z-10">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
-                </div>
-                {/* Hover shine effect */}
-                <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white to-transparent opacity-0 group-hover:opacity-100 group-hover:animate-[shimmer_1s_infinite]"></div>
-              </button>
-
-              <button
-                onClick={() => handleDemoLogin('student')}
-                disabled={loading}
-                className="w-full relative overflow-hidden group flex items-center justify-between p-4 rounded-2xl border-2 border-slate-100 hover:border-blue-200 bg-white hover:bg-blue-50/50 transition-all text-left disabled:opacity-50"
-              >
-                <div className="flex items-center gap-4 relative z-10">
-                  <div className="w-10 h-10 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center text-lg">
-                    🎓
-                  </div>
-                  <div>
-                    <span className="block font-bold text-gray-900 group-hover:text-blue-700 transition-colors">Alumno</span>
-                    <span className="block text-xs text-gray-500 font-medium">Vista de formación</span>
-                  </div>
-                </div>
-                <div className="text-blue-300 group-hover:text-blue-500 transition-colors relative z-10">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
-                </div>
-                {/* Hover shine effect */}
-                <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white to-transparent opacity-0 group-hover:opacity-100 group-hover:animate-[shimmer_1s_infinite]"></div>
-              </button>
-            </div>
-
-            {loading && (
-              <div className="absolute inset-0 bg-white/80 backdrop-blur-sm rounded-[32px] flex items-center justify-center z-20">
-                <div className="w-8 h-8 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin"></div>
-              </div>
-            )}
-          </Card>
-        </div>
-      )}
     </div>
   );
 }
