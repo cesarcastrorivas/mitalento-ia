@@ -260,6 +260,8 @@ export default function CourseModulesPage({ params }: { params: Promise<{ course
                 // Actualizar módulo existente
                 await updateDoc(doc(db, 'modules', editingModule.id), {
                     ...formData,
+                    courseTitle: course?.title || '',
+                    pathId: course?.pathId || '',
                     updatedAt: Timestamp.now(),
                     // courseId no cambia
                 });
@@ -268,6 +270,8 @@ export default function CourseModulesPage({ params }: { params: Promise<{ course
                 await addDoc(collection(db, 'modules'), {
                     ...formData,
                     courseId, // Asignar al curso actual
+                    courseTitle: course?.title || '',
+                    pathId: course?.pathId || '',
                     createdAt: Timestamp.now(),
                     createdBy: user?.uid,
                 });

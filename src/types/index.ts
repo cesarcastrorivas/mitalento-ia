@@ -69,6 +69,8 @@ export interface ModuleProgress {
 export interface Module {
     id: string;
     courseId: string; // ID del Curso al que pertenece
+    courseTitle?: string; // Denormalizado: título del curso (evita fetch extra)
+    pathId?: string; // Denormalizado: ID del path (evita fetch extra)
     title: string;
     description: string;
     videoUrl: string;

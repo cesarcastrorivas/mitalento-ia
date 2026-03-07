@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import styles from './page.module.css';
 import { Award } from 'lucide-react';
+import { MotivationalPhrase } from '@/components/MotivationalPhrase';
 
 export default async function StudentDashboard() {
     const userClaims = await getServerUser();
@@ -47,7 +48,11 @@ export default async function StudentDashboard() {
             .then((snap: any) => snap.docs.map((d: any) => ({ id: d.id, ...d.data() } as Course)))
         : Promise.resolve([] as Course[]);
 
-    const sessionsPromise = db.collection('quiz_sessions').where('userId', '==', uid).get()
+    const sessionsPromise = db.collection('quiz_sessions')
+        .where('userId', '==', uid)
+        .orderBy('completedAt', 'desc')
+        .limit(200)
+        .get()
         .then((snap: any) => snap.docs.map((d: any) => d.data() as any));
 
     // 4. Execute independent queries in parallel
@@ -120,19 +125,7 @@ export default async function StudentDashboard() {
 
     const firstName = (userClaims as any).name ? (userClaims as any).name.split(' ')[0] : (userData?.displayName?.split(' ')[0] || '');
 
-    const phrases = [
-        'El éxito no es una opción, es tu obligación. ¡Acción masiva! 🔥',
-        'No te conformes con lo promedio. Multiplica tus metas por 10X. 🚀',
-        'Mientras otros duermen, tú estás construyendo un imperio. 💪',
-        'La obsesión no es una enfermedad, es un don. ¡Úsalo! ⚡',
-        'Los que dicen que es imposible nunca lo intentaron con todo. 🏆',
-        'No necesitas suerte, necesitas acción masiva. ¡AHORA! 🎯',
-        'Tu competencia debería preocuparse, no tú. Domina el juego. 👊',
-        'El miedo es un indicador: estás a punto de crecer. ¡Hazlo! 💥',
-        'Deja de pensar en pequeño. Piensa en GRANDE, actúa en GRANDE. 🦁',
-        'No sigas el plan B. Haz que el plan A funcione con todo. 🔥',
-    ];
-    const motivationalPhrase = phrases[Math.floor(Math.random() * phrases.length)];
+    // Frase motivacional delegada al Client Component <MotivationalPhrase />
 
     return (
         <div className={styles.page}>
@@ -155,7 +148,7 @@ export default async function StudentDashboard() {
                             'Bienvenido'
                         )}
                     </h1>
-                    <p className={styles.heroSubtitle}>{motivationalPhrase}</p>
+                    <MotivationalPhrase className={styles.heroSubtitle} />
 
                     {/* Stats rápidos */}
                     <div className={styles.statsRow}>

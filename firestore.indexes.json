@@ -4,84 +4,170 @@
             "collectionGroup": "courses",
             "queryScope": "COLLECTION",
             "fields": [
-                { "fieldPath": "isActive", "order": "ASCENDING" },
-                { "fieldPath": "pathId",   "order": "ASCENDING" },
-                { "fieldPath": "order",    "order": "ASCENDING" }
+                {
+                    "fieldPath": "isActive",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "pathId",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "order",
+                    "order": "ASCENDING"
+                }
             ]
         },
         {
             "collectionGroup": "courses",
             "queryScope": "COLLECTION",
             "fields": [
-                { "fieldPath": "pathId",   "order": "ASCENDING" },
-                { "fieldPath": "isActive", "order": "ASCENDING" },
-                { "fieldPath": "order",    "order": "ASCENDING" }
+                {
+                    "fieldPath": "pathId",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "isActive",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "order",
+                    "order": "ASCENDING"
+                }
             ]
         },
         {
             "collectionGroup": "courses",
             "queryScope": "COLLECTION",
             "fields": [
-                { "fieldPath": "pathId", "order": "ASCENDING" },
-                { "fieldPath": "order",  "order": "ASCENDING" }
+                {
+                    "fieldPath": "pathId",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "order",
+                    "order": "ASCENDING"
+                }
             ]
         },
         {
             "collectionGroup": "learning_paths",
             "queryScope": "COLLECTION",
             "fields": [
-                { "fieldPath": "isActive", "order": "ASCENDING" },
-                { "fieldPath": "order",    "order": "ASCENDING" }
+                {
+                    "fieldPath": "isActive",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "order",
+                    "order": "ASCENDING"
+                }
             ]
         },
         {
             "collectionGroup": "modules",
             "queryScope": "COLLECTION",
             "fields": [
-                { "fieldPath": "courseId", "order": "ASCENDING" },
-                { "fieldPath": "isActive", "order": "ASCENDING" },
-                { "fieldPath": "order",    "order": "ASCENDING" }
+                {
+                    "fieldPath": "isActive",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "order",
+                    "order": "ASCENDING"
+                }
             ]
         },
         {
             "collectionGroup": "modules",
             "queryScope": "COLLECTION",
             "fields": [
-                { "fieldPath": "courseId", "order": "ASCENDING" },
-                { "fieldPath": "order",    "order": "ASCENDING" }
+                {
+                    "fieldPath": "courseId",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "isActive",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "order",
+                    "order": "ASCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "modules",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "courseId",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "order",
+                    "order": "ASCENDING"
+                }
             ]
         },
         {
             "collectionGroup": "quiz_sessions",
             "queryScope": "COLLECTION",
             "fields": [
-                { "fieldPath": "userId", "order": "ASCENDING" },
-                { "fieldPath": "passed", "order": "ASCENDING" }
+                {
+                    "fieldPath": "userId",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "passed",
+                    "order": "ASCENDING"
+                }
             ]
         },
         {
             "collectionGroup": "quiz_sessions",
             "queryScope": "COLLECTION",
             "fields": [
-                { "fieldPath": "userId",      "order": "ASCENDING"  },
-                { "fieldPath": "completedAt", "order": "DESCENDING" }
+                {
+                    "fieldPath": "userId",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "completedAt",
+                    "order": "DESCENDING"
+                }
             ]
         },
         {
             "collectionGroup": "certificates",
             "queryScope": "COLLECTION",
             "fields": [
-                { "fieldPath": "userId",   "order": "ASCENDING" },
-                { "fieldPath": "isActive", "order": "ASCENDING" }
+                {
+                    "fieldPath": "userId",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "isActive",
+                    "order": "ASCENDING"
+                }
             ]
         },
         {
             "collectionGroup": "certificates",
             "queryScope": "COLLECTION",
             "fields": [
-                { "fieldPath": "userId",   "order": "ASCENDING" },
-                { "fieldPath": "isActive", "order": "ASCENDING" },
-                { "fieldPath": "pathId",   "order": "ASCENDING" }
+                {
+                    "fieldPath": "userId",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "isActive",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "pathId",
+                    "order": "ASCENDING"
+                }
             ]
         }
     ],

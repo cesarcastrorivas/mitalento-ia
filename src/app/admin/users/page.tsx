@@ -179,37 +179,33 @@ export default function UsersPage() {
                 return;
             }
 
-            // Usar secondaryAuth para NO cerrar la sesión del admin actual
-            const credential = await createUserWithEmailAndPassword(
-                secondaryAuth,
-                formData.email,
-                formData.password
-            );
+            // Llamar a la API de creación de usuario en el servidor (Firebase Admin)
+            const response = await fetch('/api/admin/users', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(formData),
+            });
 
-            // Crear documento en Firestore (la sesión del admin sigue activa)
-            const newUser: User = {
-                uid: credential.user.uid,
-                email: formData.email,
-                displayName: formData.displayName,
-                role: formData.role,
-                createdAt: Timestamp.now(),
-                createdBy: currentUser?.uid,
-                isActive: true
-            };
+            const result = await response.json();
 
-            await setDoc(doc(db, 'users', credential.user.uid), newUser);
-
-            // Cerrar sesión en la instancia secundaria (limpieza)
-            await signOut(secondaryAuth);
+            if (!response.ok) {
+                if (response.status === 403) {
+                    throw new Error('No tienes permisos de administrador para crear cuentas.');
+                }
+                if (result.error?.includes('ADMIN_PRIVATE_KEY') || result.error?.includes('servidor incompleta')) {
+                    throw new Error('Configuración de servidor incompleta. Verifica ADMIN_PRIVATE_KEY en las variables de entorno para usar Firebase Admin.');
+                }
+                throw new Error(result.error || 'Error desconocido al crear el usuario');
+            }
 
             setShowModal(false);
             setFormData({ email: '', password: '', displayName: '', role: 'student' });
-            loadData(); // Recargar todo
+            loadData(); // Recargar todo iterando nuevamente desde Firestore
         } catch (error: any) {
-            // Next.js intercepts console.error with Error objects and shows a full-screen overlay in dev mode.
-            // Since we handle this error gracefully, we log it as a warning so it doesn't disrupt the UI.
-            if (error.code === 'auth/email-already-in-use') {
-                console.warn('Handling expected error: Email already in use', error.message);
+            console.error('Error creating user:', error);
+            if (error.message?.includes('correo electrónico ya está registrado')) {
                 alert(
                     '❌ Error: El correo electrónico ya está registrado en el sistema.\n\n' +
                     'Si eliminaste a este usuario recientemente de la lista, ten en cuenta que su cuenta de acceso (Authentication) aún existe. ' +
@@ -217,7 +213,6 @@ export default function UsersPage() {
                     'Por favor, utiliza un correo diferente u otra cuenta.'
                 );
             } else {
-                console.error('Error creating user:', error);
                 alert('Error al crear usuario: ' + (error.message || 'Desconocido'));
             }
         } finally {
@@ -374,11 +369,11 @@ export default function UsersPage() {
                 const result = await response.json();
 
                 if (!response.ok) {
-                    if (response.status === 500 && result.error?.includes('FIREBASE_PRIVATE_KEY')) {
+                    if (response.status === 500 && result.error?.includes('ADMIN_PRIVATE_KEY')) {
                         // Falta configuración de Firebase Admin, eliminar solo de Firestore
                         await deleteDoc(doc(db, 'users', deleteConfirm.uid));
                         setUsers(prev => prev.filter(u => u.uid !== deleteConfirm.uid));
-                        alert('⚠️ Usuario eliminado de la plataforma.\n\nNota: La cuenta de autenticación aún existe en Firebase. Para eliminarla completamente, configura FIREBASE_PRIVATE_KEY en .env.local o bórrala manualmente desde la consola de Firebase → Authentication.');
+                        alert('⚠️ Usuario eliminado de la plataforma.\n\nNota: La cuenta de autenticación aún existe en Firebase. Para eliminarla completamente, configura ADMIN_PRIVATE_KEY en .env.local o bórrala manualmente desde la consola de Firebase → Authentication.');
                     } else {
                         throw new Error(result.error || 'Error al eliminar usuario');
                     }
@@ -391,7 +386,7 @@ export default function UsersPage() {
                 console.warn('API de eliminación no disponible (Firebase Admin no configurado). Eliminando solo de Firestore.');
                 await deleteDoc(doc(db, 'users', deleteConfirm.uid));
                 setUsers(prev => prev.filter(u => u.uid !== deleteConfirm.uid));
-                alert('⚠️ Usuario eliminado de la plataforma.\n\nNota: La cuenta de autenticación aún puede existir en Firebase. Para eliminarla completamente, configura FIREBASE_PRIVATE_KEY en .env.local o bórrala manualmente desde la consola de Firebase → Authentication.');
+                alert('⚠️ Usuario eliminado de la plataforma.\n\nNota: La cuenta de autenticación aún puede existir en Firebase. Para eliminarla completamente, configura ADMIN_PRIVATE_KEY en .env.local o bórrala manualmente desde la consola de Firebase → Authentication.');
             }
         } catch (error) {
             console.error('Error deleting user:', error);

@@ -54,40 +54,39 @@ export default function LoginPage() {
     }
   };
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-slate-50 relative overflow-hidden font-sans">
-      {/* Animated Mesh Gradient Background Elements */}
-      <div className="absolute top-[-10%] left-[-10%] w-[50vw] h-[50vw] bg-purple-500/30 rounded-full blur-[100px] pointer-events-none mix-blend-multiply animate-pulse" style={{ animationDuration: '8s' }} />
-      <div className="absolute bottom-[-10%] right-[-10%] w-[50vw] h-[50vw] bg-blue-500/30 rounded-full blur-[100px] pointer-events-none mix-blend-multiply animate-pulse" style={{ animationDuration: '12s', animationDelay: '2s' }} />
-      <div className="absolute top-[40%] left-[20%] w-[30vw] h-[30vw] bg-pink-400/20 rounded-full blur-[80px] pointer-events-none mix-blend-multiply animate-pulse" style={{ animationDuration: '10s', animationDelay: '5s' }} />
+    <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden font-sans" style={{ background: '#F8F9FC' }}>
+      {/* Subtle static background pattern */}
+      <div className="absolute inset-0 bg-[radial-gradient(#e2e5ed_1px,transparent_1px)] [background-size:20px_20px] opacity-50 pointer-events-none" />
+      {/* Very soft vignette */}
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_70%_at_50%_50%,transparent_60%,rgba(209,213,224,0.4)_100%)] pointer-events-none" />
 
-      {/* Decorative dot pattern overlay */}
-      <div className="absolute inset-0 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px] opacity-40 pointer-events-none" />
+      <div className="w-full max-w-[420px] relative z-10 animate-fade-in-up">
+        <Card
+          className="!rounded-3xl !bg-white !shadow-[0_8px_40px_-8px_rgba(0,0,0,0.12),0_0_0_1px_rgba(0,0,0,0.06)] space-y-7 p-9 relative overflow-hidden"
+          hover={false}
+        >
+          {/* Subtle top highlight line */}
+          <div className="absolute top-0 left-8 right-8 h-px bg-gradient-to-r from-transparent via-white to-transparent pointer-events-none" />
 
-      <div className="w-full max-w-[440px] relative z-10 animate-fade-in-up">
-        {/* Glow effect behind the card */}
-        <div className="absolute -inset-1 bg-gradient-to-r from-purple-600 to-blue-600 rounded-[38px] blur-xl opacity-20 transition-all group-hover:opacity-30"></div>
-
-        <Card className="!rounded-[36px] !bg-white/80 !backdrop-blur-3xl !shadow-[0_24px_60px_-15px_rgba(0,0,0,0.1),0_0_0_1px_rgba(255,255,255,0.6)_inset] space-y-8 p-10 relative overflow-hidden" hover={false}>
-          {/* Subtle reflection on the card edge */}
-          <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent pointer-events-none rounded-[36px]"></div>
-
-          <div className="text-center space-y-5 relative z-10">
-            <div className="inline-flex items-center justify-center w-20 h-20 rounded-[28px] bg-gradient-to-br from-purple-600 to-blue-600 text-4xl shadow-2xl shadow-purple-500/30 mb-1 transform transition-transform hover:scale-105">
-              <span className="drop-shadow-md">🎓</span>
+          {/* Header */}
+          <div className="text-center space-y-4 relative z-10">
+            <div className="inline-flex items-center justify-center w-18 h-18 w-[72px] h-[72px] rounded-2xl bg-purple-600 text-3xl shadow-lg shadow-purple-600/25 mb-1">
+              <span>🎓</span>
             </div>
-            <div className="space-y-1.5">
-              <h1 className="text-3xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-gray-600 tracking-tight">
+            <div className="space-y-1">
+              <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
                 Mi Talento Urbanity
               </h1>
-              <p className="text-gray-500 text-sm font-medium">
+              <p className="text-slate-500 text-sm font-normal">
                 Tu plataforma de crecimiento
               </p>
             </div>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6 relative z-10" suppressHydrationWarning>
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="space-y-5 relative z-10" suppressHydrationWarning>
             <div className="space-y-4">
-              <div className="group relative transition-all">
+              <div className="transition-all">
                 <Input
                   id="login-email"
                   label="Correo electrónico"
@@ -96,10 +95,10 @@ export default function LoginPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  className="!bg-white/60 focus:!bg-white !border-gray-200 focus:!border-purple-500 !rounded-2xl transition-all shadow-sm focus:shadow-md"
+                  className="!bg-slate-50 focus:!bg-white !border-slate-200 focus:!border-purple-400 !rounded-xl transition-all focus:shadow-[0_0_0_3px_rgba(124,58,237,0.12)]"
                 />
               </div>
-              <div className="group relative transition-all">
+              <div className="transition-all">
                 <Input
                   id="login-password"
                   label="Contraseña"
@@ -108,14 +107,14 @@ export default function LoginPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  className="!bg-white/60 focus:!bg-white !border-gray-200 focus:!border-purple-500 !rounded-2xl transition-all shadow-sm focus:shadow-md"
+                  className="!bg-slate-50 focus:!bg-white !border-slate-200 focus:!border-purple-400 !rounded-xl transition-all focus:shadow-[0_0_0_3px_rgba(124,58,237,0.12)]"
                 />
               </div>
             </div>
 
             {error && (
-              <div className="p-4 rounded-2xl bg-red-50/80 backdrop-blur-sm border border-red-100/50 text-red-600 text-sm font-medium text-center flex items-center justify-center gap-2 animate-shake">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+              <div className="p-3.5 rounded-xl bg-red-50 border border-red-100 text-red-600 text-sm font-medium text-center flex items-center justify-center gap-2 animate-shake">
+                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
                 {error}
               </div>
             )}
@@ -123,25 +122,24 @@ export default function LoginPage() {
             <Button
               type="submit"
               variant="primary"
-              className="w-full !rounded-2xl !py-6 text-base font-semibold !shadow-xl shadow-purple-500/30 active:scale-95 transition-all outline-none focus:ring-4 focus:ring-purple-500/20"
+              className="w-full !rounded-xl !py-5 text-sm font-semibold tracking-wide active:scale-[0.98] transition-all outline-none focus:ring-4 focus:ring-purple-500/20"
               isLoading={loading}
-              style={{ background: 'linear-gradient(135deg, #7C3AED 0%, #4F46E5 100%)', color: 'white' }}
+              style={{ background: '#7C3AED', color: 'white', boxShadow: '0 4px 16px -4px rgba(124,58,237,0.4)' }}
             >
               Iniciar Sesión
             </Button>
           </form>
 
-
-          {/* Minimal Footer */}
-          <div className="flex flex-col items-center gap-4 mt-6 opacity-80 relative z-10">
-            <p className="text-center text-xs sm:text-sm font-medium flex-col sm:flex-row flex items-center justify-center gap-1.5 opacity-90 hover:opacity-100 transition-opacity">
-              <span className="text-slate-500">Diseñado por</span>
-              <span className="font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-purple-500 to-blue-500 tracking-wide">PROLEV AI</span>
+          {/* Footer */}
+          <div className="flex flex-col items-center gap-3 pt-1 relative z-10">
+            <p className="text-center text-xs font-medium flex items-center justify-center gap-1 text-slate-400">
+              <span>Diseñado por</span>
+              <span className="font-bold text-slate-700">PROLEV AI</span>
             </p>
-            <div className="flex justify-center gap-6 opacity-60">
-              <span className="text-[10px] sm:text-xs font-semibold text-slate-500 tracking-wider uppercase hover:text-slate-800 transition-colors cursor-pointer">Innovación</span>
-              <span className="text-[10px] sm:text-xs font-semibold text-slate-500 tracking-wider uppercase hover:text-slate-800 transition-colors cursor-pointer">Tecnología</span>
-              <span className="text-[10px] sm:text-xs font-semibold text-slate-500 tracking-wider uppercase hover:text-slate-800 transition-colors cursor-pointer">Apalancamiento</span>
+            <div className="flex justify-center gap-5">
+              <span className="text-[10px] font-semibold text-slate-400 tracking-wider uppercase hover:text-slate-600 transition-colors cursor-pointer">Innovación</span>
+              <span className="text-[10px] font-semibold text-slate-400 tracking-wider uppercase hover:text-slate-600 transition-colors cursor-pointer">Tecnología</span>
+              <span className="text-[10px] font-semibold text-slate-400 tracking-wider uppercase hover:text-slate-600 transition-colors cursor-pointer">Apalancamiento</span>
             </div>
           </div>
         </Card>

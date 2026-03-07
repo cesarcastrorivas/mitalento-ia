@@ -1,0 +1,447 @@
+/* Base shimmer animation */
+@keyframes shimmer {
+    0% {
+        background-position: -600px 0;
+    }
+
+    100% {
+        background-position: 600px 0;
+    }
+}
+
+.shimmer {
+    background: linear-gradient(90deg,
+            #f0f4f8 25%,
+            #e2e8f0 37%,
+            #f0f4f8 63%);
+    background-size: 600px 100%;
+    animation: shimmer 1.4s infinite linear;
+    border-radius: 8px;
+}
+
+/* ---------- Path Details Skeleton ---------- */
+.pathPageContainer {
+    min-height: 100vh;
+    background-color: #f8fafc;
+    background-image:
+        radial-gradient(circle at 15% 50%, rgba(124, 58, 237, 0.06), transparent 25%),
+        radial-gradient(circle at 85% 30%, rgba(59, 130, 246, 0.06), transparent 25%);
+    padding: 2rem;
+    font-family: var(--font-body);
+}
+
+.pathGrid {
+    max-width: 1400px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2rem;
+}
+
+@media (min-width: 1024px) {
+    .pathGrid {
+        grid-template-columns: 380px 1fr;
+        gap: 3rem;
+        align-items: start;
+    }
+}
+
+/* Sidebar skeleton */
+.sidebarSkeleton {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(20px);
+    border-radius: 32px;
+    padding: 2.5rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 20px 40px -4px rgba(124, 58, 237, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    position: relative;
+    overflow: hidden;
+}
+
+.sidebarSkeleton::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 6px;
+    background: linear-gradient(90deg, #e2e8f0, #e9d5ff);
+}
+
+.skIcon {
+    width: 88px;
+    height: 88px;
+    border-radius: 24px;
+    margin-bottom: 1.5rem;
+}
+
+.skTitle {
+    height: 36px;
+    width: 80%;
+    margin-bottom: 0.75rem;
+}
+
+.skLine {
+    height: 16px;
+    border-radius: 6px;
+    margin-bottom: 0.5rem;
+}
+
+.skLine.w100 {
+    width: 100%;
+}
+
+.skLine.w80 {
+    width: 80%;
+}
+
+.skLine.w60 {
+    width: 60%;
+}
+
+.skStatsRow {
+    display: flex;
+    justify-content: space-between;
+    margin: 1.5rem 0;
+    padding: 1.5rem 0;
+    border-top: 1px solid rgba(226, 232, 240, 0.6);
+    border-bottom: 1px solid rgba(226, 232, 240, 0.6);
+    gap: 1rem;
+}
+
+.skStat {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+}
+
+.skStatValue {
+    height: 24px;
+    width: 40px;
+    border-radius: 6px;
+}
+
+.skStatLabel {
+    height: 12px;
+    width: 50px;
+    border-radius: 4px;
+}
+
+.skProgressBlock {
+    margin-top: 1rem;
+}
+
+.skProgressLabel {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.75rem;
+}
+
+.skProgressLabelText {
+    height: 14px;
+    width: 110px;
+    border-radius: 4px;
+}
+
+.skProgressLabelNum {
+    height: 14px;
+    width: 40px;
+    border-radius: 4px;
+}
+
+.skProgressBar {
+    height: 12px;
+    width: 100%;
+    border-radius: 99px;
+}
+
+/* Right column skeleton */
+.mainSkeleton {
+    padding-top: 1rem;
+}
+
+.skHeader {
+    background: rgba(255, 255, 255, 0.5);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    border-radius: 24px;
+    padding: 1.5rem;
+    margin-bottom: 2.5rem;
+}
+
+.skHeaderTitle {
+    height: 28px;
+    width: 200px;
+    margin-bottom: 0.75rem;
+    border-radius: 8px;
+}
+
+.skHeaderSub {
+    height: 14px;
+    width: 300px;
+    border-radius: 4px;
+}
+
+/* Timeline skeleton items */
+.skTimelineWrapper {
+    position: relative;
+    padding-left: 2.5rem;
+}
+
+.skTimelineWrapper::before {
+    content: '';
+    position: absolute;
+    top: 2rem;
+    bottom: 0;
+    left: 8px;
+    width: 4px;
+    background: linear-gradient(to bottom, #ddd6fe 0%, #e2e8f0 100%);
+    border-radius: 99px;
+}
+
+.skTimelineItem {
+    position: relative;
+    margin-bottom: 2rem;
+}
+
+.skDot {
+    position: absolute;
+    left: -2.5rem;
+    top: 1.75rem;
+    transform: translateX(4px);
+    width: 20px;
+    height: 20px;
+    background: #e2e8f0;
+    border-radius: 50%;
+}
+
+.skCard {
+    background: #fff;
+    border-radius: 28px;
+    border: 1px solid #e2e8f0;
+    padding: 2rem;
+    display: flex;
+    gap: 1.5rem;
+    align-items: center;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.03);
+}
+
+.skCardIcon {
+    width: 64px;
+    height: 64px;
+    border-radius: 20px;
+    flex-shrink: 0;
+}
+
+.skCardBody {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.skBadge {
+    height: 20px;
+    width: 70px;
+    border-radius: 6px;
+}
+
+.skCardTitle {
+    height: 22px;
+    width: 70%;
+    border-radius: 6px;
+}
+
+.skCardDesc {
+    height: 14px;
+    width: 90%;
+    border-radius: 4px;
+}
+
+.skCardDesc2 {
+    height: 14px;
+    width: 60%;
+    border-radius: 4px;
+}
+
+/* ---------- Modules Grid Skeleton ---------- */
+.modulesPageWrapper {
+    max-width: 80rem;
+    margin: 0 auto;
+    padding: 3rem 1.5rem;
+}
+
+.skModulesHeader {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-bottom: 3rem;
+}
+
+@media (min-width: 768px) {
+    .skModulesHeader {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+    }
+}
+
+.skModulesTitle {
+    height: 36px;
+    width: 260px;
+    border-radius: 8px;
+    margin-bottom: 0.5rem;
+}
+
+.skModulesSubtitle {
+    height: 16px;
+    width: 320px;
+    border-radius: 4px;
+}
+
+.skProgressCard {
+    background: rgba(255, 255, 255, 0.8);
+    border: 1px solid rgba(226, 232, 240, 0.8);
+    border-radius: 20px;
+    padding: 1rem 1.5rem;
+    min-width: 280px;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.skProgressCardLabel {
+    height: 14px;
+    width: 120px;
+    border-radius: 4px;
+}
+
+.skProgressCardBar {
+    height: 8px;
+    width: 100%;
+    border-radius: 99px;
+}
+
+.skProgressCardSub {
+    height: 12px;
+    width: 160px;
+    border-radius: 4px;
+    align-self: flex-end;
+}
+
+.skModulesGrid {
+    display: grid;
+    grid-template-columns: repeat(1, 1fr);
+    gap: 1.5rem;
+}
+
+@media (min-width: 768px) {
+    .skModulesGrid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (min-width: 1024px) {
+    .skModulesGrid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+.skModuleCard {
+    background: rgba(255, 255, 255, 0.8);
+    border: 1px solid rgba(226, 232, 240, 0.8);
+    border-radius: 24px;
+    overflow: hidden;
+    opacity: 0;
+    animation: fadeSlideUp 0.5s ease-out forwards;
+}
+
+.skModuleCard:nth-child(1) {
+    animation-delay: 0.05s;
+}
+
+.skModuleCard:nth-child(2) {
+    animation-delay: 0.1s;
+}
+
+.skModuleCard:nth-child(3) {
+    animation-delay: 0.15s;
+}
+
+.skModuleCard:nth-child(4) {
+    animation-delay: 0.2s;
+}
+
+.skModuleCard:nth-child(5) {
+    animation-delay: 0.25s;
+}
+
+.skModuleCard:nth-child(6) {
+    animation-delay: 0.3s;
+}
+
+@keyframes fadeSlideUp {
+    from {
+        opacity: 0;
+        transform: translateY(16px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.skThumbnail {
+    height: 160px;
+    width: 100%;
+    border-radius: 0;
+}
+
+.skModuleBody {
+    padding: 1.25rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.skModuleOrder {
+    height: 14px;
+    width: 70px;
+    border-radius: 4px;
+    margin-bottom: 0.25rem;
+}
+
+.skModuleTitle {
+    height: 22px;
+    width: 85%;
+    border-radius: 6px;
+}
+
+.skModuleDesc {
+    height: 13px;
+    width: 100%;
+    border-radius: 4px;
+}
+
+.skModuleDesc2 {
+    height: 13px;
+    width: 70%;
+    border-radius: 4px;
+}
+
+.skDivider {
+    height: 1px;
+    width: 100%;
+    background: rgba(226, 232, 240, 0.6);
+    margin: 0.75rem 0;
+}
+
+.skModuleBtn {
+    height: 42px;
+    width: 100%;
+    border-radius: 12px;
+    margin-top: 0.5rem;
+}

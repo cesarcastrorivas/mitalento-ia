@@ -24,6 +24,7 @@ interface CourseWithProgress extends Course {
     completedModules: number;
     progress: number;
     isLocked: boolean;
+    nextModuleId: string | null; // ID del primer módulo pendiente (o el primero si todos completados)
 }
 
 export default function PathDetailsPage({ params }: { params: Promise<{ pathId: string }> }) {
@@ -33,6 +34,7 @@ export default function PathDetailsPage({ params }: { params: Promise<{ pathId: 
     const [path, setPath] = useState<LearningPath | null>(null);
     const [courses, setCourses] = useState<CourseWithProgress[]>([]);
     const [loading, setLoading] = useState(true);
+    const [userProgress, setUserProgress] = useState<Record<string, any>>({});
 
     useEffect(() => {
         if (user && pathId) {
@@ -56,11 +58,15 @@ export default function PathDetailsPage({ params }: { params: Promise<{ pathId: 
                 where('passed', '==', true)
             );
 
-            const [pathDoc, coursesSnapshot, sessionsSnapshot] = await Promise.all([
+            const [pathDoc, coursesSnapshot, sessionsSnapshot, userDocSnap] = await Promise.all([
                 getDoc(doc(db, 'learning_paths', pathId)),
                 getDocs(coursesQ),
                 getDocs(sessionsQ),
+                user ? getDoc(doc(db, 'users', user.uid)) : Promise.resolve(null),
             ]);
+
+            const progress = userDocSnap?.exists() ? (userDocSnap.data()?.progress || {}) : {};
+            setUserProgress(progress);
 
             // Resolver path
             if (!pathDoc.exists()) {
@@ -91,24 +97,31 @@ export default function PathDetailsPage({ params }: { params: Promise<{ pathId: 
             let previousCourseCompleted = true;
 
             const coursesWithProgress = coursesData.map(course => {
-                const courseModules = allModules.filter(m => m.courseId === course.id);
+                const courseModules = allModules
+                    .filter(m => m.courseId === course.id)
+                    .sort((a, b) => a.order - b.order);
                 const totalModules = courseModules.length;
                 const completedModules = courseModules.filter(m => passedModuleIds.has(m.id)).length;
-                const progress = totalModules > 0 ? Math.round((completedModules / totalModules) * 100) : 0;
+                const courseProgress = totalModules > 0 ? Math.round((completedModules / totalModules) * 100) : 0;
 
                 const isLocked = !previousCourseCompleted && course.order > 1 && !course.isOptional;
-                const isCompleted = progress === 100;
+                const isCompleted = courseProgress === 100;
 
                 if (!isCompleted && !course.isOptional) {
                     previousCourseCompleted = false;
                 }
 
+                // Calcular primer módulo pendiente (para link directo, evita /courses/[id] redirect)
+                const nextPendingModule = courseModules.find(m => !progress[m.id]?.completed);
+                const nextModuleId = nextPendingModule?.id || courseModules[0]?.id || null;
+
                 return {
                     ...course,
                     totalModules,
                     completedModules,
-                    progress,
-                    isLocked: isLocked, // Bloqueo secuencial real activado
+                    progress: courseProgress,
+                    isLocked,
+                    nextModuleId,
                 };
             });
 
@@ -123,8 +136,65 @@ export default function PathDetailsPage({ params }: { params: Promise<{ pathId: 
 
     if (loading) {
         return (
-            <div className="flex items-center justify-center min-h-screen bg-[#f8fafc]">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+            <div className={styles.pageContainer}>
+                <div className={styles.contentGrid}>
+                    {/* Skeleton Sidebar */}
+                    <aside className={styles.sidebar}>
+                        <div style={{ marginBottom: '1.5rem' }}>
+                            <div className="sk" style={{ width: '180px', height: '14px' }} />
+                        </div>
+                        <div className={styles.heroCard}>
+                            <div className="sk" style={{ width: '88px', height: '88px', borderRadius: '24px', marginBottom: '1.5rem' }} />
+                            <div className="sk" style={{ width: '70%', height: '28px', marginBottom: '0.75rem' }} />
+                            <div className="sk" style={{ width: '100%', height: '14px', marginBottom: '0.5rem' }} />
+                            <div className="sk" style={{ width: '85%', height: '14px', marginBottom: '2rem' }} />
+                            <div className={styles.statsRow}>
+                                {[1, 2, 3].map(i => (
+                                    <div key={i} className={styles.statItem}>
+                                        <div className="sk" style={{ width: '32px', height: '24px', marginBottom: '0.25rem' }} />
+                                        <div className="sk" style={{ width: '52px', height: '10px' }} />
+                                    </div>
+                                ))}
+                            </div>
+                            <div>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
+                                    <div className="sk" style={{ width: '120px', height: '14px' }} />
+                                    <div className="sk" style={{ width: '36px', height: '14px' }} />
+                                </div>
+                                <div className="sk" style={{ width: '100%', height: '12px', borderRadius: '99px' }} />
+                            </div>
+                        </div>
+                    </aside>
+
+                    {/* Skeleton Main Content */}
+                    <main className={styles.mainContent}>
+                        <div className={styles.sectionHeader}>
+                            <div className="sk" style={{ width: '260px', height: '24px', marginBottom: '0.5rem' }} />
+                            <div className="sk" style={{ width: '340px', height: '14px', marginLeft: '2.25rem' }} />
+                        </div>
+                        <div className={styles.timeline}>
+                            {[1, 2, 3, 4].map(i => (
+                                <div key={i} className={styles.timelineItem} style={{ opacity: 1, animation: 'none' }}>
+                                    <div className={styles.timelineDot} />
+                                    <div className={styles.courseCard} style={{ cursor: 'default' }}>
+                                        <div className={styles.cardContent}>
+                                            <div className="sk" style={{ width: '64px', height: '64px', borderRadius: '20px', flexShrink: 0 }} />
+                                            <div style={{ flex: 1 }}>
+                                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                                                    <div className="sk" style={{ width: '80px', height: '16px' }} />
+                                                    <div className="sk" style={{ width: '100px', height: '14px' }} />
+                                                </div>
+                                                <div className="sk" style={{ width: '75%', height: '20px', marginBottom: '0.5rem' }} />
+                                                <div className="sk" style={{ width: '100%', height: '14px', marginBottom: '0.25rem' }} />
+                                                <div className="sk" style={{ width: '60%', height: '14px' }} />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </main>
+                </div>
             </div>
         );
     }
@@ -221,7 +291,7 @@ export default function PathDetailsPage({ params }: { params: Promise<{ pathId: 
                                     </div>
 
                                     <Link
-                                        href={isLocked ? '#' : `/courses/${course.id}`}
+                                        href={isLocked || !course.nextModuleId ? '#' : `/modules/${course.nextModuleId}`}
                                         className={`${styles.courseCard} ${isLocked ? styles.locked : ''}`}
                                         aria-disabled={isLocked}
                                     >

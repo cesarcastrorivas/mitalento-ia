@@ -29,10 +29,20 @@ export async function GET() {
     try {
         const db = getAdminDb();
 
-        // Fetch students and all quiz sessions in parallel
+        // Only consider sessions from the last 90 days to bound reads & cost
+        const ninetyDaysAgo = new Date();
+        ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
+
+        // Fetch students and recent quiz sessions in parallel with field projection
         const [usersSnap, sessionsSnap] = await Promise.all([
-            db.collection('users').where('role', '==', 'student').get(),
-            db.collection('quiz_sessions').get(),
+            db.collection('users')
+                .where('role', '==', 'student')
+                .select('displayName', 'photoURL', 'certificationLevel')
+                .get(),
+            db.collection('quiz_sessions')
+                .where('completedAt', '>=', ninetyDaysAgo)
+                .select('userId', 'moduleId', 'score', 'passed')
+                .get(),
         ]);
 
         // Aggregate scores per user

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { collection, query, where, getDocs, addDoc, updateDoc, doc, Timestamp } from 'firebase/firestore';
+import { collection, query, where, getDocs, addDoc, updateDoc, doc, getDoc, Timestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { LearningPath, Course, Module, User } from '@/types';
 
@@ -132,11 +132,60 @@ export default function MigrationPage() {
         }
     };
 
+    const denormalizeModules = async () => {
+        setLoading(true);
+        log('Iniciando denormalización de courseTitle/pathId en módulos...');
+        try {
+            // 1. Cargar todos los cursos para tener un mapa courseId -> {title, pathId}
+            const coursesSnap = await getDocs(collection(db, 'courses'));
+            const courseMap = new Map<string, { title: string; pathId: string }>();
+            coursesSnap.docs.forEach(d => {
+                const data = d.data();
+                courseMap.set(d.id, { title: data.title || '', pathId: data.pathId || '' });
+            });
+            log(`Cargados ${courseMap.size} cursos como referencia.`);
+
+            // 2. Cargar todos los módulos
+            const modulesSnap = await getDocs(collection(db, 'modules'));
+            let updatedCount = 0;
+            let skippedCount = 0;
+
+            for (const docSnap of modulesSnap.docs) {
+                const moduleData = docSnap.data();
+                const courseInfo = courseMap.get(moduleData.courseId);
+
+                if (!courseInfo) {
+                    log(`WARN: Módulo ${docSnap.id} tiene courseId="${moduleData.courseId}" que no existe.`);
+                    skippedCount++;
+                    continue;
+                }
+
+                // Solo actualizar si falta courseTitle o pathId
+                if (!moduleData.courseTitle || !moduleData.pathId) {
+                    await updateDoc(doc(db, 'modules', docSnap.id), {
+                        courseTitle: courseInfo.title,
+                        pathId: courseInfo.pathId,
+                    });
+                    updatedCount++;
+                } else {
+                    skippedCount++;
+                }
+            }
+
+            log(`Denormalización completada: ${updatedCount} actualizados, ${skippedCount} ya tenían datos.`);
+        } catch (error) {
+            console.error(error);
+            log(`ERROR: ${JSON.stringify(error)}`);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     return (
         <div style={{ padding: '40px', maxWidth: '800px', margin: '0 auto' }}>
             <h1 style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '24px' }}>Herramienta de Migración de Datos</h1>
 
-            <div style={{ display: 'flex', gap: '16px', marginBottom: '32px' }}>
+            <div style={{ display: 'flex', gap: '16px', marginBottom: '32px', flexWrap: 'wrap' }}>
                 <button
                     onClick={migrateModules}
                     disabled={loading}
@@ -153,6 +202,15 @@ export default function MigrationPage() {
                     style={{ padding: '12px 24px' }}
                 >
                     2. Asignar Ruta a Usuarios
+                </button>
+
+                <button
+                    onClick={denormalizeModules}
+                    disabled={loading}
+                    className="btn btn-primary"
+                    style={{ padding: '12px 24px', background: '#7c3aed' }}
+                >
+                    3. Denormalizar courseTitle/pathId en Módulos
                 </button>
             </div>
 

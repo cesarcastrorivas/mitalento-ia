@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { collection, query, where, getDocs, doc, getDoc } from 'firebase/firestore';
+import { collection, query, where, getDocs, doc, getDoc, orderBy } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { Module, QuizSession } from '@/types';
 import { useAuth } from '@/contexts/AuthContext';
@@ -28,31 +28,34 @@ export default function ModulesPage() {
 
     const loadModulesWithProgress = async () => {
         try {
-            // Cargar módulos activos
+            // Lanzar las 3 queries en paralelo (eran secuenciales)
             const modulesQuery = query(
                 collection(db, 'modules'),
-                where('isActive', '==', true)
+                where('isActive', '==', true),
+                orderBy('order', 'asc')
             );
-            const modulesSnapshot = await getDocs(modulesQuery);
-            let modulesData = modulesSnapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data()
-            } as Module));
-
-            // Ordenar en cliente
-            modulesData = modulesData.sort((a, b) => a.order - b.order);
-
-            // Cargar progreso del usuario
-            const progressDoc = await getDoc(doc(db, 'users', user!.uid));
-            const userProgress = progressDoc.data()?.progress || {};
-
-            // Cargar sesiones de quiz
             const quizQuery = query(
                 collection(db, 'quiz_sessions'),
                 where('userId', '==', user!.uid)
             );
-            const quizSnapshot = await getDocs(quizQuery);
-            const quizSessions = quizSnapshot.docs.map(doc => doc.data() as QuizSession);
+
+            const [modulesSnapshot, progressDoc, quizSnapshot] = await Promise.all([
+                getDocs(modulesQuery),
+                getDoc(doc(db, 'users', user!.uid)),
+                getDocs(quizQuery),
+            ]);
+
+            const modulesData = modulesSnapshot.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data()
+            } as Module));
+            const userProgress = progressDoc.data()?.progress || {};
+
+            // Filtrar sesiones solo por moduleIds relevantes (Mejora C)
+            const moduleIdSet = new Set(modulesData.map(m => m.id));
+            const quizSessions = quizSnapshot.docs
+                .map(doc => doc.data() as QuizSession)
+                .filter(s => moduleIdSet.has(s.moduleId));
 
             // Combinar datos
             const modulesWithProgress: ModuleWithProgress[] = modulesData.map(module => {
@@ -81,8 +84,42 @@ export default function ModulesPage() {
 
     if (loading) {
         return (
-            <div className="flex items-center justify-center min-h-screen">
-                <div className="spinner text-primary-500"></div>
+            <div className="max-w-5xl mx-auto px-6 py-12 space-y-12">
+                {/* Skeleton Header */}
+                <header className="flex flex-col md:flex-row items-center justify-between gap-6">
+                    <div className="text-center md:text-left">
+                        <div className="sk" style={{ width: '300px', height: '28px', marginBottom: '0.5rem' }} />
+                        <div className="sk" style={{ width: '380px', height: '14px' }} />
+                    </div>
+                    <div style={{ minWidth: '300px', padding: '1rem', background: 'rgba(255,255,255,0.8)', borderRadius: '20px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                            <div className="sk" style={{ width: '120px', height: '14px' }} />
+                            <div className="sk" style={{ width: '40px', height: '14px' }} />
+                        </div>
+                        <div className="sk" style={{ width: '100%', height: '8px', borderRadius: '99px' }} />
+                        <div className="sk" style={{ width: '100px', height: '12px', marginTop: '0.5rem', marginLeft: 'auto' }} />
+                    </div>
+                </header>
+
+                {/* Skeleton Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {[1, 2, 3, 4, 5, 6].map(i => (
+                        <div key={i} style={{ background: '#fff', borderRadius: '20px', overflow: 'hidden', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.02)' }}>
+                            {/* Thumbnail skeleton */}
+                            <div className="sk" style={{ width: '100%', aspectRatio: '16/9', borderRadius: '0' }} />
+                            {/* Content skeleton */}
+                            <div style={{ padding: '1.5rem' }}>
+                                <div className="sk" style={{ width: '80px', height: '12px', marginBottom: '0.75rem' }} />
+                                <div className="sk" style={{ width: '85%', height: '18px', marginBottom: '0.5rem' }} />
+                                <div className="sk" style={{ width: '100%', height: '14px', marginBottom: '0.25rem' }} />
+                                <div className="sk" style={{ width: '65%', height: '14px', marginBottom: '1.5rem' }} />
+                                <div style={{ borderTop: '1px solid #f1f5f9', paddingTop: '1rem' }}>
+                                    <div className="sk" style={{ width: '100%', height: '40px', borderRadius: '12px' }} />
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
             </div>
         );
     }
@@ -139,7 +176,7 @@ export default function ModulesPage() {
                                         </div>
                                     ) : (
                                         <>
-                                            <video src={module.videoUrl} className="w-full h-full object-cover" />
+                                            <video src={module.videoUrl} preload="none" className="w-full h-full object-cover" />
                                             <div className="absolute inset-0 bg-black/10 group-hover:bg-black/20 transition-colors flex items-center justify-center">
                                                 <div className="w-12 h-12 rounded-full bg-white/30 backdrop-blur-md flex items-center justify-center text-white shadow-lg group-hover:scale-110 transition-transform">
                                                     ▶

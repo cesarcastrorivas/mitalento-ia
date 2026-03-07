@@ -2,7 +2,7 @@
     min-height: 100vh;
     background: linear-gradient(180deg, #0f0f23 0%, #1a1a3e 30%, #111827 100%);
     color: white;
-    padding: 2rem 1rem;
+    padding: 2rem 1rem calc(env(safe-area-inset-bottom, 0px) + 80px);
 }
 
 .container {
@@ -385,5 +385,30 @@
 
     .listScore {
         font-size: 1rem;
+    }
+}
+
+@media (max-width: 360px) {
+    .podium {
+        gap: 0.25rem;
+    }
+
+    .podiumItem.first .podiumAvatar {
+        width: 60px;
+        height: 60px;
+    }
+
+    .podiumItem.second .podiumAvatar,
+    .podiumItem.third .podiumAvatar {
+        width: 48px;
+        height: 48px;
+    }
+
+    .podiumBadge {
+        font-size: 0.85rem;
+    }
+
+    .title {
+        font-size: 1.35rem;
     }
 }

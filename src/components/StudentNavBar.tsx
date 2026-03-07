@@ -69,7 +69,8 @@ function StudentNavBar() {
                     {navItems.map((item) => {
                         const isActive = pathname === item.href ||
                             (item.href === '/dashboard' && pathname.startsWith('/paths/')) ||
-                            (item.href === '/dashboard' && pathname.startsWith('/courses/'));
+                            (item.href === '/dashboard' && pathname.startsWith('/courses/')) ||
+                            (item.href === '/dashboard' && pathname.startsWith('/modules/'));
                         const Icon = item.icon;
 
                         return (

@@ -56,9 +56,9 @@ export default function AdminShell({
     }
 
     return (
-        <div className="flex min-h-screen bg-[var(--bg-main)] font-sans text-[var(--text-primary)]">
-            {/* Global Top Header (Sistema X Style) */}
-            <header className="fixed top-0 left-0 right-0 h-16 bg-white border-b border-[rgba(0,0,0,0.05)] z-50 px-4 xl:px-6 flex items-center justify-between shadow-sm transition-all duration-300">
+        <div className="flex min-h-[100dvh] bg-[var(--bg-main)] font-sans text-[var(--text-primary)]">
+            {/* Global Top Header (Native iOS Style PWA) */}
+            <header className="fixed top-0 left-0 right-0 min-h-[64px] pt-[env(safe-area-inset-top,0px)] bg-white/80 backdrop-blur-xl border-b border-[rgba(0,0,0,0.05)] z-50 px-4 xl:px-6 flex items-center justify-between shadow-sm transition-all duration-300">
                 <div className="flex items-center gap-4 lg:gap-6">
                     <button
                         onClick={() => setIsSidebarOpen(!isSidebarOpen)}
@@ -111,9 +111,9 @@ export default function AdminShell({
 
             {/* Sidebar Drawer */}
             <aside className={`
-                fixed top-16 bottom-0 left-0 bg-[var(--bg-surface)] border-r border-[rgba(0,0,0,0.04)] z-[45] w-[260px]
+                fixed top-0 bottom-0 left-0 bg-[var(--bg-surface)] border-r border-[rgba(0,0,0,0.04)] z-[45] w-[260px]
                 transition-transform duration-300 cubic-bezier(0.4, 0, 0.2, 1) shadow-xl
-                flex flex-col
+                flex flex-col pt-[calc(env(safe-area-inset-top,0px)+4rem)] pb-[env(safe-area-inset-bottom,0px)] select-none
                 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
             `}>
                 <div className="flex flex-col h-full py-6">
@@ -138,10 +138,10 @@ export default function AdminShell({
 
             {/* Main Content Area */}
             <main className={`
-                pt-16 flex-1 min-w-0 h-screen overflow-hidden transition-all duration-300
+                pt-[calc(env(safe-area-inset-top,0px)+4rem)] flex-1 min-w-0 h-[100dvh] overflow-hidden transition-all duration-300
                 ${isSidebarOpen ? 'lg:pl-[260px]' : 'pl-0'}
             `}>
-                <div className="p-4 lg:p-8 w-full max-w-none mx-auto animate-fade-in h-full overflow-auto custom-scrollbar">
+                <div className="p-4 lg:p-8 w-full max-w-none mx-auto animate-fade-in h-full overflow-auto custom-scrollbar pb-[calc(env(safe-area-inset-bottom,0px)+8rem)]">
                     {children}
                 </div>
             </main>

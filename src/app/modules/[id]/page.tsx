@@ -42,7 +42,7 @@ export default function ModulePage() {
     const [infoOpen, setInfoOpen] = useState(true);
 
     // Estado Legacy/Auxiliar
-    const [sidebarOpen, setSidebarOpen] = useState(true);
+    const [sidebarOpen, setSidebarOpen] = useState(false);
     const [watchedPercentage, setWatchedPercentage] = useState(0);
     const [canTakeQuiz, setCanTakeQuiz] = useState(false);
     const [scrolled, setScrolled] = useState(false);
@@ -77,6 +77,7 @@ export default function ModulePage() {
 
         // Auto-open info only on large screens, close on mobile/tablet
         setInfoOpen(window.innerWidth > 1200);
+        setSidebarOpen(window.innerWidth > 1024);
 
         return () => window.removeEventListener('scroll', handleScroll);
     }, [moduleId, user]);
@@ -139,7 +140,15 @@ export default function ModulePage() {
                 setUserProgress(userDocSnap.data()?.progress || {});
             }
 
-            // 2. Con courseId ya disponible: curso + lista de módulos en paralelo
+            // 2. Usar datos denormalizados si existen, sino fallback a fetch del curso
+            if (currentModuleData.courseTitle) {
+                setCourseTitle(currentModuleData.courseTitle);
+            }
+            if (currentModuleData.pathId) {
+                setCoursePathId(currentModuleData.pathId);
+            }
+
+            // Cargar módulos hermanos (siempre necesario para la sidebar)
             if (currentModuleData.courseId) {
                 const siblingsQ = query(
                     collection(db, 'modules'),
@@ -148,18 +157,25 @@ export default function ModulePage() {
                     orderBy('order', 'asc')
                 );
 
-                const [courseDoc, modulesSnapshot] = await Promise.all([
-                    getDoc(doc(db, 'courses', currentModuleData.courseId)),
-                    getDocs(siblingsQ),
-                ]);
+                // Solo fetch del curso si no hay datos denormalizados
+                if (!currentModuleData.courseTitle || !currentModuleData.pathId) {
+                    const [courseDoc, modulesSnapshot] = await Promise.all([
+                        getDoc(doc(db, 'courses', currentModuleData.courseId)),
+                        getDocs(siblingsQ),
+                    ]);
 
-                if (courseDoc.exists()) {
-                    const courseData = courseDoc.data();
-                    setCourseTitle(courseData.title);
-                    setCoursePathId(courseData.pathId || null);
+                    if (courseDoc.exists()) {
+                        const courseData = courseDoc.data();
+                        if (!currentModuleData.courseTitle) setCourseTitle(courseData.title);
+                        if (!currentModuleData.pathId) setCoursePathId(courseData.pathId || null);
+                    }
+
+                    setCourseModules(modulesSnapshot.docs.map(d => ({ id: d.id, ...d.data() } as Module)));
+                } else {
+                    // Datos denormalizados disponibles: solo cargar siblings
+                    const modulesSnapshot = await getDocs(siblingsQ);
+                    setCourseModules(modulesSnapshot.docs.map(d => ({ id: d.id, ...d.data() } as Module)));
                 }
-
-                setCourseModules(modulesSnapshot.docs.map(d => ({ id: d.id, ...d.data() } as Module)));
             }
 
         } catch (error) {
@@ -215,8 +231,14 @@ export default function ModulePage() {
 
     return (
         <div className={styles.layout}>
+            {/* 0. Overlay Transparente (Mobile Drawer) */}
+            <div
+                className={`${styles.sidebarOverlay} ${sidebarOpen ? styles.active : ''}`}
+                onClick={() => setSidebarOpen(false)}
+            />
+
             {/* 1. Sidebar de Navegación (Izquierda) */}
-            <aside className={`${styles.sidebar} ${sidebarOpen ? styles.sidebarOpen : styles.sidebarClosed}`}>
+            <aside className={`${styles.sidebar} ${sidebarOpen ? styles.sidebarOpen : styles.sidebarClosed} select-none`}>
                 <div className={styles.sidebarHeader}>
                     <h2 className="line-clamp-2">{courseTitle || 'Contenido del Curso'}</h2>
                     <button onClick={() => setSidebarOpen(false)} className="md:hidden">
@@ -331,6 +353,59 @@ export default function ModulePage() {
                     <div className={styles.videoDescription}>
                         <h3 className="text-lg font-bold text-gray-700 mb-2 mt-2">Acerca de esta lección</h3>
                         <p className="text-gray-600 leading-relaxed max-w-4xl text-base">{module.description}</p>
+
+                        {/* 2.5 Tarjeta de Progreso (Visible solo en Móvil) */}
+                        <div className={styles.mobileStatsCard}>
+                            <div className={styles.sidebarStatItem}>
+                                <div className={styles.statHeaderRow}>
+                                    <div className={styles.sidebarStatLabel}>
+                                        <Clock size={16} className="text-indigo-500" />
+                                        <span>Progreso Video</span>
+                                    </div>
+                                    <span className={styles.statValue}>{Math.round(watchedPercentage)}%</span>
+                                </div>
+                                <div className={styles.progressBarContainer}>
+                                    <div
+                                        className={styles.progressBarFill}
+                                        style={{ width: `${Math.round(watchedPercentage)}%` }}
+                                    ></div>
+                                </div>
+                            </div>
+
+                            <div className={styles.sidebarStatItem}>
+                                <div className={styles.statHeaderRow}>
+                                    <div className={styles.sidebarStatLabel}>
+                                        <Trophy size={16} className={canTakeQuiz ? 'text-green-500' : 'text-gray-400'} />
+                                        <span>Requisito Quiz</span>
+                                    </div>
+                                    <span className={styles.statValue}>{module.requiredWatchPercentage}%</span>
+                                </div>
+                                <div className={styles.progressBarContainer}>
+                                    <div
+                                        className={styles.progressBarFill}
+                                        style={{ width: `${module.requiredWatchPercentage}%`, backgroundColor: '#e2e8f0' }}
+                                    ></div>
+                                </div>
+                            </div>
+
+                            {!canTakeQuiz && (
+                                <div className="bg-orange-50 border border-orange-100 rounded-xl p-3 text-xs text-orange-800 flex items-start gap-2">
+                                    <AlertCircle size={16} className="mt-0.5 flex-shrink-0 text-orange-500" />
+                                    <p>Debes ver al menos el <strong>{module.requiredWatchPercentage}% del video</strong> para habilitar la evaluación.</p>
+                                </div>
+                            )}
+
+                            <div className={styles.sidebarCta}>
+                                <button
+                                    onClick={handleStartQuiz}
+                                    disabled={!canTakeQuiz && !userProgress[module.id]?.completed}
+                                    className={styles.ctaButton}
+                                >
+                                    {userProgress[module.id]?.completed ? 'Revisar Resultados' : 'Iniciar Evaluación'}
+                                    <ChevronRight size={18} />
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </main>
