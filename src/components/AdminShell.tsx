@@ -138,10 +138,10 @@ export default function AdminShell({
 
             {/* Main Content Area */}
             <main className={`
-                pt-[calc(env(safe-area-inset-top,0px)+4rem)] flex-1 min-w-0 h-[100dvh] overflow-hidden transition-all duration-300
+                pt-14 sm:pt-[calc(env(safe-area-inset-top,0px)+4rem)] flex-1 min-w-0 h-[100dvh] overflow-hidden transition-all duration-300
                 ${isSidebarOpen ? 'lg:pl-[260px]' : 'pl-0'}
             `}>
-                <div className="p-4 lg:p-8 w-full max-w-none mx-auto animate-fade-in h-full overflow-auto custom-scrollbar pb-[calc(env(safe-area-inset-bottom,0px)+8rem)]">
+                <div className="px-3 pt-2 pb-[calc(env(safe-area-inset-bottom,0px)+6rem)] lg:px-8 lg:pt-5 lg:pb-10 w-full max-w-none mx-auto animate-fade-in h-full overflow-auto custom-scrollbar">
                     {children}
                 </div>
             </main>

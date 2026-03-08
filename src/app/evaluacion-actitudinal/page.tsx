@@ -1,11 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
-import { Brain, ArrowRight, ArrowLeft, Send, CheckCircle } from 'lucide-react';
+import { Brain, ArrowRight, ArrowLeft, Send, CheckCircle, Loader2 } from 'lucide-react';
 import { db } from '@/lib/firebase';
-import { collection, addDoc, updateDoc, doc, Timestamp } from 'firebase/firestore';
+import { collection, addDoc, setDoc, updateDoc, doc, Timestamp, query, where, getDocs } from 'firebase/firestore';
 import styles from './page.module.css';
 
 const QUESTIONS = [
@@ -24,6 +24,9 @@ export default function EvaluacionActitudinalPage() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isSubmitted, setIsSubmitted] = useState(false);
     const [error, setError] = useState('');
+
+    // CAPA 2: Guard síncrono contra race conditions
+    const submitLockRef = useRef(false);
 
     const handleAnswer = (value: string) => {
         const newAnswers = [...answers];
@@ -54,18 +57,32 @@ export default function EvaluacionActitudinalPage() {
             return;
         }
 
+        // CAPA 2: Guard síncrono — previene doble ejecución
+        if (submitLockRef.current) return;
+        submitLockRef.current = true;
         setIsSubmitting(true);
         setError('');
 
         try {
-            // Save to Firestore directly
+            // CAPA 2 (refuerzo): Verificar si ya existe una evaluación para este usuario
+            const existingQ = query(
+                collection(db, 'attitudinal_evaluations'),
+                where('userId', '==', user.uid)
+            );
+            const existingSnap = await getDocs(existingQ);
+            if (!existingSnap.empty) {
+                setError('Ya enviaste una evaluación actitudinal. Tu respuesta está en revisión.');
+                setIsSubmitted(true);
+                return;
+            }
+
             const evalData = {
                 userId: user.uid,
                 responses: QUESTIONS.map((q, i) => ({
                     question: q,
                     answer: answers[i],
                 })),
-                semaphore: 'pending', // Siempre pendiente para revisión humana
+                semaphore: 'pending',
                 aiAnalysis: 'Evaluación manual requerida.',
                 strengths: [],
                 concerns: [],
@@ -74,7 +91,9 @@ export default function EvaluacionActitudinalPage() {
                 createdAt: Timestamp.now(),
             };
 
-            await addDoc(collection(db, 'attitudinal_evaluations'), evalData);
+            // CAPA 3: ID determinístico para write-once en Firestore rules
+            const evalDocId = `atteval_${user.uid}`;
+            await setDoc(doc(db, 'attitudinal_evaluations', evalDocId), evalData);
 
             // Update user's attitudinal status
             await updateDoc(doc(db, 'users', user.uid), {
@@ -85,6 +104,8 @@ export default function EvaluacionActitudinalPage() {
         } catch (err: any) {
             console.error('Error al enviar:', err);
             setError('Ocurrió un error al enviar tu evaluación. Por favor intenta de nuevo.');
+            // Desbloquear para permitir reintento en caso de error de red
+            submitLockRef.current = false;
         } finally {
             setIsSubmitting(false);
         }
@@ -206,11 +227,21 @@ export default function EvaluacionActitudinalPage() {
                         {isLastQuestion ? (
                             <button
                                 onClick={handleSubmit}
-                                disabled={!allAnswered}
+                                disabled={!allAnswered || isSubmitting}
                                 className={styles.btnPrimary}
+                                style={{ opacity: isSubmitting ? 0.7 : 1 }}
                             >
-                                <Send size={16} />
-                                Enviar Evaluación
+                                {isSubmitting ? (
+                                    <>
+                                        <Loader2 size={16} className="animate-spin" />
+                                        Guardando...
+                                    </>
+                                ) : (
+                                    <>
+                                        <Send size={16} />
+                                        Enviar Evaluación
+                                    </>
+                                )}
                             </button>
                         ) : (
                             <button

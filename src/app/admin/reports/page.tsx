@@ -8,6 +8,7 @@ import {
 import { db } from '@/lib/firebase';
 import { User, Module, QuizSession } from '@/types';
 import { FileText, Users, CheckCircle, Search, Eye, X, ChevronLeft, ChevronRight } from 'lucide-react';
+import AdminPageHeader from '@/components/AdminPageHeader';
 
 const PAGE_SIZE = 50;
 
@@ -141,46 +142,42 @@ export default function ExamReportsPage() {
     };
 
     return (
-        <div className="space-y-8 animate-fade-in pb-12">
-            <header className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-                <div>
-                    <h1 className="text-3xl font-bold text-slate-900 tracking-tight flex items-center gap-3">
-                        <FileText className="w-8 h-8 text-[#135bec]" />
-                        Reportes
-                    </h1>
-                    <p className="text-slate-500 mt-2 text-base font-medium">Monitorea exámenes y certificados emitidos.</p>
-                </div>
-            </header>
+        <div className="space-y-4 lg:space-y-8 animate-fade-in pb-12">
+            <AdminPageHeader
+                title="Reportes"
+                subtitle="Monitorea exámenes y certificados emitidos"
+                icon={<FileText size={18} />}
+            />
 
             {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="bg-white rounded-[24px] p-6 shadow-[0_4px_24px_-8px_rgba(0,0,0,0.06)] border border-slate-100 flex items-center gap-5 transition-transform hover:scale-[1.02]">
-                    <div className="w-14 h-14 rounded-[16px] bg-[#135bec]/10 flex items-center justify-center shrink-0">
-                        <FileText className="w-7 h-7 text-[#135bec]" />
+            <div className="grid grid-cols-3 gap-2 sm:gap-6">
+                <div className="bg-white rounded-2xl p-3 sm:p-6 shadow-sm border border-slate-100 flex flex-col sm:flex-row items-center sm:items-start gap-2 sm:gap-5">
+                    <div className="w-10 h-10 sm:w-14 sm:h-14 rounded-xl sm:rounded-[16px] bg-[#135bec]/10 flex items-center justify-center shrink-0">
+                        <FileText className="w-5 h-5 sm:w-7 sm:h-7 text-[#135bec]" />
                     </div>
-                    <div>
-                        <p className="text-sm text-slate-500 font-semibold uppercase tracking-wide">Total Evaluaciones</p>
-                        <p className="text-3xl font-extrabold text-slate-900 mt-1">{stats.total}</p>
-                    </div>
-                </div>
-
-                <div className="bg-white rounded-[24px] p-6 shadow-[0_4px_24px_-8px_rgba(0,0,0,0.06)] border border-slate-100 flex items-center gap-5 transition-transform hover:scale-[1.02]">
-                    <div className="w-14 h-14 rounded-[16px] bg-indigo-50 flex items-center justify-center shrink-0">
-                        <Users className="w-7 h-7 text-indigo-600" />
-                    </div>
-                    <div>
-                        <p className="text-sm text-slate-500 font-semibold uppercase tracking-wide">Puntaje Promedio</p>
-                        <p className="text-3xl font-extrabold text-slate-900 mt-1">{stats.avgScore}%</p>
+                    <div className="text-center sm:text-left">
+                        <p className="text-[10px] sm:text-sm text-slate-500 font-semibold uppercase tracking-wide leading-tight">Total</p>
+                        <p className="text-xl sm:text-3xl font-extrabold text-slate-900 mt-0.5">{stats.total}</p>
                     </div>
                 </div>
 
-                <div className="bg-white rounded-[24px] p-6 shadow-[0_4px_24px_-8px_rgba(0,0,0,0.06)] border border-slate-100 flex items-center gap-5 transition-transform hover:scale-[1.02]">
-                    <div className="w-14 h-14 rounded-[16px] bg-emerald-50 flex items-center justify-center shrink-0">
-                        <CheckCircle className="w-7 h-7 text-emerald-600" />
+                <div className="bg-white rounded-2xl p-3 sm:p-6 shadow-sm border border-slate-100 flex flex-col sm:flex-row items-center sm:items-start gap-2 sm:gap-5">
+                    <div className="w-10 h-10 sm:w-14 sm:h-14 rounded-xl sm:rounded-[16px] bg-indigo-50 flex items-center justify-center shrink-0">
+                        <Users className="w-5 h-5 sm:w-7 sm:h-7 text-indigo-600" />
                     </div>
-                    <div>
-                        <p className="text-sm text-slate-500 font-semibold uppercase tracking-wide">Tasa de Aprobación</p>
-                        <p className="text-3xl font-extrabold text-slate-900 mt-1">{stats.approvalRate}%</p>
+                    <div className="text-center sm:text-left">
+                        <p className="text-[10px] sm:text-sm text-slate-500 font-semibold uppercase tracking-wide leading-tight">Promedio</p>
+                        <p className="text-xl sm:text-3xl font-extrabold text-slate-900 mt-0.5">{stats.avgScore}%</p>
+                    </div>
+                </div>
+
+                <div className="bg-white rounded-2xl p-3 sm:p-6 shadow-sm border border-slate-100 flex flex-col sm:flex-row items-center sm:items-start gap-2 sm:gap-5">
+                    <div className="w-10 h-10 sm:w-14 sm:h-14 rounded-xl sm:rounded-[16px] bg-emerald-50 flex items-center justify-center shrink-0">
+                        <CheckCircle className="w-5 h-5 sm:w-7 sm:h-7 text-emerald-600" />
+                    </div>
+                    <div className="text-center sm:text-left">
+                        <p className="text-[10px] sm:text-sm text-slate-500 font-semibold uppercase tracking-wide leading-tight">Aprobación</p>
+                        <p className="text-xl sm:text-3xl font-extrabold text-slate-900 mt-0.5">{stats.approvalRate}%</p>
                     </div>
                 </div>
             </div>

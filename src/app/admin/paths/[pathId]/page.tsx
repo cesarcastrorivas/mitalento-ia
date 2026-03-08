@@ -40,6 +40,7 @@ import { Input } from '@/components/ui/Input';
 import { TextArea } from '@/components/ui/TextArea';
 import { Switch } from '@/components/ui/Switch';
 import { Button } from '@/components/ui/Button';
+import AdminPageHeader from '@/components/AdminPageHeader';
 
 export default function PathCoursesPage({ params }: { params: Promise<{ pathId: string }> }) {
     const { pathId } = use(params);
@@ -251,20 +252,16 @@ export default function PathCoursesPage({ params }: { params: Promise<{ pathId: 
                     <span>Volver a Rutas</span>
                 </Link>
 
-                <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mt-2">
-                    <div className="flex items-center gap-4">
-                        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-50 to-indigo-50 flex items-center justify-center text-3xl shadow-sm border border-slate-100">
-                            {path.icon}
-                        </div>
-                        <div>
-                            <h1 className="text-3xl font-bold text-slate-900 tracking-tight">{path.title}</h1>
-                            <p className="text-slate-500 text-lg">Gestión de Cursos</p>
-                        </div>
-                    </div>
-                    <Button onClick={openNewCourseModal} leftIcon={<Plus size={20} />} className="shadow-lg shadow-purple-500/25">
-                        Nuevo Curso
-                    </Button>
-                </div>
+                <AdminPageHeader
+                    title={path.title}
+                    subtitle="Gestión de Cursos"
+                    icon={<span className="text-lg">{path.icon}</span>}
+                    action={
+                        <Button onClick={openNewCourseModal} leftIcon={<Plus size={20} />} className="shadow-lg shadow-purple-500/25">
+                            Nuevo Curso
+                        </Button>
+                    }
+                />
             </div>
 
             {/* Courses Grid */}

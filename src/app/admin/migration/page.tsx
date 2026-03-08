@@ -4,6 +4,8 @@ import { useState } from 'react';
 import { collection, query, where, getDocs, addDoc, updateDoc, doc, getDoc, Timestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { LearningPath, Course, Module, User } from '@/types';
+import AdminPageHeader from '@/components/AdminPageHeader';
+import { Database } from 'lucide-react';
 
 export default function MigrationPage() {
     const [status, setStatus] = useState<string[]>([]);
@@ -182,8 +184,12 @@ export default function MigrationPage() {
     };
 
     return (
-        <div style={{ padding: '40px', maxWidth: '800px', margin: '0 auto' }}>
-            <h1 style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '24px' }}>Herramienta de Migración de Datos</h1>
+        <div style={{ padding: '20px', maxWidth: '1000px', margin: '0 auto' }}>
+            <AdminPageHeader
+                title="Migración de Datos"
+                subtitle="Herramientas internas para reestructuración de base de datos"
+                icon={<Database size={18} />}
+            />
 
             <div style={{ display: 'flex', gap: '16px', marginBottom: '32px', flexWrap: 'wrap' }}>
                 <button

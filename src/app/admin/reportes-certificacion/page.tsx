@@ -6,6 +6,7 @@ import { db } from '@/lib/firebase';
 import { User, CertificationLevel } from '@/types';
 import { FileDown, BarChart3, Users, TrendingUp } from 'lucide-react';
 import styles from './page.module.css';
+import AdminPageHeader from '@/components/AdminPageHeader';
 
 const LEVEL_LABELS: Record<string, string> = {
     none: 'Sin Nivel',
@@ -153,12 +154,11 @@ export default function ReportesCertificacionPage() {
 
     return (
         <div className={styles.page}>
-            <div className={styles.header}>
-                <h1 className={styles.title}>
-                    <BarChart3 size={24} /> Reportes de Certificación
-                </h1>
-                <p className={styles.subtitle}>Métricas de desempeño para el área comercial</p>
-            </div>
+            <AdminPageHeader
+                title="Reportes de Certificación"
+                subtitle="Métricas de desempeño para el área comercial"
+                icon={<BarChart3 size={18} />}
+            />
 
             {/* Stats */}
             <div className={styles.statsRow}>

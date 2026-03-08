@@ -22,6 +22,7 @@ import { User, UserRole, LearningPath } from '@/types';
 import { useAuth } from '@/contexts/AuthContext';
 import Image from 'next/image';
 import styles from './page.module.css';
+import AdminPageHeader from '@/components/AdminPageHeader';
 import {
     Search,
     Plus,
@@ -414,30 +415,40 @@ export default function UsersPage() {
 
     return (
         <div className={styles.page}>
-            <header className={styles.header}>
-                <div>
-                    <h1>Gestión de Usuarios</h1>
-                    <p>Administra estudiantes y administradores de la plataforma</p>
-                </div>
-            </header>
+            <AdminPageHeader
+                title="Usuarios"
+                subtitle="Gestión de estudiantes y administradores"
+                icon={<Shield size={18} />}
+            />
 
             <div className={styles.topBar}>
                 <div className={styles.searchWrapper}>
-                    <Search className={styles.searchIcon} size={18} />
+                    <Search className={styles.searchIcon} size={16} />
                     <input
                         type="text"
-                        placeholder="Buscar por nombre, email..."
+                        placeholder="Buscar por nombre o email..."
                         className={styles.searchInput}
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
                 </div>
 
+                <button
+                    onClick={() => {
+                        setFormData({ email: '', password: '', displayName: '', role: 'student' });
+                        setShowModal(true);
+                    }}
+                    className={styles.primaryBtn}
+                >
+                    <Plus size={16} />
+                    Nuevo Usuario
+                </button>
+
                 <div className={styles.segmentedControl}>
                     {[
                         { value: 'all', label: 'Todos' },
                         { value: 'student', label: 'Estudiantes' },
-                        { value: 'admin', label: 'Administradores' },
+                        { value: 'admin', label: 'Admins' },
                     ].map((opt) => (
                         <button
                             key={opt.value}
@@ -448,20 +459,9 @@ export default function UsersPage() {
                         </button>
                     ))}
                 </div>
-
-                <button
-                    onClick={() => {
-                        setFormData({ email: '', password: '', displayName: '', role: 'student' });
-                        setShowModal(true);
-                    }}
-                    className={styles.primaryBtn}
-                >
-                    <Plus size={18} />
-                    Nuevo Usuario
-                </button>
             </div>
 
-            <div className={styles.grid}>
+            <div className={styles.userList}>
                 {filteredUsers.length === 0 ? (
                     <div className={styles.emptyState}>
                         <div className={styles.emptyStateIcon}>
@@ -473,9 +473,9 @@ export default function UsersPage() {
                 ) : (
                     <>
                         {filteredUsers.map((user) => (
-                            <div key={user.uid} className={styles.userCard}>
+                            <div key={user.uid} className={styles.userItem}>
                                 <div className={styles.avatarContainer}>
-                                    <div className={styles.gridAvatar} style={{ background: user.photoURL ? 'transparent' : '', position: 'relative', overflow: 'hidden' }}>
+                                    <div className={styles.itemAvatar} style={{ position: 'relative' }}>
                                         {user.photoURL ? (
                                             <Image src={user.photoURL} alt={user.displayName || ''} fill className="object-cover" sizes="48px" />
                                         ) : (
@@ -485,50 +485,38 @@ export default function UsersPage() {
                                     <div className={`${styles.statusIndicator} ${!user.isActive ? styles.statusInactive : ''}`}></div>
                                 </div>
 
-                                <h3 className={styles.cardName}>{user.displayName || 'Usuario Nuevo'}</h3>
-                                <p className={styles.cardEmail}>{user.email}</p>
-
-                                <div className={styles.cardBadges}>
-                                    <span className={`${styles.badgePill} ${user.role === 'admin' ? styles.badgePillAdmin : styles.badgePillStudent}`}>
-                                        {user.role === 'admin' ? 'Admin' : 'Estudiante'}
-                                    </span>
-                                    {user.isActive ? (
-                                        <span className={`${styles.badgePill} ${styles.badgePillAccess}`}>
-                                            {user.assignedPathIds && user.assignedPathIds.length > 0 ? `${user.assignedPathIds.length} Cursos` : 'Acceso Total'}
+                                <div className={styles.itemMainInfo}>
+                                    <div className={styles.itemName}>
+                                        {user.displayName || 'Usuario Nuevo'}
+                                        <span className={`${styles.badgePill} ${user.role === 'admin' ? styles.badgePillAdmin : styles.badgePillStudent}`}>
+                                            {user.role === 'admin' ? 'Admin' : 'Estudiante'}
                                         </span>
-                                    ) : (
-                                        <span className={`${styles.badgePill} ${styles.badgePillInactive}`}>
-                                            Inactivo
-                                        </span>
-                                    )}
+                                    </div>
+                                    <p className={styles.itemEmail}>{user.email}</p>
                                 </div>
 
-                                <div className={styles.cardDivider}></div>
-
-                                <div className={styles.cardFooter}>
-                                    <div className={styles.footerActions}>
-                                        <button
-                                            onClick={() => handleOpenEditModal(user)}
-                                            className={`${styles.iconBtn} ${styles.iconBtnPrimary}`}
-                                            title="Editar usuario"
-                                        >
-                                            <Edit2 size={16} strokeWidth={2.5} />
-                                        </button>
-                                        <button
-                                            onClick={() => handleOpenPathModal(user)}
-                                            className={`${styles.iconBtn} ${styles.iconBtnSecondary}`}
-                                            title="Asignar Especializaciones"
-                                        >
-                                            <Map size={16} strokeWidth={2.5} />
-                                        </button>
-                                    </div>
+                                <div className={styles.itemActions}>
+                                    <button
+                                        onClick={() => handleOpenPathModal(user)}
+                                        className={styles.iconBtn}
+                                        title="Rutas"
+                                    >
+                                        <Map size={18} />
+                                    </button>
+                                    <button
+                                        onClick={() => handleOpenEditModal(user)}
+                                        className={styles.iconBtn}
+                                        title="Editar"
+                                    >
+                                        <Edit2 size={18} />
+                                    </button>
                                     {user.uid !== currentUser?.uid && (
                                         <button
                                             onClick={() => handleDelete(user.uid)}
-                                            className={`${styles.iconBtn} ${styles.iconBtnDanger}`}
+                                            className={`${styles.iconBtn} ${styles.deleteBtn}`}
                                             title="Eliminar"
                                         >
-                                            <Trash2 size={16} strokeWidth={2.5} />
+                                            <Trash2 size={18} />
                                         </button>
                                     )}
                                 </div>

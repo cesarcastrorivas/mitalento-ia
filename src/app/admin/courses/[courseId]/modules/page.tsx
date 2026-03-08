@@ -40,6 +40,7 @@ import { Input } from '@/components/ui/Input';
 import { TextArea } from '@/components/ui/TextArea';
 import { Switch } from '@/components/ui/Switch';
 import { Button } from '@/components/ui/Button';
+import AdminPageHeader from '@/components/AdminPageHeader';
 
 export default function CourseModulesPage({ params }: { params: Promise<{ courseId: string }> }) {
     const { courseId } = use(params);
@@ -365,15 +366,16 @@ export default function CourseModulesPage({ params }: { params: Promise<{ course
                     <span>Volver al Curso</span>
                 </Link>
 
-                <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mt-2">
-                    <div>
-                        <h1 className="text-3xl font-bold text-slate-900 tracking-tight">{course.title}</h1>
-                        <p className="text-slate-500 text-lg">Gestión de Módulos y Videos</p>
-                    </div>
-                    <Button onClick={openNewModuleModal} leftIcon={<Plus size={20} />} className="shadow-lg shadow-purple-500/25">
-                        Nuevo Módulo
-                    </Button>
-                </div>
+                <AdminPageHeader
+                    title={course.title}
+                    subtitle="Gestión de Módulos y Videos"
+                    icon={<Video size={18} />}
+                    action={
+                        <Button onClick={openNewModuleModal} leftIcon={<Plus size={20} />} className="shadow-lg shadow-purple-500/25">
+                            Nuevo Módulo
+                        </Button>
+                    }
+                />
             </div>
 
             {modules.length === 0 ? (

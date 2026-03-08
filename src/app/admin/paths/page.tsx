@@ -6,6 +6,7 @@ import { db } from '@/lib/firebase';
 import { LearningPath, CertificationLevel } from '@/types';
 import { useAuth } from '@/contexts/AuthContext';
 import Link from 'next/link';
+import AdminPageHeader from '@/components/AdminPageHeader';
 import {
     collection,
     query,
@@ -24,7 +25,8 @@ import {
     Edit2,
     Trash2,
     XCircle,
-    Shield
+    Shield,
+    Map as MapIcon,
 } from 'lucide-react';
 
 export default function PathsPage() {
@@ -163,36 +165,35 @@ export default function PathsPage() {
     }
 
     return (
-        <div className="space-y-8 animate-fade-in pb-12">
-            {/* Header with Actions */}
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-                <div>
-                    <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Rutas de Aprendizaje</h1>
-                    <p className="text-slate-500 mt-2 text-base font-medium">Define el mapa de conocimientos para tu equipo.</p>
-                </div>
-            </div>
+        <div className="space-y-4 lg:space-y-8 animate-fade-in pb-12">
+            <AdminPageHeader
+                title="Rutas de Aprendizaje"
+                subtitle="Define el mapa de conocimientos para tu equipo"
+                icon={<MapIcon size={18} />}
+                action={
+                    <button
+                        onClick={() => handleOpenModal()}
+                        className="flex items-center gap-1.5 px-3 py-2 bg-[#135bec] text-white font-semibold hover:bg-[#0f4ac0] rounded-xl text-xs sm:text-sm sm:px-5 sm:py-2.5 transition-all duration-200 shadow-[0_2px_8px_rgba(19,91,236,0.3)] active:scale-95"
+                    >
+                        <Plus size={16} strokeWidth={2.5} />
+                        <span className="hidden sm:inline">Nueva Ruta</span>
+                        <span className="sm:hidden">Nueva</span>
+                    </button>
+                }
+            />
 
-            {/* Search & Actions */}
-            <div className="flex flex-col md:flex-row items-center gap-4">
-                <div className="flex-1 w-full relative">
-                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                        <Search size={20} className="text-slate-400" />
-                    </div>
-                    <input
-                        type="text"
-                        placeholder="Buscar rutas..."
-                        className="w-full pl-11 pr-4 py-3 bg-white/70 backdrop-blur-md border border-slate-200/80 rounded-full focus:ring-4 focus:ring-[#135bec]/10 focus:border-[#135bec] text-sm text-slate-800 placeholder:text-slate-400 outline-none transition-all shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)]"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                    />
+            {/* Search */}
+            <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                    <Search size={16} className="text-slate-400" />
                 </div>
-                <button
-                    onClick={() => handleOpenModal()}
-                    className="flex items-center justify-center w-full md:w-auto gap-2 px-6 py-3 bg-[#135bec] text-white font-semibold hover:bg-[#0f4ac0] rounded-full transition-all duration-300 shadow-[0_4px_14px_0_rgba(19,91,236,0.25)] hover:shadow-[0_6px_20px_0_rgba(19,91,236,0.35)] active:scale-95 shrink-0"
-                >
-                    <Plus size={20} strokeWidth={2.5} />
-                    <span>Nueva Ruta Especializada</span>
-                </button>
+                <input
+                    type="text"
+                    placeholder="Buscar rutas..."
+                    className="w-full pl-10 pr-4 py-2.5 bg-white/70 backdrop-blur-md border border-slate-200/80 rounded-xl focus:ring-4 focus:ring-[#135bec]/10 focus:border-[#135bec] text-sm text-slate-800 placeholder:text-slate-400 outline-none transition-all shadow-sm"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                />
             </div>
 
             {/* List View - Premium UI */}

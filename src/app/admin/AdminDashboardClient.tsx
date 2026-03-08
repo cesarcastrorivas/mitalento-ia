@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import AdminPageHeader from '@/components/AdminPageHeader';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import {
@@ -14,6 +15,7 @@ import {
     CheckCircle,
     XCircle,
     Clock,
+    LayoutDashboard,
 } from 'lucide-react';
 
 interface RecentActivity {
@@ -40,17 +42,18 @@ interface AdminDashboardClientProps {
 
 export function AdminDashboardClient({ stats, recentActivity }: AdminDashboardClientProps) {
     return (
-        <div className="space-y-10">
-            <header className="flex items-center justify-between">
-                <div>
-                    <h1 className="text-display text-[var(--text-primary)] tracking-tight">Dashboard</h1>
-                    <p className="text-[var(--text-secondary)] mt-2 text-base font-medium">Bienvenido al centro de control.</p>
-                </div>
-                <div className="hidden sm:flex items-center gap-2">
-                    <span className="flex h-2 w-2 rounded-full bg-[var(--success)]"></span>
-                    <span className="text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">Sistema Operativo</span>
-                </div>
-            </header>
+        <div className="space-y-6 lg:space-y-10">
+            <AdminPageHeader
+                title="Dashboard"
+                subtitle="Centro de control"
+                icon={<LayoutDashboard size={18} />}
+                action={
+                    <div className="hidden sm:flex items-center gap-1.5">
+                        <span className="flex h-2 w-2 rounded-full bg-[var(--success)]" />
+                        <span className="text-[10px] font-semibold text-[var(--text-secondary)] uppercase tracking-wider">Operativo</span>
+                    </div>
+                }
+            />
 
             {/* Stats Grid - PWA Compact Native KPIs */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">

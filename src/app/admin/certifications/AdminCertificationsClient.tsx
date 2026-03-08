@@ -8,6 +8,7 @@ import { Award, Loader2, Users, BookOpen, Briefcase, Search } from 'lucide-react
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
 import styles from './page.module.css';
+import AdminPageHeader from '@/components/AdminPageHeader';
 
 // Lazy load the drawer component
 const StudentDetailDrawer = dynamic(() => import('@/components/admin/StudentDetailDrawer'), {
@@ -102,6 +103,7 @@ const SEMAPHORE_THEMES: Record<string, { bg: string, text: string, dot: string }
 interface AdminCertificationsClientProps {
     initialStudents: StudentRow[];
 }
+
 
 export default function AdminCertificationsClient({ initialStudents }: AdminCertificationsClientProps) {
     const [students, setStudents] = useState<StudentRow[]>(initialStudents);
@@ -204,29 +206,23 @@ export default function AdminCertificationsClient({ initialStudents }: AdminCert
 
     return (
         <div className={styles.pageContainer}>
-            {/* Top Bar */}
-            <div className={styles.topNavigation}>
-                <div className={styles.headerTitles}>
-                    <div className={styles.iconAccent}>
-                        <Award size={22} color="#4f46e5" />
-                    </div>
-                    <div>
-                        <h1 className={styles.mainTitle}>Panel de Certificaciones</h1>
-                        <p className={styles.mainSubtitle}>Kanban Pipeline • Admin Dashboard</p>
-                    </div>
-                </div>
+            <AdminPageHeader
+                title="Certificaciones"
+                subtitle="Pipeline de candidatos y estudiantes"
+                icon={<Award size={18} />}
+            />
 
-                <div className={styles.searchContainer}>
-                    <Search size={16} className={styles.searchIcon} />
-                    <input
-                        type="text"
-                        placeholder="Buscar candidatos..."
-                        className={styles.searchInput}
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                    />
-                </div>
+            <div className={styles.searchContainer}>
+                <Search size={16} className={styles.searchIcon} />
+                <input
+                    type="text"
+                    placeholder="Buscar candidatos..."
+                    className={styles.searchInput}
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                />
             </div>
+
 
             {/* Stats Bar */}
             <div className={styles.statsContainer}>

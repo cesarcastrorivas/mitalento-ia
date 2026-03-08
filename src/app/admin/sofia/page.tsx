@@ -7,6 +7,7 @@ import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Bot, Save, AlertCircle, CheckCircle, Sparkles } from 'lucide-react';
 import Toast, { ToastType } from '@/components/Toast';
+import AdminPageHeader from '@/components/AdminPageHeader';
 
 export default function SofiaKnowledgeBase() {
     const [content, setContent] = useState('');
@@ -109,18 +110,12 @@ export default function SofiaKnowledgeBase() {
     }
 
     return (
-        <div className="max-w-5xl mx-auto space-y-8 pb-20 lg:pb-0">
-            <header>
-                <div className="flex items-center gap-3 mb-2">
-                    <div className="p-2 bg-[var(--primary-100)] text-[var(--primary-700)] rounded-lg">
-                        <Bot size={24} />
-                    </div>
-                    <h1 className="text-display text-[var(--text-primary)] tracking-tight">Base de Conocimiento Bally IA</h1>
-                </div>
-                <p className="text-[var(--text-secondary)]">
-                    Define la información y el contexto que Bally IA utilizará para responder a los estudiantes.
-                </p>
-            </header>
+        <div className="max-w-5xl mx-auto space-y-4 lg:space-y-8 pb-20 lg:pb-0">
+            <AdminPageHeader
+                title="Bally IA Knowledge"
+                subtitle="Define el contexto que Bally IA usa para responder"
+                icon={<Bot size={18} />}
+            />
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Editor Column */}

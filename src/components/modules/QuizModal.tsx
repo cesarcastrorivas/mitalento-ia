@@ -1,11 +1,11 @@
 'use client';
 
-import React, { useState } from 'react';
-import { addDoc, collection, updateDoc, doc, Timestamp } from 'firebase/firestore';
+import React, { useState, useRef } from 'react';
+import { addDoc, setDoc, collection, updateDoc, doc, Timestamp, query, where, getDocs } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { Module, Question, QuizSession, UserAnswer, User } from '@/types';
 import { getEffectivePassingScore, checkCascadeCompletion } from '@/lib/grading-utils';
-import { Trophy, CheckCircle, ArrowRight, X } from 'lucide-react';
+import { Trophy, CheckCircle, ArrowRight, X, Loader2 } from 'lucide-react';
 import Confetti from '@/components/Confetti';
 import styles from '@/app/modules/[id]/page.module.css';
 
@@ -34,6 +34,15 @@ export default function QuizModal({
     const [generatingQuiz, setGeneratingQuiz] = useState(false);
     const [quizSession, setQuizSession] = useState<QuizSession | null>(null);
     const [score, setScore] = useState(0);
+
+    // ══════════════════════════════════════════════════════════
+    // CAPA 1 (UI) + CAPA 2 (Idempotencia): Estado de envío
+    // - isSubmitting: bloquea el botón visualmente (Capa UI)
+    // - submitLockRef: guard contra race conditions incluso si
+    //   React no ha re-renderizado aún (Capa Lógica)
+    // ══════════════════════════════════════════════════════════
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const submitLockRef = useRef(false);
 
     const startQuiz = () => {
         if (!module.questions || module.questions.length === 0) {
@@ -66,6 +75,16 @@ export default function QuizModal({
     };
 
     const handleSubmitQuiz = async () => {
+        // ══════════════════════════════════════════════════════════
+        // CAPA 2: Guard de idempotencia con useRef
+        // El ref se evalúa sincrónicamente ANTES de cualquier await,
+        // por lo que dos clics rápidos nunca pasan ambos este check.
+        // useState solo no basta porque el re-render es asíncrono.
+        // ══════════════════════════════════════════════════════════
+        if (submitLockRef.current) return;
+        submitLockRef.current = true;
+        setIsSubmitting(true); // CAPA 1: feedback visual inmediato
+
         let correctCount = 0;
         const userAnswers: UserAnswer[] = [];
 
@@ -87,6 +106,32 @@ export default function QuizModal({
         const passed = calculatedScore >= effectivePassingScore;
 
         try {
+            // ══════════════════════════════════════════════════════════
+            // CAPA 2 (refuerzo): Verificación pre-escritura en cliente
+            // Consulta si ya existe una sesión aprobada para este
+            // usuario+módulo. Previene duplicados si el usuario recarga
+            // la página y vuelve a enviar.
+            // ══════════════════════════════════════════════════════════
+            if (passed) {
+                const existingQ = query(
+                    collection(db, 'quiz_sessions'),
+                    where('userId', '==', user.uid),
+                    where('moduleId', '==', module.id),
+                    where('passed', '==', true)
+                );
+                const existingSnap = await getDocs(existingQ);
+                if (!existingSnap.empty) {
+                    // Ya existe una sesión aprobada — no duplicar
+                    showToast('Esta evaluación ya fue registrada exitosamente.', 'success');
+                    setQuizSession({
+                        id: existingSnap.docs[0].id,
+                        ...existingSnap.docs[0].data()
+                    } as QuizSession);
+                    setScore(existingSnap.docs[0].data().score);
+                    return;
+                }
+            }
+
             const session: Omit<QuizSession, 'id'> = {
                 moduleId: module.id,
                 userId: user.uid,
@@ -99,8 +144,23 @@ export default function QuizModal({
                 seed: `${user.uid}-${module.id}-${Date.now()}`,
             };
 
-            const docRef = await addDoc(collection(db, 'quiz_sessions'), session);
-            setQuizSession({ id: docRef.id, ...session } as QuizSession);
+            // ══════════════════════════════════════════════════════════
+            // CAPA 3: ID determinístico para sesiones aprobadas
+            // Si el quiz fue aprobado, usamos un ID predecible
+            // "{userId}_{moduleId}" para que Firestore rules pueda
+            // aplicar la regla write-once con exists(). Si no aprobó,
+            // usamos addDoc normal (puede reintentar).
+            // ══════════════════════════════════════════════════════════
+            let sessionId: string;
+            if (passed) {
+                sessionId = `${user.uid}_${module.id}`;
+                const sessionRef = doc(db, 'quiz_sessions', sessionId);
+                await setDoc(sessionRef, session);
+            } else {
+                const docRef = await addDoc(collection(db, 'quiz_sessions'), session);
+                sessionId = docRef.id;
+            }
+            setQuizSession({ id: sessionId, ...session } as QuizSession);
 
             if (passed) {
                 const userRef = doc(db, 'users', user.uid);
@@ -112,7 +172,7 @@ export default function QuizModal({
                     }
                 });
 
-                // Notificar al componente padre que se pasó el quiz 
+                // Notificar al componente padre que se pasó el quiz
                 // para que actualice su estado optimista
                 onQuizPassed(calculatedScore);
 
@@ -134,6 +194,10 @@ export default function QuizModal({
         } catch (error) {
             console.error('Error saving quiz:', error);
             showToast('Error al guardar el quiz', 'error');
+            // Desbloquear para permitir reintento en caso de error de red
+            submitLockRef.current = false;
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
@@ -241,6 +305,8 @@ export default function QuizModal({
                                             setQuizSession(null);
                                             setQuestions([]);
                                             setAnswers(new Map());
+                                            // Resetear lock para permitir nuevo envío
+                                            submitLockRef.current = false;
                                             startQuiz();
                                         }}
                                         className={`${styles.modalNavBtn} ${styles.primaryBtn}`}
@@ -283,10 +349,19 @@ export default function QuizModal({
                         ) : (
                             <button
                                 onClick={handleSubmitQuiz}
-                                disabled={!allAnswered}
+                                disabled={!allAnswered || isSubmitting}
                                 className={`${styles.modalNavBtn} ${styles.primaryBtn}`}
+                                style={{ opacity: isSubmitting ? 0.7 : 1 }}
                             >
-                                Finalizar Evaluación
+                                {/* CAPA 1: Feedback visual inmediato al usuario */}
+                                {isSubmitting ? (
+                                    <>
+                                        <Loader2 size={18} className="inline animate-spin mr-2" />
+                                        Guardando...
+                                    </>
+                                ) : (
+                                    'Finalizar Evaluación'
+                                )}
                             </button>
                         )}
                     </div>

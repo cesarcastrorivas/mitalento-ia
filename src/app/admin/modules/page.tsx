@@ -17,6 +17,8 @@ import { db, storage } from '@/lib/firebase';
 import { useAuth } from '@/contexts/AuthContext';
 import { Module } from '@/types';
 import styles from './page.module.css';
+import AdminPageHeader from '@/components/AdminPageHeader';
+import { BookOpen, Plus } from 'lucide-react';
 
 export default function ModulesPage() {
     const { user } = useAuth();
@@ -184,15 +186,16 @@ export default function ModulesPage() {
 
     return (
         <div className={styles.page}>
-            <header className={styles.header}>
-                <div>
-                    <h1>Módulos de Entrenamiento</h1>
-                    <p>Gestiona los videos y contenido de capacitación</p>
-                </div>
-                <button onClick={openNewModuleModal} className="btn btn-primary">
-                    ➕ Nuevo Módulo
-                </button>
-            </header>
+            <AdminPageHeader
+                title="Módulos de Entrenamiento"
+                subtitle="Gestiona los videos y contenido de capacitación"
+                icon={<BookOpen size={18} />}
+                action={
+                    <button onClick={openNewModuleModal} className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <Plus size={16} /> Nuevo Módulo
+                    </button>
+                }
+            />
 
             {modules.length === 0 ? (
                 <div className="card empty-state">

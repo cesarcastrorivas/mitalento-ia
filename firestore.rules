@@ -47,13 +47,37 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
-    // Colección: quiz_sessions
-    // - Cualquier usuario autenticado puede leer (leaderboard necesita leer todas)
-    // - Usuario puede crear sus sesiones (al terminar un quiz)
+    // ══════════════════════════════════════════════════════════
+    // Colección: quiz_sessions — PROTECCIÓN ANTI-DUPLICADOS (3 capas)
+    //
+    // Estrategia de IDs:
+    //   - Sesión APROBADA: ID determinístico "{userId}_{moduleId}"
+    //     → Permite usar exists() para write-once enforcement
+    //   - Sesión NO APROBADA: ID auto-generado (reintentos permitidos)
+    //
+    // Regla write-once: Si el documento ya existe y fue aprobado (passed=true),
+    // Firestore deniega la escritura a nivel de infraestructura.
+    // ══════════════════════════════════════════════════════════
     match /quiz_sessions/{sessionId} {
       allow read: if isAuthenticated();
-      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
-      // No permitir editar sesiones pasadas para integridad, o solo admin
+
+      // CAPA 3 (Base de Datos): Regla de creación con protección write-once
+      allow create: if isAuthenticated()
+        && request.resource.data.userId == request.auth.uid
+        // Si el quiz fue aprobado, el ID DEBE ser "{userId}_{moduleId}"
+        // y NO debe existir previamente (write-once automático por Firestore)
+        && (
+          // Caso 1: Quiz aprobado → ID determinístico, y no debe existir ya
+          (request.resource.data.passed == true
+            && sessionId == (request.auth.uid + '_' + request.resource.data.moduleId)
+            && !exists(/databases/$(database)/documents/quiz_sessions/$(sessionId))
+          )
+          ||
+          // Caso 2: Quiz no aprobado → ID libre, se permite reintentar
+          (request.resource.data.passed == false)
+        );
+
+      // No permitir editar sesiones pasadas para integridad, solo admin
       allow update, delete: if isAdmin();
     }
 
@@ -66,10 +90,17 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
-    // Evaluaciones actitudinales
+    // ══════════════════════════════════════════════════════════
+    // Evaluaciones actitudinales — Write-once por usuario
+    // ID determinístico: "atteval_{userId}"
+    // Un estudiante solo puede enviar UNA evaluación actitudinal.
+    // ══════════════════════════════════════════════════════════
     match /attitudinal_evaluations/{evalId} {
       allow read: if request.auth != null;
-      allow create: if request.auth != null;
+      allow create: if request.auth != null
+        && request.resource.data.userId == request.auth.uid
+        && evalId == ('atteval_' + request.auth.uid)
+        && !exists(/databases/$(database)/documents/attitudinal_evaluations/$(evalId));
       allow update, delete: if isAdmin();
     }
 
