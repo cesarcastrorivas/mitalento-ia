@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
-import Script from "next/script";
 import { AuthProvider } from "@/contexts/AuthContext";
+import InstallPrompt from "@/components/InstallPrompt";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -50,22 +50,7 @@ export default function RootLayout({
           {children}
         </AuthProvider>
 
-        {/* Service Worker Registration */}
-        <Script id="sw-register" strategy="afterInteractive">{`
-          if ('serviceWorker' in navigator) {
-            window.addEventListener('load', function() {
-              navigator.serviceWorker.register('/sw.js', { scope: '/' })
-                .then(function(reg) {
-                  console.log('[PWA] Service Worker registered, scope:', reg.scope);
-                  // Check for updates periodically
-                  setInterval(function() { reg.update(); }, 60 * 60 * 1000);
-                })
-                .catch(function(err) {
-                  console.log('[PWA] Service Worker registration failed:', err);
-                });
-            });
-          }
-        `}</Script>
+        <InstallPrompt />
       </body>
     </html>
   );
