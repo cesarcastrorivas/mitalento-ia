@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getAdminAuth, getAdminDb } from '@/lib/firebase-admin';
+import { getAdminAuth, getAdminDb, getFirestoreTimestamp } from '@/lib/firebase-admin';
 import { getServerUser } from '@/lib/server-auth';
 
 export const runtime = 'nodejs';
@@ -25,6 +25,14 @@ function verifySameOrigin(request: NextRequest): boolean {
     return origin.startsWith('http://localhost') || origin.startsWith('http://127.0.0.1');
 }
 
+/**
+ * DELETE /api/admin/users/[id]
+ *
+ * Soft Delete (Baja Lógica):
+ * 1. Marca isActive: false en Firestore (preserva el documento para auditorías y reportes).
+ * 2. Deshabilita la cuenta en Firebase Auth (impide login).
+ * 3. Revoca refresh tokens activos (cierra sesiones existentes).
+ */
 export async function DELETE(
     request: NextRequest,
     { params }: { params: { id: string } | Promise<{ id: string }> }
@@ -52,9 +60,9 @@ export async function DELETE(
             return NextResponse.json({ error: 'UID de usuario no proporcionado' }, { status: 400 });
         }
 
-        // Prevent admins from deleting themselves
+        // Prevent admins from deactivating themselves
         if (uid === user.uid) {
-            return NextResponse.json({ error: 'No puedes eliminar tu propia cuenta' }, { status: 400 });
+            return NextResponse.json({ error: 'No puedes dar de baja tu propia cuenta' }, { status: 400 });
         }
 
         if (!process.env.ADMIN_PRIVATE_KEY) {
@@ -66,26 +74,54 @@ export async function DELETE(
 
         const adminAuth = getAdminAuth();
         const adminDb = getAdminDb();
+        const Timestamp = getFirestoreTimestamp();
 
-        // 1. Eliminar de Firebase Authentication
-        try {
-            await adminAuth.deleteUser(uid);
-        } catch (authError: any) {
-            if (authError.code !== 'auth/user-not-found') {
-                console.error('Error eliminando usuario de Authentication:', authError);
-                throw authError;
-            }
+        // 0. Verificar que el documento del usuario exista en Firestore
+        const userDoc = await adminDb.collection('users').doc(uid).get();
+        if (!userDoc.exists) {
+            return NextResponse.json({ error: 'Usuario no encontrado' }, { status: 404 });
         }
 
-        // 2. Eliminar documento de Firestore
-        await adminDb.collection('users').doc(uid).delete();
+        const userData = userDoc.data();
+        if (userData?.isActive === false) {
+            return NextResponse.json({ error: 'El usuario ya se encuentra dado de baja' }, { status: 409 });
+        }
 
-        return NextResponse.json({ success: true, message: 'Usuario eliminado completamente' });
+        // 1. Deshabilitar en Firebase Authentication (impide login)
+        try {
+            await adminAuth.updateUser(uid, { disabled: true });
+        } catch (authError: any) {
+            if (authError.code !== 'auth/user-not-found') {
+                console.error('Error deshabilitando usuario en Authentication:', authError);
+                throw authError;
+            }
+            // Si no existe en Auth, continuar igualmente con la baja en Firestore
+        }
+
+        // 2. Revocar refresh tokens activos (cierra sesiones existentes)
+        try {
+            await adminAuth.revokeRefreshTokens(uid);
+        } catch (revokeError: any) {
+            // No bloquear la operación si falla la revocación
+            console.warn('No se pudieron revocar los tokens:', revokeError?.message);
+        }
+
+        // 3. Soft Delete en Firestore: preservar documento, marcar como inactivo
+        await adminDb.collection('users').doc(uid).update({
+            isActive: false,
+            deactivatedAt: Timestamp.now(),
+            deactivatedBy: user.uid,
+        });
+
+        return NextResponse.json({
+            success: true,
+            message: 'Usuario dado de baja exitosamente',
+        });
 
     } catch (error: any) {
-        console.error('Error eliminando usuario completo:', error);
+        console.error('Error al dar de baja al usuario:', error);
         return NextResponse.json(
-            { error: 'Error al eliminar el usuario' },
+            { error: 'Error al dar de baja al usuario' },
             { status: 500 }
         );
     }

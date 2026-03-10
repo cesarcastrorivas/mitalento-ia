@@ -1,27 +1,29 @@
 rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
-    
-    // Reglas existentes para videos (MANTENER)
+
+    // Videos: solo admins pueden subir/modificar/eliminar
+    // Los estudiantes solo pueden leer (reproducir) videos
     match /videos/{allPaths=**} {
       allow read: if request.auth != null;
-      allow write: if request.auth != null;
+      allow write: if request.auth != null
+        && firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
 
-    // NUEVAS reglas para avatares de perfil (AGREGAR)
+    // Avatares de perfil: el usuario sube el suyo, admins pueden gestionar cualquiera
     match /avatars/{userId}/{allPaths=**} {
       allow read: if request.auth != null;
-      // El usuario puede subir su foto, O un administrador puede subirla en su nombre
       allow write: if request.auth != null && (
-          request.auth.uid == userId || 
+          request.auth.uid == userId ||
           firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role == 'admin'
       );
     }
 
-    // Reglas para imágenes de portada de cursos
+    // Thumbnails de cursos: solo admins pueden subir/modificar/eliminar
     match /course-thumbnails/{allPaths=**} {
       allow read: if request.auth != null;
-      allow write: if request.auth != null;
+      allow write: if request.auth != null
+        && firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
   }
 }

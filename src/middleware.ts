@@ -37,8 +37,6 @@ export function middleware(request: NextRequest) {
         '/certificate',
         '/certificacion',
         '/compromiso',
-        '/action-plan',
-        '/evaluacion-actitudinal',
     ];
 
     const isProtected = protectedPrefixes.some(p => pathname.startsWith(p));

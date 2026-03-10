@@ -90,27 +90,6 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
-    // ══════════════════════════════════════════════════════════
-    // Evaluaciones actitudinales — Write-once por usuario
-    // ID determinístico: "atteval_{userId}"
-    // Un estudiante solo puede enviar UNA evaluación actitudinal.
-    // ══════════════════════════════════════════════════════════
-    match /attitudinal_evaluations/{evalId} {
-      allow read: if request.auth != null;
-      allow create: if request.auth != null
-        && request.resource.data.userId == request.auth.uid
-        && evalId == ('atteval_' + request.auth.uid)
-        && !exists(/databases/$(database)/documents/attitudinal_evaluations/$(evalId));
-      allow update, delete: if isAdmin();
-    }
-
-    // Planes de acción
-    match /action_plans/{planId} {
-      allow read: if request.auth != null;
-      allow create: if request.auth != null;
-      allow update, delete: if isAdmin();
-    }
-
     // Certificados (lectura pública para verificación QR)
     // - create: SOLO admin. Los certificados se generan exclusivamente desde la API del servidor
     //   usando Admin SDK. Un estudiante NO debe poder auto-emitirse un certificado.
@@ -120,9 +99,14 @@ service cloud.firestore {
     }
 
     // Compromisos firmados de estándares
+    // - Un usuario solo puede leer sus propios compromisos; admins leen todos.
+    // - Un usuario solo puede crear un compromiso con su propio userId.
+    // - Solo admins pueden editar o borrar compromisos.
     match /commitments/{commitId} {
-      allow read: if request.auth != null;
-      allow create: if request.auth != null;
+      allow read: if request.auth != null
+        && (resource.data.userId == request.auth.uid || isAdmin());
+      allow create: if request.auth != null
+        && request.resource.data.userId == request.auth.uid;
       allow update, delete: if isAdmin();
     }
   }

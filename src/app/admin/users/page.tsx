@@ -7,7 +7,6 @@ import {
     getDocs,
     doc,
     updateDoc,
-    deleteDoc,
     Timestamp,
     setDoc,
     where,
@@ -358,40 +357,29 @@ export default function UsersPage() {
 
     const confirmDelete = async () => {
         try {
-            // Intentar eliminar usando nuestro backend (API Route) que usa Firebase Admin
             const response = await fetch(`/api/admin/users/${deleteConfirm.uid}`, {
                 method: 'DELETE',
             });
 
             const contentType = response.headers.get('content-type') || '';
 
-            if (contentType.includes('application/json')) {
-                // La API respondió con JSON válido
-                const result = await response.json();
-
-                if (!response.ok) {
-                    if (response.status === 500 && result.error?.includes('ADMIN_PRIVATE_KEY')) {
-                        // Falta configuración de Firebase Admin, eliminar solo de Firestore
-                        await deleteDoc(doc(db, 'users', deleteConfirm.uid));
-                        setUsers(prev => prev.filter(u => u.uid !== deleteConfirm.uid));
-                        alert('⚠️ Usuario eliminado de la plataforma.\n\nNota: La cuenta de autenticación aún existe en Firebase. Para eliminarla completamente, configura ADMIN_PRIVATE_KEY en .env.local o bórrala manualmente desde la consola de Firebase → Authentication.');
-                    } else {
-                        throw new Error(result.error || 'Error al eliminar usuario');
-                    }
-                } else {
-                    setUsers(prev => prev.filter(u => u.uid !== deleteConfirm.uid));
-                }
-            } else {
-                // La API devolvió HTML (error del servidor, Firebase Admin no configurado)
-                // Fallback: eliminar directamente de Firestore desde el cliente
-                console.warn('API de eliminación no disponible (Firebase Admin no configurado). Eliminando solo de Firestore.');
-                await deleteDoc(doc(db, 'users', deleteConfirm.uid));
-                setUsers(prev => prev.filter(u => u.uid !== deleteConfirm.uid));
-                alert('⚠️ Usuario eliminado de la plataforma.\n\nNota: La cuenta de autenticación aún puede existir en Firebase. Para eliminarla completamente, configura ADMIN_PRIVATE_KEY en .env.local o bórrala manualmente desde la consola de Firebase → Authentication.');
+            if (!contentType.includes('application/json')) {
+                throw new Error('Error de servidor. Verifica que ADMIN_PRIVATE_KEY esté configurada en las variables de entorno.');
             }
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                throw new Error(result.error || 'Error al dar de baja al usuario');
+            }
+
+            // Soft Delete exitoso: actualizar estado local (usuario se queda en la lista como inactivo)
+            setUsers(prev => prev.map(u =>
+                u.uid === deleteConfirm.uid ? { ...u, isActive: false } : u
+            ));
         } catch (error) {
-            console.error('Error deleting user:', error);
-            alert('Error eliminando: ' + (error as Error).message);
+            console.error('Error al dar de baja al usuario:', error);
+            alert('Error: ' + (error as Error).message);
         } finally {
             setDeleteConfirm({ show: false, uid: '', name: '' });
         }
@@ -546,7 +534,7 @@ export default function UsersPage() {
                 </div>
             )}
 
-            {/* Modal de confirmación de eliminación */}
+            {/* Modal de confirmación de baja lógica */}
             {deleteConfirm.show && (
                 <div
                     className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[60] flex items-center justify-center p-4"
@@ -556,12 +544,12 @@ export default function UsersPage() {
                         className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 text-center"
                         onClick={(e) => e.stopPropagation()}
                     >
-                        <div className="w-14 h-14 rounded-full bg-red-50 flex items-center justify-center mx-auto mb-4">
-                            <Trash2 size={24} className="text-red-500" />
+                        <div className="w-14 h-14 rounded-full bg-amber-50 flex items-center justify-center mx-auto mb-4">
+                            <AlertTriangle size={24} className="text-amber-500" />
                         </div>
-                        <h3 className="text-lg font-bold text-slate-800 mb-1">Eliminar usuario</h3>
+                        <h3 className="text-lg font-bold text-slate-800 mb-1">Dar de baja usuario</h3>
                         <p className="text-sm text-slate-500 mb-6">
-                            ¿Estás seguro de eliminar a <strong>{deleteConfirm.name}</strong>? Esta acción no se puede deshacer.
+                            ¿Estás seguro de dar de baja a <strong>{deleteConfirm.name}</strong>? Se deshabilitará su acceso pero sus datos se conservarán para reportes.
                         </p>
                         <div className="flex gap-3">
                             <button
@@ -572,9 +560,9 @@ export default function UsersPage() {
                             </button>
                             <button
                                 onClick={confirmDelete}
-                                className="flex-1 px-4 py-2.5 text-white font-medium bg-red-500 hover:bg-red-600 rounded-xl transition-colors"
+                                className="flex-1 px-4 py-2.5 text-white font-medium bg-amber-500 hover:bg-amber-600 rounded-xl transition-colors"
                             >
-                                Eliminar
+                                Dar de baja
                             </button>
                         </div>
                     </div>

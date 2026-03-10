@@ -26,6 +26,8 @@ export interface User {
     completedPaths?: string[];   // IDs de rutas completadas (todos sus cursos aprobados)
     stageChecklist?: Record<string, boolean>; // Checklist de requisitos por etapa del pipeline
     supervisorFeedback?: string; // Nota del supervisor sobre el candidato
+    deactivatedAt?: Timestamp;   // Fecha de baja lógica (soft delete)
+    deactivatedBy?: string;      // UID del admin que realizó la baja
 }
 
 // Camino de aprendizaje (Learning Path)
@@ -129,32 +131,6 @@ export interface QuizState {
 // ═══════════════════════════════════════════════════
 // Urbanity Academy — Certificación Intensiva 3 Días
 // ═══════════════════════════════════════════════════
-
-// Evaluación actitudinal (Día 1 - Filtro Psicológico)
-export interface AttitudinalEvaluation {
-    id: string;
-    userId: string;
-    responses: { question: string; answer: string }[];
-    aiAnalysis: string;
-    semaphore: AttitudinalSemaphore;
-    supervisorApproved?: boolean;
-    supervisorNotes?: string;
-    createdAt: Timestamp;
-}
-
-// Plan de acción 30-60-90 (Día 3)
-export interface ActionPlan {
-    id: string;
-    userId: string;
-    targetIncome: number;
-    callsPerDay: number;
-    appointmentsPerWeek: number;
-    closingsPerMonth: number;
-    plan30: string;
-    plan60: string;
-    plan90: string;
-    createdAt: Timestamp;
-}
 
 // Certificado digital verificable
 export interface Certificate {

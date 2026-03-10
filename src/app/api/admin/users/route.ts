@@ -93,9 +93,9 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ success: true, message: 'Usuario creado exitosamente', user: newUser });
 
     } catch (error: any) {
-        console.error('Error creando usuario:', error);
+        console.error('Error creando usuario:', error?.message || error);
         return NextResponse.json(
-            { error: error.message || 'Error al crear el usuario' },
+            { error: 'Error al crear el usuario' },
             { status: 500 }
         );
     }

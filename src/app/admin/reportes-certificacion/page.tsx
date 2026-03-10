@@ -63,14 +63,6 @@ export default function ReportesCertificacionPage() {
                 if (data.passed) entry.passedModules.add(data.moduleId);
             });
 
-            // Get evaluations
-            const evalsSnap = await getDocs(collection(db, 'attitudinal_evaluations'));
-            const evals = new Map<string, string>();
-            evalsSnap.docs.forEach(d => {
-                const data = d.data();
-                evals.set(data.userId, data.semaphore);
-            });
-
             // Get commitments
             const commitmentsSnap = await getDocs(collection(db, 'commitments'));
             const commitments = new Set<string>();
@@ -86,7 +78,7 @@ export default function ReportesCertificacionPage() {
                     displayName: data.displayName,
                     email: data.email,
                     certificationLevel: data.certificationLevel || 'none',
-                    attitudinalStatus: evals.get(d.id) || data.attitudinalStatus || 'pending',
+                    attitudinalStatus: data.attitudinalStatus || 'pending',
                     avgScore: scores ? Math.round(scores.total / scores.count) : 0,
                     totalAttempts: scores?.count || 0,
                     passedModules: scores?.passedModules.size || 0,

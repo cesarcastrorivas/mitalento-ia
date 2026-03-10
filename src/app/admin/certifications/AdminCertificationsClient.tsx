@@ -29,7 +29,6 @@ export interface StudentRow {
     certificationLevel: CertificationLevel;
     attitudinalStatus: string;
     avgScore: number;
-    evaluationId?: string;
     commitment: boolean;
     supervisorFeedback?: string;
     responses: EvalResponse[];
@@ -168,13 +167,6 @@ export default function AdminCertificationsClient({ initialStudents }: AdminCert
                 stageChecklist: {},
             });
 
-            if (student.evaluationId) {
-                await updateDoc(doc(db, 'attitudinal_evaluations', student.evaluationId), {
-                    semaphore: 'green',
-                    supervisorApproved: true,
-                });
-            }
-
             const uid = student.uid;
             setStudents(prev => prev.map(s => s.uid === uid ? { ...s, attitudinalStatus: 'green', certificationLevel: nextLevel as CertificationLevel, stageChecklist: {} } : s));
             setDrawerTarget(prev => prev && prev.uid === uid ? { ...prev, attitudinalStatus: 'green', certificationLevel: nextLevel as CertificationLevel, stageChecklist: {} } : prev);
@@ -188,12 +180,6 @@ export default function AdminCertificationsClient({ initialStudents }: AdminCert
             await updateDoc(doc(db, 'users', student.uid), {
                 attitudinalStatus: 'red',
             });
-            if (student.evaluationId) {
-                await updateDoc(doc(db, 'attitudinal_evaluations', student.evaluationId), {
-                    semaphore: 'red',
-                    supervisorApproved: false,
-                });
-            }
             const uid = student.uid;
             setStudents(prev => prev.map(s => s.uid === uid ? { ...s, attitudinalStatus: 'red' } : s));
             setDrawerTarget(prev => prev && prev.uid === uid ? { ...prev, attitudinalStatus: 'red' } : prev);

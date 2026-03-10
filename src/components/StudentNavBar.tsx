@@ -19,7 +19,7 @@ function StudentNavBar() {
     const { user, signOut } = useAuth();
 
     // Don't show on module player pages or admin
-    if (pathname.startsWith('/modules/') || pathname.startsWith('/admin') || pathname.startsWith('/verify/') || pathname.startsWith('/evaluacion-actitudinal') || pathname.startsWith('/compromiso') || pathname === '/') {
+    if (pathname.startsWith('/modules/') || pathname.startsWith('/admin') || pathname.startsWith('/verify/') || pathname.startsWith('/compromiso') || pathname === '/') {
         return null;
     }
 

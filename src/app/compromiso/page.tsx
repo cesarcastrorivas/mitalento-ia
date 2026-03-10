@@ -67,8 +67,8 @@ export default function CompromisoPage() {
                 signedAt: Timestamp.now(),
             });
 
-            // Redirect to attitudinal evaluation
-            router.push('/evaluacion-actitudinal');
+            // Redirect to dashboard after signing
+            router.push('/dashboard');
         } catch (error) {
             console.error('Error saving commitment:', error);
         } finally {
@@ -104,10 +104,10 @@ export default function CompromisoPage() {
                             }) || 'N/A'}
                         </p>
                         <button
-                            onClick={() => router.push('/evaluacion-actitudinal')}
+                            onClick={() => router.push('/dashboard')}
                             className={styles.continueBtn}
                         >
-                            Continuar a Evaluación <ArrowRight size={16} />
+                            Volver al Inicio <ArrowRight size={16} />
                         </button>
                     </div>
                 </div>

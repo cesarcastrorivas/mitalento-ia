@@ -28,7 +28,6 @@ const DAYS: DayConfig[] = [
         minScore: 80,
         extraActions: [
             { label: 'Compromiso', href: '/compromiso', icon: '📜' },
-            { label: 'Eval. Actitudinal', href: '/evaluacion-actitudinal', icon: '🧠' },
         ],
     },
     {
@@ -45,9 +44,7 @@ const DAYS: DayConfig[] = [
         title: 'Alto Desempeño y Proyección a Liderazgo',
         subtitle: 'Identificar futuros líderes',
         minScore: 80,
-        extraActions: [
-            { label: 'Plan de Acción', href: '/action-plan', icon: '🎯' },
-        ],
+        extraActions: [],
     },
 ];
 

@@ -11,13 +11,10 @@ export default async function AdminCertificationsPage() {
 
     const db = getAdminDb();
 
-    // All 4 queries run in parallel from Cloud Run (~5ms each)
-    // vs. 4 × 150ms sequential from Lima browser
-    const [usersSnap, evalsSnap, sessionsSnap, commitmentsSnap] = await Promise.all([
+    // 3 queries run in parallel from Cloud Run (~5ms each)
+    const [usersSnap, sessionsSnap, commitmentsSnap] = await Promise.all([
         db.collection('users')
             .where('role', '==', 'student')
-            .get(),
-        db.collection('attitudinal_evaluations')
             .get(),
         db.collection('quiz_sessions')
             .select('userId', 'score')
@@ -26,17 +23,6 @@ export default async function AdminCertificationsPage() {
             .select('userId')
             .get(),
     ]);
-
-    // Build lookup maps
-    const evals = new Map<string, { id: string; semaphore: string; responses: Array<{ question: string; answer: string }> }>();
-    evalsSnap.docs.forEach((d: any) => {
-        const data = d.data();
-        evals.set(data.userId, {
-            id: d.id,
-            semaphore: data.semaphore,
-            responses: data.responses || [],
-        });
-    });
 
     const userScores = new Map<string, { total: number; count: number }>();
     sessionsSnap.docs.forEach((d: any) => {
@@ -51,9 +37,9 @@ export default async function AdminCertificationsPage() {
     commitmentsSnap.docs.forEach((d: any) => commitments.add(d.data().userId));
 
     // Build serializable student rows for the client
+    // attitudinalStatus is now managed manually on the User document by the supervisor
     const students: StudentRow[] = usersSnap.docs.map((d: any) => {
         const data = d.data() as User;
-        const evalData = evals.get(d.id);
         const scores = userScores.get(d.id);
 
         return {
@@ -62,12 +48,11 @@ export default async function AdminCertificationsPage() {
             email: data.email,
             photoURL: data.photoURL,
             certificationLevel: (data.certificationLevel as any) || 'none',
-            attitudinalStatus: evalData?.semaphore || data.attitudinalStatus || 'pending',
+            attitudinalStatus: data.attitudinalStatus || 'pending',
             avgScore: scores && scores.count > 0 ? Math.round(scores.total / scores.count) : 0,
-            evaluationId: evalData?.id,
             commitment: commitments.has(d.id),
             supervisorFeedback: data.supervisorFeedback || '',
-            responses: evalData?.responses || [],
+            responses: [],
             stageChecklist: data.stageChecklist || {},
         };
     });
