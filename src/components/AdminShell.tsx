@@ -37,9 +37,18 @@ export default function AdminShell({
         }
     }, [user, loading, router]);
 
-    // Close sidebar on route change
+    // Establecer estado inicial basado en resolución para evitar hydration mismatches
     useEffect(() => {
-        setIsSidebarOpen(false);
+        if (typeof window !== 'undefined' && window.innerWidth >= 1024) {
+            setIsSidebarOpen(true);
+        }
+    }, []);
+
+    // Cerrar sidebar en cambio de ruta sólo en móvil/tablet
+    useEffect(() => {
+        if (typeof window !== 'undefined' && window.innerWidth < 1024) {
+            setIsSidebarOpen(false);
+        }
     }, [pathname]);
 
     if (loading) {
