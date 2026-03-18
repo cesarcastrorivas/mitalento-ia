@@ -10,6 +10,21 @@ const apiKey = process.env.GEMINI_API_KEY || '';
 const genAI = new GoogleGenerativeAI(apiKey);
 const fileManager = new GoogleAIFileManager(apiKey);
 
+export const secondaryGenAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY_SECONDARY || apiKey);
+export const secondaryFileManager = new GoogleAIFileManager(process.env.GEMINI_API_KEY_SECONDARY || apiKey);
+
+export const secondaryGeminiModel = secondaryGenAI.getGenerativeModel({
+    model: 'gemini-3.1-pro-preview',
+});
+
+// JSON specific model for quizzes
+export const secondaryGeminiJsonModel = secondaryGenAI.getGenerativeModel({
+    model: 'gemini-3.1-pro-preview',
+    generationConfig: {
+        responseMimeType: "application/json"
+    }
+});
+
 // ─── Security: URL validation (SSRF protection) ──────────────────────────────
 
 /**
@@ -118,11 +133,11 @@ function validateParsedQuiz(parsed: unknown): Question[] {
 
 /** Polls Gemini until the file is ready, using exponential backoff.
  *  Throws if the file fails or the max wait time is exceeded. */
-async function waitForProcessing(uploadName: string, maxWaitMs = 120_000): Promise<void> {
+async function waitForProcessing(uploadName: string, fbManager: GoogleAIFileManager = fileManager, maxWaitMs = 120_000): Promise<void> {
     const start = Date.now();
     let attempts = 0;
 
-    let file = await fileManager.getFile(uploadName);
+    let file = await fbManager.getFile(uploadName);
 
     while (file.state === FileState.PROCESSING) {
         if (Date.now() - start > maxWaitMs) {
@@ -131,7 +146,7 @@ async function waitForProcessing(uploadName: string, maxWaitMs = 120_000): Promi
         // Exponential backoff: 2s → 2.6s → 3.4s … capped at 15s
         const wait = Math.min(2000 * Math.pow(1.3, attempts), 15_000);
         await new Promise((resolve) => setTimeout(resolve, wait));
-        file = await fileManager.getFile(uploadName);
+        file = await fbManager.getFile(uploadName);
         attempts++;
     }
 
@@ -140,9 +155,9 @@ async function waitForProcessing(uploadName: string, maxWaitMs = 120_000): Promi
     }
 }
 
-// Gemini 3.0 Flash Preview - As requested
+// Gemini 3.1 Flash Lite - As requested
 export const geminiModel = genAI.getGenerativeModel({
-    model: 'gemini-3-flash-preview',
+    model: 'gemini-3.1-flash-lite-preview',
 });
 
 export interface Question {
@@ -183,7 +198,9 @@ export async function generateQuizFromVideo(
     videoTitle: string,
     userId: string,
     moduleId: string,
-    questionCount: number = 5
+    questionCount: number = 5,
+    modelToUse = secondaryGeminiJsonModel,
+    fmToUse = secondaryFileManager
 ): Promise<QuizGenerationResult> {
     let tempFilePath: string | null = null;
     let fileUri: string | null = null;
@@ -198,7 +215,7 @@ export async function generateQuizFromVideo(
         console.log('Uploading to Gemini:', tempFilePath);
 
         // 2. Upload to Gemini
-        const uploadResult = await fileManager.uploadFile(tempFilePath, {
+        const uploadResult = await fmToUse.uploadFile(tempFilePath, {
             mimeType: 'video/mp4',
             displayName: `Module: ${videoTitle}`,
         });
@@ -210,8 +227,8 @@ export async function generateQuizFromVideo(
 
         // 3. Wait for processing
         console.log('Waiting for Gemini to process video...');
-        await waitForProcessing(uploadName);
-        const file = await fileManager.getFile(uploadName);
+        await waitForProcessing(uploadName, fmToUse);
+        const file = await fmToUse.getFile(uploadName);
 
         console.log('Video processed. Generating quiz...');
 
@@ -267,22 +284,19 @@ Usa este seed para variar la redacción, el orden de opciones y el enfoque de la
 
 RESPONDE ÚNICAMENTE CON EL JSON. Sin texto adicional antes o después.`;
 
-        const result = await geminiModel.generateContent([
+        const result = await modelToUse.generateContent([
             { fileData: { mimeType: file.mimeType, fileUri: file.uri } },
             { text: prompt }
         ]);
 
         const responseText = result.response.text();
         const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+        const rawJson = jsonMatch ? jsonMatch[0] : responseText;
 
-        if (!jsonMatch) {
-            throw new Error('No valid JSON found in response');
-        }
-
-        const questions = validateParsedQuiz(JSON.parse(jsonMatch[0]));
+        const questions = validateParsedQuiz(JSON.parse(rawJson));
 
         // Cleanup Gemini file (Async, don't wait)
-        fileManager.deleteFile(uploadName).catch(console.error);
+        fmToUse.deleteFile(uploadName).catch(console.error);
 
         return { questions, success: true };
 
@@ -309,7 +323,9 @@ export interface TranscriptionResult {
 
 export async function transcribeVideo(
     videoUrl: string,
-    videoTitle: string
+    videoTitle: string,
+    modelToUse = secondaryGeminiModel,
+    fmToUse = secondaryFileManager
 ): Promise<TranscriptionResult> {
     let tempFilePath: string | null = null;
     let fileUri: string | null = null;
@@ -320,7 +336,7 @@ export async function transcribeVideo(
         tempFilePath = await downloadFile(videoUrl, '.mp4');
 
         console.log('Uploading to Gemini:', tempFilePath);
-        const uploadResult = await fileManager.uploadFile(tempFilePath, {
+        const uploadResult = await fmToUse.uploadFile(tempFilePath, {
             mimeType: 'video/mp4',
             displayName: `Transcription: ${videoTitle}`,
         });
@@ -332,8 +348,8 @@ export async function transcribeVideo(
 
         // Wait for processing
         console.log('Waiting for Gemini to process video for transcription...');
-        await waitForProcessing(uploadName);
-        const file = await fileManager.getFile(uploadName);
+        await waitForProcessing(uploadName, fmToUse);
+        const file = await fmToUse.getFile(uploadName);
 
         console.log('Video processed. Generating transcription...');
 
@@ -343,7 +359,7 @@ export async function transcribeVideo(
         - El texto debe ser fluido y legible.
         - Si hay texto importante en pantalla que no se dice en voz alta, puedes incluirlo entre corchetes [Texto en pantalla: ...].`;
 
-        const result = await geminiModel.generateContent([
+        const result = await modelToUse.generateContent([
             { fileData: { mimeType: file.mimeType, fileUri: file.uri } },
             { text: prompt }
         ]);
@@ -351,7 +367,7 @@ export async function transcribeVideo(
         const text = result.response.text();
 
         // Cleanup Gemini file
-        fileManager.deleteFile(uploadName).catch(console.error);
+        fmToUse.deleteFile(uploadName).catch(console.error);
 
         return { text, success: true };
 
@@ -379,7 +395,8 @@ export async function generateQuizFromTranscription(
     userId: string,
     moduleId: string,
     questionCount: number = 5,
-    videoContext?: string
+    videoContext?: string,
+    modelToUse = secondaryGeminiJsonModel
 ): Promise<QuizGenerationResult> {
     try {
         console.log('Generating quiz from transcription for:', videoTitle);
@@ -444,18 +461,15 @@ Usa este seed para variar la redacción, el orden de opciones y el enfoque de la
 
 RESPONDE ÚNICAMENTE CON EL JSON. Sin texto adicional antes o después.`;
 
-        const result = await geminiModel.generateContent([
+        const result = await modelToUse.generateContent([
             { text: prompt }
         ]);
 
         const responseText = result.response.text();
         const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+        const rawJson = jsonMatch ? jsonMatch[0] : responseText;
 
-        if (!jsonMatch) {
-            throw new Error('No valid JSON found in response');
-        }
-
-        const questions = validateParsedQuiz(JSON.parse(jsonMatch[0]));
+        const questions = validateParsedQuiz(JSON.parse(rawJson));
 
         return { questions, success: true };
 

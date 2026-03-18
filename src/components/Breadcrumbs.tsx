@@ -8,6 +8,7 @@ export interface BreadcrumbItem {
     label: string;
     href?: string;
     emoji?: string;
+    icon?: React.ReactNode;
 }
 
 interface BreadcrumbsProps {
@@ -27,12 +28,20 @@ export default function Breadcrumbs({ items }: BreadcrumbsProps) {
                         )}
                         {isLast || !item.href ? (
                             <span className={`${styles.label} ${isLast ? styles.current : ''}`}>
-                                {item.emoji && <span className={styles.emoji}>{item.emoji}</span>}
+                                {item.icon ? (
+                                    <span className={styles.icon}>{item.icon}</span>
+                                ) : (
+                                    item.emoji && <span className={styles.emoji}>{item.emoji}</span>
+                                )}
                                 {item.label}
                             </span>
                         ) : (
                             <Link href={item.href} className={styles.link}>
-                                {item.emoji && <span className={styles.emoji}>{item.emoji}</span>}
+                                {item.icon ? (
+                                    <span className={styles.icon}>{item.icon}</span>
+                                ) : (
+                                    item.emoji && <span className={styles.emoji}>{item.emoji}</span>
+                                )}
                                 {item.label}
                             </Link>
                         )}

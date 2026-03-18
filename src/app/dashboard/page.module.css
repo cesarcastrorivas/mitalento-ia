@@ -174,8 +174,10 @@
     animation: slideInDown 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.1s both;
 }
 
-.greetingEmoji {
-    font-size: 1.2rem;
+.greetingIconWrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
     filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
 }
 
@@ -385,19 +387,6 @@
     justify-content: center;
     position: relative;
     overflow: hidden;
-    mask-image: linear-gradient(to bottom, black 80%, transparent 100%);
-    -webkit-mask-image: linear-gradient(to bottom, black 80%, transparent 100%);
-}
-
-.pathEmoji {
-    font-size: 5rem;
-    filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.15));
-    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    z-index: 10;
-}
-
-.pathCard:hover .pathEmoji {
-    transform: scale(1.15) rotate(-8deg);
 }
 
 .pathBody {
@@ -641,10 +630,6 @@
 
     .pathIconWrapper {
         height: 110px;
-    }
-
-    .pathEmoji {
-        font-size: 3.5rem;
     }
 
     .pathBody {

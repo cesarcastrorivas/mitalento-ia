@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { generateQuizFromTranscription } from '@/lib/gemini';
+import { generateQuizFromTranscription, secondaryGeminiJsonModel } from '@/lib/gemini';
 import { getServerUser } from '@/lib/server-auth';
 import { checkRateLimit } from '@/lib/rate-limit';
 
@@ -46,7 +46,8 @@ export async function POST(request: NextRequest) {
             targetUserId,
             moduleId,
             count,
-            videoContext
+            videoContext,
+            secondaryGeminiJsonModel
         );
 
         if (!result.success) {

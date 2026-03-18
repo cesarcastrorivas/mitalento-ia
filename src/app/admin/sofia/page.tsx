@@ -156,14 +156,7 @@ export default function SofiaKnowledgeBase() {
                                 spellCheck={false}
                             />
 
-                            {/* Subtle line numbers decoration (Visual only, simple guide) */}
-                            <div className="absolute top-8 left-3 bottom-8 w-6 flex flex-col items-center pt-1 gap-[2rem] opacity-20 pointer-events-none select-none hidden sm:flex">
-                                <span className="text-[10px] font-mono">1</span>
-                                <span className="text-[10px] font-mono">5</span>
-                                <span className="text-[10px] font-mono">10</span>
-                                <span className="text-[10px] font-mono">15</span>
-                                <span className="text-[10px] font-mono">20</span>
-                            </div>
+
                         </div>
 
                         {/* Sticky Action Footer */}

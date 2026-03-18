@@ -35,6 +35,12 @@
     margin-right: 0.2rem;
 }
 
+.icon {
+    display: inline-flex;
+    align-items: center;
+    margin-right: 0.3rem;
+}
+
 .link {
     display: inline-flex;
     align-items: center;

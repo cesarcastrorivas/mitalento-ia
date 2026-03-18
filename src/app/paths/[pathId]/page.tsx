@@ -16,8 +16,21 @@ import {
     ChevronRight,
     ArrowLeft,
     Clock,
-    Award
+    Award,
+    Building2,
+    LineChart,
+    Crown,
+    GraduationCap,
+    BookOpen,
+    Home
 } from 'lucide-react';
+
+const EMOJI_TO_ICON: Record<string, any> = {
+    '🏢': Building2,
+    '📈': LineChart,
+    '👑': Crown,
+    '🎓': GraduationCap,
+};
 
 interface CourseWithProgress extends Course {
     totalModules: number;
@@ -221,13 +234,19 @@ export default function PathDetailsPage({ params }: { params: Promise<{ pathId: 
                 {/* Left Column: Sticky Sidebar / Overview */}
                 <aside className={styles.sidebar}>
                     <Breadcrumbs items={[
-                        { label: 'Dashboard', href: '/dashboard', emoji: '🏠' },
-                        { label: path.title, emoji: path.icon || '🎓' },
+                        { label: 'Dashboard', href: '/dashboard', icon: <Home size={14} className="text-gray-400" /> },
+                        { label: path.title, icon: (() => {
+                            const IconComponent = EMOJI_TO_ICON[path.icon || ''] || BookOpen;
+                            return <IconComponent size={14} className="text-indigo-600" />;
+                        })() },
                     ]} />
 
                     <div className={styles.heroCard}>
-                        <div className={styles.heroIconWrapper}>
-                            <span>{path.icon || '🎓'}</span>
+                        <div className={`${styles.heroIconWrapper} bg-slate-50 border border-slate-100 flex items-center justify-center`}>
+                            {(() => {
+                                const IconComponent = EMOJI_TO_ICON[path.icon || ''] || BookOpen;
+                                return <IconComponent className="w-10 h-10 text-indigo-600 stroke-[1.5]" />;
+                            })()}
                         </div>
                         <h1 className={styles.heroTitle}>{path.title}</h1>
                         <p className={styles.heroDescription}>{path.description}</p>

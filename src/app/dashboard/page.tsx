@@ -5,8 +5,14 @@ import { FIXED_PATHS } from '@/lib/constants';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import styles from './page.module.css';
-import { Award } from 'lucide-react';
+import { Award, BookOpen, Briefcase, Building2, Crown, Globe, LineChart, Target, Sun, CloudSun, Moon, Trophy, Layers, Route } from 'lucide-react';
 import { MotivationalPhrase } from '@/components/MotivationalPhrase';
+
+const PATH_ICONS: Record<string, any> = {
+    'path-fundamental': Building2,
+    'path-professional': LineChart,
+    'path-elite': Crown,
+};
 
 export default async function StudentDashboard() {
     const userClaims = await getServerUser();
@@ -117,9 +123,9 @@ export default async function StudentDashboard() {
     const getGreeting = () => {
         const limaTime = new Date().toLocaleString('en-US', { timeZone: 'America/Lima', hour: 'numeric', hour12: false });
         const hour = parseInt(limaTime, 10);
-        if (hour >= 5 && hour < 12) return { text: 'Buenos días', emoji: '☀️' };
-        if (hour >= 12 && hour < 18) return { text: 'Buenas tardes', emoji: '🌤️' };
-        return { text: 'Buenas noches', emoji: '🌙' };
+        if (hour >= 5 && hour < 12) return { text: 'Buenos días', type: 'morning' };
+        if (hour >= 12 && hour < 18) return { text: 'Buenas tardes', type: 'afternoon' };
+        return { text: 'Buenas noches', type: 'evening' };
     };
     const greeting = getGreeting();
 
@@ -138,7 +144,11 @@ export default async function StudentDashboard() {
                 </div>
                 <div className={styles.heroContent}>
                     <div className={styles.greetingRow}>
-                        <span className={styles.greetingEmoji}>{greeting.emoji}</span>
+                        <span className={styles.greetingIconWrapper}>
+                            {greeting.type === 'morning' && <Sun className="w-5 h-5 text-amber-500" strokeWidth={2.5} />}
+                            {greeting.type === 'afternoon' && <CloudSun className="w-5 h-5 text-amber-500" strokeWidth={2.5} />}
+                            {greeting.type === 'evening' && <Moon className="w-5 h-5 text-indigo-400" strokeWidth={2.5} />}
+                        </span>
                         <span className={styles.greetingLabel}>{greeting.text}</span>
                     </div>
                     <h1 className={styles.heroTitle}>
@@ -153,21 +163,21 @@ export default async function StudentDashboard() {
                     {/* Stats rápidos */}
                     <div className={styles.statsRow}>
                         <div className={styles.statCard}>
-                            <span className={styles.statIcon}>🏆</span>
+                            <span className={styles.statIcon}><Trophy className="w-6 h-6 text-amber-500" strokeWidth={2.5} /></span>
                             <div>
                                 <span className={styles.statNumber}>{progressStats.progressPercent}%</span>
                                 <span className={styles.statLabel}>Progreso Total</span>
                             </div>
                         </div>
                         <div className={styles.statCard}>
-                            <span className={styles.statIcon}>📚</span>
+                            <span className={styles.statIcon}><Layers className="w-6 h-6 text-blue-500" strokeWidth={2.5} /></span>
                             <div>
                                 <span className={styles.statNumber}>{progressStats.completedModules}/{progressStats.totalModules}</span>
                                 <span className={styles.statLabel}>Módulos</span>
                             </div>
                         </div>
                         <div className={styles.statCard}>
-                            <span className={styles.statIcon}>🛤️</span>
+                            <span className={styles.statIcon}><Route className="w-6 h-6 text-emerald-500" strokeWidth={2.5} /></span>
                             <div>
                                 <span className={styles.statNumber}>{progressStats.routesCompleted}/{progressStats.totalRoutes}</span>
                                 <span className={styles.statLabel}>Rutas</span>
@@ -185,19 +195,16 @@ export default async function StudentDashboard() {
                 </div>
 
                 <div className={styles.pathsGrid}>
-                    {paths.map((path, index) => (
+                    {paths.map((path, index) => {
+                        const IconComponent = PATH_ICONS[path.id] || BookOpen;
+                        return (
                         <Link key={path.id} href={`/paths/${path.id}`} className={styles.pathLink} style={{ animationDelay: `${index * 0.1}s` }}>
-                            <div className={styles.pathCard}>
+                            <div className={`group ${styles.pathCard}`}>
                                 <div className={styles.pathCardGlow}></div>
-                                <div className={styles.pathIconWrapper} style={{
-                                    background: [
-                                        'linear-gradient(135deg, #7C3AED 0%, #3B82F6 100%)',
-                                        'linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%)',
-                                        'linear-gradient(135deg, #6366F1 0%, #10B981 100%)',
-                                        'linear-gradient(135deg, #F59E0B 0%, #EF4444 100%)',
-                                    ][index % 4]
-                                }}>
-                                    <span className={styles.pathEmoji}>{path.icon || '🎓'}</span>
+                                <div className={`${styles.pathIconWrapper} bg-slate-50/50 border-b border-slate-100/50 flex justify-center items-center py-8`}>
+                                    <div className="w-16 h-16 rounded-2xl bg-indigo-50 border border-indigo-200 flex items-center justify-center text-indigo-600 shadow-sm transition-transform duration-300 group-hover:scale-110 group-hover:-translate-y-1">
+                                        <IconComponent className="w-8 h-8 stroke-[1.5]" />
+                                    </div>
                                 </div>
                                 <div className={styles.pathBody}>
                                     <h3 className={styles.pathTitle}>{path.title}</h3>
@@ -213,7 +220,8 @@ export default async function StudentDashboard() {
                                 </div>
                             </div>
                         </Link>
-                    ))}
+                        );
+                    })}
 
                     {paths.length === 0 && (
                         <div className={styles.emptyState}>
@@ -249,12 +257,12 @@ export default async function StudentDashboard() {
                             };
                             return (
                                 <Link key={cert.id} href="/certificate" className={styles.pathLink} style={{ animationDelay: `${index * 0.1}s` }}>
-                                    <div className={styles.pathCard}>
+                                    <div className={`group ${styles.pathCard}`}>
                                         <div className={styles.pathCardGlow}></div>
-                                        <div className={styles.pathIconWrapper} style={{
-                                            background: CERT_COLORS[cert.level] || CERT_COLORS.fundamental
-                                        }}>
-                                            <span className={styles.pathEmoji}>🏅</span>
+                                        <div className={`${styles.pathIconWrapper} bg-slate-50/50 border-b border-slate-100/50`}>
+                                            <div className="w-16 h-16 rounded-2xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600 shadow-sm transition-transform duration-300 group-hover:scale-110 group-hover:-translate-y-1">
+                                                <Award className="w-8 h-8 stroke-[1.5]" />
+                                            </div>
                                         </div>
                                         <div className={styles.pathBody}>
                                             <h3 className={styles.pathTitle}>

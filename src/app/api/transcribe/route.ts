@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { transcribeVideo } from '@/lib/gemini';
+import { transcribeVideo, secondaryGeminiModel, secondaryFileManager } from '@/lib/gemini';
 import { getServerUser } from '@/lib/server-auth';
 import { checkRateLimit } from '@/lib/rate-limit';
 
@@ -36,7 +36,12 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        const result = await transcribeVideo(videoUrl, videoTitle);
+        const result = await transcribeVideo(
+            videoUrl, 
+            videoTitle, 
+            secondaryGeminiModel, 
+            secondaryFileManager
+        );
 
         if (!result.success) {
             throw new Error(result.error);
