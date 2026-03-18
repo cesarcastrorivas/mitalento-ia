@@ -7,7 +7,7 @@ import { pipeline } from 'stream/promises';
 import { Readable } from 'stream';
 
 const apiKey = process.env.GEMINI_API_KEY || '';
-const genAI = new GoogleGenerativeAI(apiKey);
+export const genAI = new GoogleGenerativeAI(apiKey);
 const fileManager = new GoogleAIFileManager(apiKey);
 
 export const secondaryGenAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY_SECONDARY || apiKey);
