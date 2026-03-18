@@ -257,56 +257,61 @@ export default function SofiaKnowledgeBase() {
     // ─── Context Health Logic ─────────────────────────────────────────────────
     const totalChars = Object.values(kb).reduce((sum, val) => sum + val.length, 0);
 
+    // Scale: 15k = 100% (optimal target). Beyond 15k the bar stays full.
+    const TARGET_CHARS = 15000;
+
     const getContextHealth = (length: number) => {
+        const percent = Math.min(Math.max((length / TARGET_CHARS) * 100, 2), 100);
+
         if (length < 2000) return {
             label: 'Critico',
             color: 'text-red-500',
             bg: 'bg-red-500',
             borderColor: 'border-red-200',
             gradient: 'from-red-500 to-red-600',
-            percent: Math.max((length / 40000) * 100, 2),
+            percent,
             message: 'Muy poca informacion. Bally IA alucinara casi seguro.',
             description: 'El modelo necesita mas hechos y reglas para no inventar respuestas.',
         };
-        if (length < 8000) return {
+        if (length < 5000) return {
             label: 'Bajo',
             color: 'text-orange-500',
             bg: 'bg-orange-500',
             borderColor: 'border-orange-200',
             gradient: 'from-orange-400 to-orange-500',
-            percent: Math.max((length / 40000) * 100, 15),
+            percent,
             message: 'Contexto insuficiente. Completa al menos los datos del proyecto.',
             description: 'Agrega precios, metrajes y ubicacion para reducir alucinaciones.',
         };
-        if (length < 15000) return {
-            label: 'Saludable',
+        if (length < 8000) return {
+            label: 'Aceptable',
+            color: 'text-yellow-600',
+            bg: 'bg-yellow-500',
+            borderColor: 'border-yellow-200',
+            gradient: 'from-yellow-400 to-yellow-500',
+            percent,
+            message: 'Aceptable. Agrega argumentario y FAQ para mejor precision.',
+            description: 'El bot puede responder consultas basicas pero le falta contexto de ventas.',
+        };
+        if (length <= 15000) return {
+            label: 'Optimo',
             color: 'text-emerald-600',
             bg: 'bg-emerald-500',
             borderColor: 'border-emerald-200',
             gradient: 'from-emerald-500 to-emerald-600',
-            percent: Math.max((length / 40000) * 100, 40),
-            message: 'Buen nivel. Precision alta para consultas de asesores.',
-            description: 'Rango optimo para tu caso de uso. Prioriza calidad sobre cantidad.',
-        };
-        if (length < 30000) return {
-            label: 'Optimo',
-            color: 'text-blue-600',
-            bg: 'bg-blue-500',
-            borderColor: 'border-blue-200',
-            gradient: 'from-blue-500 to-blue-600',
-            percent: Math.max((length / 40000) * 100, 60),
-            message: 'Excelente. Contexto robusto y completo.',
-            description: 'Nivel ideal de detalle. Mas alla de esto el costo sube sin beneficio claro.',
+            percent,
+            message: 'Nivel optimo. Precision alta para consultas de asesores.',
+            description: 'Rango ideal: buena precision sin costos excesivos por request.',
         };
         return {
-            label: 'Maximo',
-            color: 'text-purple-600',
-            bg: 'bg-purple-600',
-            borderColor: 'border-purple-200',
-            gradient: 'from-purple-500 to-indigo-600',
-            percent: Math.min((length / 40000) * 100, 100),
-            message: 'Contexto muy amplio. Revisa que no haya informacion redundante.',
-            description: 'Cada request costara mas tokens. Verifica que todo el contenido sea necesario.',
+            label: 'Excedido',
+            color: 'text-amber-600',
+            bg: 'bg-amber-500',
+            borderColor: 'border-amber-200',
+            gradient: 'from-amber-500 to-orange-500',
+            percent: 100,
+            message: 'Excede el rango recomendado. Revisa contenido redundante.',
+            description: 'Mas de 15k chars aumenta costos sin mejorar precision significativamente.',
         };
     };
 
@@ -481,15 +486,15 @@ export default function SofiaKnowledgeBase() {
                             </div>
                         </div>
 
-                        {/* Progress Bar */}
+                        {/* Progress Bar — Scale: 0 to 15k (optimal target) */}
                         <div className="relative pt-4 pb-2 px-1">
                             <div className="relative h-5 bg-gray-100 rounded-full overflow-hidden border border-gray-200">
+                                {/* Zone backgrounds: 0-2k critical | 2k-5k low | 5k-8k acceptable | 8k-15k optimal */}
                                 <div className="absolute inset-0 flex w-full h-full opacity-30">
-                                    <div className="w-[20%] bg-red-100 border-r border-dotted border-red-200"></div>
-                                    <div className="w-[17.5%] bg-orange-50 border-r border-dotted border-orange-200"></div>
-                                    <div className="w-[17.5%] bg-emerald-50 border-r border-dotted border-emerald-200"></div>
-                                    <div className="w-[37.5%] bg-blue-50 border-r border-dotted border-blue-200"></div>
-                                    <div className="flex-1 bg-purple-50"></div>
+                                    <div className="w-[13%] bg-red-100 border-r border-dotted border-red-200"></div>
+                                    <div className="w-[20%] bg-orange-50 border-r border-dotted border-orange-200"></div>
+                                    <div className="w-[20%] bg-yellow-50 border-r border-dotted border-yellow-200"></div>
+                                    <div className="flex-1 bg-emerald-50"></div>
                                 </div>
                                 <div
                                     className={`absolute top-0 left-0 h-full rounded-full bg-gradient-to-r ${health.gradient} transition-all duration-1000 ease-out shadow-[0_2px_4px_rgba(0,0,0,0.1)] flex items-center justify-end pr-2`}
@@ -501,27 +506,23 @@ export default function SofiaKnowledgeBase() {
                                 </div>
                             </div>
 
-                            {/* Axis Labels */}
+                            {/* Axis Labels — 0, 5k, 8k, 15k */}
                             <div className="relative w-full h-8 mt-2 text-[10px] font-bold text-gray-400 select-none font-mono">
                                 <div className="absolute left-0 top-0 flex flex-col items-center">
                                     <div className="w-0.5 h-1.5 bg-gray-300 mb-0.5"></div>
                                     <span>0</span>
                                 </div>
-                                <div className={`absolute left-[20%] top-0 transform -translate-x-1/2 flex flex-col items-center ${totalChars >= 8000 ? 'text-emerald-600' : ''}`}>
-                                    <div className={`w-0.5 h-2 mb-0.5 ${totalChars >= 8000 ? 'bg-emerald-500' : 'bg-gray-300'}`}></div>
+                                <div className={`absolute left-[33%] top-0 transform -translate-x-1/2 flex flex-col items-center ${totalChars >= 5000 ? 'text-orange-500' : ''}`}>
+                                    <div className={`w-0.5 h-2 mb-0.5 ${totalChars >= 5000 ? 'bg-orange-400' : 'bg-gray-300'}`}></div>
+                                    <span>5k</span>
+                                </div>
+                                <div className={`absolute left-[53%] top-0 transform -translate-x-1/2 flex flex-col items-center ${totalChars >= 8000 ? 'text-yellow-600' : ''}`}>
+                                    <div className={`w-0.5 h-2 mb-0.5 ${totalChars >= 8000 ? 'bg-yellow-500' : 'bg-gray-300'}`}></div>
                                     <span>8k</span>
                                 </div>
-                                <div className={`absolute left-[37.5%] top-0 transform -translate-x-1/2 flex flex-col items-center ${totalChars >= 15000 ? 'text-blue-600' : ''}`}>
-                                    <div className={`w-0.5 h-2 mb-0.5 ${totalChars >= 15000 ? 'bg-blue-500' : 'bg-gray-300'}`}></div>
+                                <div className={`absolute right-0 top-0 flex flex-col items-center ${totalChars >= 15000 ? 'text-emerald-600' : ''}`}>
+                                    <div className={`w-0.5 h-2 mb-0.5 ${totalChars >= 15000 ? 'bg-emerald-500' : 'bg-gray-300'}`}></div>
                                     <span>15k</span>
-                                </div>
-                                <div className={`absolute left-[75%] top-0 transform -translate-x-1/2 flex flex-col items-center ${totalChars >= 30000 ? 'text-purple-600' : ''}`}>
-                                    <div className={`w-0.5 h-2 mb-0.5 ${totalChars >= 30000 ? 'bg-purple-500' : 'bg-gray-300'}`}></div>
-                                    <span>30k</span>
-                                </div>
-                                <div className="absolute right-0 top-0 flex flex-col items-center">
-                                    <div className="w-0.5 h-1.5 bg-gray-300 mb-0.5"></div>
-                                    <span>40k+</span>
                                 </div>
                             </div>
                         </div>
@@ -581,7 +582,7 @@ export default function SofiaKnowledgeBase() {
                             </li>
                             <li className="flex gap-2.5 items-start">
                                 <div className="min-w-[5px] h-[5px] rounded-full bg-[var(--primary-400)] mt-1.5" />
-                                <p><strong>Rango ideal: 8k-15k chars.</strong> Suficiente para precision alta sin costos excesivos.</p>
+                                <p><strong>Meta: llenar la barra hasta 15k.</strong> Suficiente para precision alta sin costos excesivos.</p>
                             </li>
                             <li className="flex gap-2.5 items-start">
                                 <div className="min-w-[5px] h-[5px] rounded-full bg-[var(--primary-400)] mt-1.5" />
