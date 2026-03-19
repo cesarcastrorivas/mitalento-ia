@@ -1,7 +1,7 @@
 import React from 'react';
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-    variant?: 'primary' | 'secondary' | 'ghost' | 'danger';
+    variant?: 'primary' | 'secondary' | 'tertiary';
     size?: 'sm' | 'md' | 'lg';
     isLoading?: boolean;
     leftIcon?: React.ReactNode;
@@ -19,19 +19,21 @@ export const Button: React.FC<ButtonProps> = ({
     disabled,
     ...props
 }) => {
-    const baseStyles = 'inline-flex items-center justify-center font-semibold transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed';
+    const baseStyles = 'inline-flex items-center justify-center font-semibold transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed outline-none';
 
+    // Primary: subtle gradient, Roundedness lg (1rem)
+    // Secondary: CTA. secondary_container (#ffb14b) with on_secondary? high-contrast.
+    // Tertiary: No background, bold primary text.
     const variants = {
-        primary: 'btn-primary text-white',
-        secondary: 'btn-secondary',
-        ghost: 'bg-transparent text-primary-700 hover:bg-primary-50',
-        danger: 'bg-red-500 text-white hover:bg-red-600 shadow-md hover:shadow-lg',
+        primary: 'bg-[linear-gradient(135deg,var(--color-primary),var(--color-primary-container))] text-white hover:brightness-110 shadow-[0_4px_14px_rgba(71,30,82,0.2)] hover:shadow-[0_6px_20px_rgba(71,30,82,0.3)] hover:-translate-y-0.5 rounded-2xl',
+        secondary: 'bg-secondary-container text-[#111c2d] hover:brightness-105 shadow-sm hover:shadow-md hover:-translate-y-0.5 rounded-2xl',
+        tertiary: 'bg-transparent text-primary hover:bg-primary/5 rounded-2xl',
     };
 
     const sizes = {
-        sm: 'text-sm px-4 py-2 rounded-full gap-1.5',
-        md: 'text-base px-8 py-4 rounded-full gap-2', // iOS Pill Style
-        lg: 'text-lg px-10 py-5 rounded-full gap-2.5',
+        sm: 'text-sm px-4 py-2 gap-2',
+        md: 'text-base px-6 py-3 gap-2.5',
+        lg: 'text-lg px-8 py-4 gap-3',
     };
 
     return (

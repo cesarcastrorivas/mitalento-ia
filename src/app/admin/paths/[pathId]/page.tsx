@@ -365,7 +365,7 @@ export default function PathCoursesPage({ params }: { params: Promise<{ pathId: 
                 maxWidth="2xl"
                 footer={
                     <>
-                        <Button variant="ghost" onClick={() => setShowModal(false)}>
+                        <Button variant="tertiary" onClick={() => setShowModal(false)}>
                             Cancelar
                         </Button>
                         <Button onClick={handleSubmit} isLoading={isSubmitting}>

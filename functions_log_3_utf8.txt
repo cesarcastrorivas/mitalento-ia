@@ -1,0 +1,169 @@
+﻿2026-03-18T20:10:35.029570Z I ssrmitalentoia: Starting new instance. Reason: DEPLOYMENT_ROLLOUT - Instance started due to traffic shifting between revisions due to deployment, traffic split adjustment, or deployment health check.
+2026-03-18T20:10:36.308002Z I ssrmitalentoia: Default STARTUP TCP probe succeeded after 1 attempt for container "worker" on port 8080.
+2026-03-18T20:10:38.537836Z I ssrmitalentoia: Starting new instance. Reason: AUTOSCALING - Instance started due to configured scaling factors (e.g. CPU utilization, request throughput, etc.) or no existing capacity for current traffic.
+2026-03-18T20:10:38.932296954Z N ssrmitalentoia: {"@type":"type.googleapis.com/google.cloud.audit.AuditLog","status":{},"authenticationInfo":{"principalEmail":"ccastro.fuxion@gmail.com","principalSubject":"user:ccastro.fuxion@gmail.com","oauthInfo":{"oauthClientId":"563584335869-fgrhgmd47bqnekij5i8b5pr03ho849e6.apps.googleusercontent.com"}},"requestMetadata":{"requestAttributes":{},"destinationAttributes":{}},"serviceName":"cloudfunctions.googleapis.com","methodName":"google.cloud.functions.v2.FunctionService.UpdateFunction","resourceName":"projects/mitalento-ia/locations/us-central1/functions/ssrmitalentoia","response":{"createTime":"2026-03-02T20:30:05.171808651Z","satisfiesPzi":true,"name":"projects/mitalento-ia/locations/us-central1/functions/ssrmitalentoia","state":"ACTIVE","updateTime":"2026-03-18T20:07:05.653014819Z","environment":"GEN_2","@type":"type.googleapis.com/google.cloud.functions.v2.Function","buildConfig":{"serviceAccount":"projects/mitalento-ia/serviceAccounts/836679235433-compute@developer.gserviceaccount.com","automaticUpdatePolicy":{},"runtime":"nodejs20","entryPoint":"ssrmitalentoia","source":{},"dockerRegistry":"ARTIFACT_REGISTRY","dockerRepository":"projects/mitalento-ia/locations/us-central1/repositories/gcf-artifacts"},"serviceConfig":{"availableMemory":"256Mi","ingressSettings":"ALLOW_ALL","uri":"https://ssrmitalentoia-awexrf4v2q-uc.a.run.app","serviceAccountEmail":"836679235433-compute@developer.gserviceaccount.com","availableCpu":"1","revision":"ssrmitalentoia-00141-ded","timeoutSeconds":60,"maxInstanceRequestConcurrency":80,"maxInstanceCount":20,"allTrafficOnLatestRevision":true},"url":"https://us-central1-mitalento-ia.cloudfunctions.net/ssrmitalentoia","labels":{"firebase-functions-codebase":"firebase-frameworks-mitalento-ia","firebase-functions-hash":"bdd2c629254fcb714e973615a7a8f0e3e60b13a0","deployment-tool":"cli-firebase"}},"resourceLocation":{"currentLocations":["us-central1"]}}
+2026-03-18T20:10:39.985650Z I ssrmitalentoia: Default STARTUP TCP probe succeeded after 1 attempt for container "worker" on port 8080.
+2026-03-18T20:19:25.896826Z I ssrmitalentoia: 
+2026-03-18T20:19:25.921180Z ? ssrmitalentoia: Firebase session cookie has incorrect "iss" (issuer) claim. Expected "https://session.firebase.google.com/mitalento-ia" but got "https://securetoken.google.com/mitalento-ia". Make sure the session cookie comes from the same Firebase project as the service account used to authenticate this SDK. See https://firebase.google.com/docs/auth/admin/manage-cookies for details on how to retrieve a session cookie.
+
+2026-03-18T20:19:28.733212Z ? ssrmitalentoia: Inicializando Firebase Admin...
+
+2026-03-18T20:19:28.733454Z ? ssrmitalentoia: Usando credenciales expl├¡citas de process.env
+
+2026-03-18T20:19:28.817931Z ? ssrmitalentoia: Firebase Admin inicializado correctamente.
+
+2026-03-18T20:19:31.400276Z W ssrmitalentoia: 
+2026-03-18T20:19:31.418579Z ? ssrmitalentoia: Firebase session cookie has incorrect "iss" (issuer) claim. Expected "https://session.firebase.google.com/mitalento-ia" but got "https://securetoken.google.com/mitalento-ia". Make sure the session cookie comes from the same Firebase project as the service account used to authenticate this SDK. See https://firebase.google.com/docs/auth/admin/manage-cookies for details on how to retrieve a session cookie.
+
+2026-03-18T20:19:31.810777Z I ssrmitalentoia: 
+2026-03-18T20:19:31.815467Z ? ssrmitalentoia: Firebase session cookie has incorrect "iss" (issuer) claim. Expected "https://session.firebase.google.com/mitalento-ia" but got "https://securetoken.google.com/mitalento-ia". Make sure the session cookie comes from the same Firebase project as the service account used to authenticate this SDK. See https://firebase.google.com/docs/auth/admin/manage-cookies for details on how to retrieve a session cookie.
+
+2026-03-18T20:19:37.652087Z I ssrmitalentoia: 
+2026-03-18T20:19:37.659844Z ? ssrmitalentoia: Firebase session cookie has incorrect "iss" (issuer) claim. Expected "https://session.firebase.google.com/mitalento-ia" but got "https://securetoken.google.com/mitalento-ia". Make sure the session cookie comes from the same Firebase project as the service account used to authenticate this SDK. See https://firebase.google.com/docs/auth/admin/manage-cookies for details on how to retrieve a session cookie.
+
+2026-03-18T20:19:37.930889Z I ssrmitalentoia: 
+2026-03-18T20:19:37.935497Z ? ssrmitalentoia: Firebase session cookie has incorrect "iss" (issuer) claim. Expected "https://session.firebase.google.com/mitalento-ia" but got "https://securetoken.google.com/mitalento-ia". Make sure the session cookie comes from the same Firebase project as the service account used to authenticate this SDK. See https://firebase.google.com/docs/auth/admin/manage-cookies for details on how to retrieve a session cookie.
+
+2026-03-18T20:19:38.241642Z I ssrmitalentoia: 
+2026-03-18T20:19:38.247168Z ? ssrmitalentoia: Firebase session cookie has incorrect "iss" (issuer) claim. Expected "https://session.firebase.google.com/mitalento-ia" but got "https://securetoken.google.com/mitalento-ia". Make sure the session cookie comes from the same Firebase project as the service account used to authenticate this SDK. See https://firebase.google.com/docs/auth/admin/manage-cookies for details on how to retrieve a session cookie.
+
+2026-03-18T20:19:38.857004Z I ssrmitalentoia: 
+2026-03-18T20:19:38.861709Z I ssrmitalentoia: 
+2026-03-18T20:19:38.861720Z ? ssrmitalentoia: Firebase session cookie has incorrect "iss" (issuer) claim. Expected "https://session.firebase.google.com/mitalento-ia" but got "https://securetoken.google.com/mitalento-ia". Make sure the session cookie comes from the same Firebase project as the service account used to authenticate this SDK. See https://firebase.google.com/docs/auth/admin/manage-cookies for details on how to retrieve a session cookie.
+
+2026-03-18T20:19:38.864827Z I ssrmitalentoia: 
+2026-03-18T20:19:38.865411Z ? ssrmitalentoia: Firebase session cookie has incorrect "iss" (issuer) claim. Expected "https://session.firebase.google.com/mitalento-ia" but got "https://securetoken.google.com/mitalento-ia". Make sure the session cookie comes from the same Firebase project as the service account used to authenticate this SDK. See https://firebase.google.com/docs/auth/admin/manage-cookies for details on how to retrieve a session cookie.
+
+2026-03-18T20:19:38.868551Z ? ssrmitalentoia: Firebase session cookie has incorrect "iss" (issuer) claim. Expected "https://session.firebase.google.com/mitalento-ia" but got "https://securetoken.google.com/mitalento-ia". Make sure the session cookie comes from the same Firebase project as the service account used to authenticate this SDK. See https://firebase.google.com/docs/auth/admin/manage-cookies for details on how to retrieve a session cookie.
+
+2026-03-18T20:19:38.876509Z I ssrmitalentoia: 
+2026-03-18T20:19:38.890038Z ? ssrmitalentoia: (node:1) MaxListenersExceededWarning: Possible EventEmitter memory leak detected. 11 uncaughtException listeners added to [process]. MaxListeners is 10. Use emitter.setMaxListeners() to increase limit
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+2026-03-18T20:19:38.893284Z ? ssrmitalentoia: Firebase session cookie has incorrect "iss" (issuer) claim. Expected "https://session.firebase.google.com/mitalento-ia" but got "https://securetoken.google.com/mitalento-ia". Make sure the session cookie comes from the same Firebase project as the service account used to authenticate this SDK. See https://firebase.google.com/docs/auth/admin/manage-cookies for details on how to retrieve a session cookie.
+
+2026-03-18T20:19:39.068985Z I ssrmitalentoia: 
+2026-03-18T20:19:39.073504Z ? ssrmitalentoia: Firebase session cookie has incorrect "iss" (issuer) claim. Expected "https://session.firebase.google.com/mitalento-ia" but got "https://securetoken.google.com/mitalento-ia". Make sure the session cookie comes from the same Firebase project as the service account used to authenticate this SDK. See https://firebase.google.com/docs/auth/admin/manage-cookies for details on how to retrieve a session cookie.
+
+2026-03-18T20:19:39.161639Z I ssrmitalentoia: 
+2026-03-18T20:19:39.166229Z ? ssrmitalentoia: Firebase session cookie has incorrect "iss" (issuer) claim. Expected "https://session.firebase.google.com/mitalento-ia" but got "https://securetoken.google.com/mitalento-ia". Make sure the session cookie comes from the same Firebase project as the service account used to authenticate this SDK. See https://firebase.google.com/docs/auth/admin/manage-cookies for details on how to retrieve a session cookie.
+
+2026-03-18T20:19:39.171259Z I ssrmitalentoia: 
+2026-03-18T20:19:39.174308Z I ssrmitalentoia: 
+2026-03-18T20:19:39.174790Z ? ssrmitalentoia: Firebase session cookie has incorrect "iss" (issuer) claim. Expected "https://session.firebase.google.com/mitalento-ia" but got "https://securetoken.google.com/mitalento-ia". Make sure the session cookie comes from the same Firebase project as the service account used to authenticate this SDK. See https://firebase.google.com/docs/auth/admin/manage-cookies for details on how to retrieve a session cookie.
+
+2026-03-18T20:19:39.177767Z ? ssrmitalentoia: Firebase session cookie has incorrect "iss" (issuer) claim. Expected "https://session.firebase.google.com/mitalento-ia" but got "https://securetoken.google.com/mitalento-ia". Make sure the session cookie comes from the same Firebase project as the service account used to authenticate this SDK. See https://firebase.google.com/docs/auth/admin/manage-cookies for details on how to retrieve a session cookie.
+
+2026-03-18T20:19:39.283464Z I ssrmitalentoia: 
+2026-03-18T20:19:39.288568Z ? ssrmitalentoia: Firebase session cookie has incorrect "iss" (issuer) claim. Expected "https://session.firebase.google.com/mitalento-ia" but got "https://securetoken.google.com/mitalento-ia". Make sure the session cookie comes from the same Firebase project as the service account used to authenticate this SDK. See https://firebase.google.com/docs/auth/admin/manage-cookies for details on how to retrieve a session cookie.
+
+2026-03-18T20:19:39.390627Z I ssrmitalentoia: 
+2026-03-18T20:19:39.394875Z ? ssrmitalentoia: Firebase session cookie has incorrect "iss" (issuer) claim. Expected "https://session.firebase.google.com/mitalento-ia" but got "https://securetoken.google.com/mitalento-ia". Make sure the session cookie comes from the same Firebase project as the service account used to authenticate this SDK. See https://firebase.google.com/docs/auth/admin/manage-cookies for details on how to retrieve a session cookie.
+
+2026-03-18T20:19:39.412504Z I ssrmitalentoia: 
+2026-03-18T20:19:39.419524Z ? ssrmitalentoia: Firebase session cookie has incorrect "iss" (issuer) claim. Expected "https://session.firebase.google.com/mitalento-ia" but got "https://securetoken.google.com/mitalento-ia". Make sure the session cookie comes from the same Firebase project as the service account used to authenticate this SDK. See https://firebase.google.com/docs/auth/admin/manage-cookies for details on how to retrieve a session cookie.
+
+2026-03-18T20:19:39.428175Z I ssrmitalentoia: 
+2026-03-18T20:19:39.438854Z ? ssrmitalentoia: Firebase session cookie has incorrect "iss" (issuer) claim. Expected "https://session.firebase.google.com/mitalento-ia" but got "https://securetoken.google.com/mitalento-ia". Make sure the session cookie comes from the same Firebase project as the service account used to authenticate this SDK. See https://firebase.google.com/docs/auth/admin/manage-cookies for details on how to retrieve a session cookie.
+
+2026-03-18T20:19:39.483581Z I ssrmitalentoia: 
+2026-03-18T20:19:39.487424Z ? ssrmitalentoia: Firebase session cookie has incorrect "iss" (issuer) claim. Expected "https://session.firebase.google.com/mitalento-ia" but got "https://securetoken.google.com/mitalento-ia". Make sure the session cookie comes from the same Firebase project as the service account used to authenticate this SDK. See https://firebase.google.com/docs/auth/admin/manage-cookies for details on how to retrieve a session cookie.
+
+2026-03-18T20:19:39.693147Z I ssrmitalentoia: 
+2026-03-18T20:19:39.698245Z ? ssrmitalentoia: Firebase session cookie has incorrect "iss" (issuer) claim. Expected "https://session.firebase.google.com/mitalento-ia" but got "https://securetoken.google.com/mitalento-ia". Make sure the session cookie comes from the same Firebase project as the service account used to authenticate this SDK. See https://firebase.google.com/docs/auth/admin/manage-cookies for details on how to retrieve a session cookie.
+
+2026-03-18T20:19:39.903691Z I ssrmitalentoia: 
+2026-03-18T20:19:39.907528Z ? ssrmitalentoia: Firebase session cookie has incorrect "iss" (issuer) claim. Expected "https://session.firebase.google.com/mitalento-ia" but got "https://securetoken.google.com/mitalento-ia". Make sure the session cookie comes from the same Firebase project as the service account used to authenticate this SDK. See https://firebase.google.com/docs/auth/admin/manage-cookies for details on how to retrieve a session cookie.
+
+2026-03-18T20:19:43.580026Z E ssrmitalentoia: 
+2026-03-18T20:19:43.585298Z ? ssrmitalentoia: Firebase session cookie has incorrect "iss" (issuer) claim. Expected "https://session.firebase.google.com/mitalento-ia" but got "https://securetoken.google.com/mitalento-ia". Make sure the session cookie comes from the same Firebase project as the service account used to authenticate this SDK. See https://firebase.google.com/docs/auth/admin/manage-cookies for details on how to retrieve a session cookie.
+
+2026-03-18T20:19:43.762221Z ? ssrmitalentoia: Error in chat API: Error: [GoogleGenerativeAI Error]: First content should be with role 'user', got model
+    at <unknown> (.next/server/chunks/[root-of-the-server]__4286d558._.js:1:12147)
+    at new D (.next/server/chunks/[root-of-the-server]__4286d558._.js:1:12782)
+    at b.startChat (.next/server/chunks/[root-of-the-server]__4286d558._.js:1:16335)
+    at N (.next/server/chunks/[root-of-the-server]__f1bea220._.js:20:264)
+    at async d (.next/server/chunks/[root-of-the-server]__f1bea220._.js:20:3441)
+    at async l (.next/server/chunks/[root-of-the-server]__f1bea220._.js:20:4482)
+
+2026-03-18T20:19:50.993091Z I ssrmitalentoia: 
+2026-03-18T20:19:50.997227Z ? ssrmitalentoia: Firebase session cookie has incorrect "iss" (issuer) claim. Expected "https://session.firebase.google.com/mitalento-ia" but got "https://securetoken.google.com/mitalento-ia". Make sure the session cookie comes from the same Firebase project as the service account used to authenticate this SDK. See https://firebase.google.com/docs/auth/admin/manage-cookies for details on how to retrieve a session cookie.
+
+2026-03-18T20:19:51.879244Z I ssrmitalentoia: 
+2026-03-18T20:19:51.884139Z ? ssrmitalentoia: Firebase session cookie has incorrect "iss" (issuer) claim. Expected "https://session.firebase.google.com/mitalento-ia" but got "https://securetoken.google.com/mitalento-ia". Make sure the session cookie comes from the same Firebase project as the service account used to authenticate this SDK. See https://firebase.google.com/docs/auth/admin/manage-cookies for details on how to retrieve a session cookie.
+
+2026-03-18T20:19:52.139463Z I ssrmitalentoia: 
+2026-03-18T20:19:52.152861Z ? ssrmitalentoia: Firebase session cookie has incorrect "iss" (issuer) claim. Expected "https://session.firebase.google.com/mitalento-ia" but got "https://securetoken.google.com/mitalento-ia". Make sure the session cookie comes from the same Firebase project as the service account used to authenticate this SDK. See https://firebase.google.com/docs/auth/admin/manage-cookies for details on how to retrieve a session cookie.
+
+2026-03-18T20:19:52.464937Z I ssrmitalentoia: 
+2026-03-18T20:19:52.469279Z ? ssrmitalentoia: Firebase session cookie has incorrect "iss" (issuer) claim. Expected "https://session.firebase.google.com/mitalento-ia" but got "https://securetoken.google.com/mitalento-ia". Make sure the session cookie comes from the same Firebase project as the service account used to authenticate this SDK. See https://firebase.google.com/docs/auth/admin/manage-cookies for details on how to retrieve a session cookie.
+
+2026-03-18T20:19:52.556449Z I ssrmitalentoia: 
+2026-03-18T20:19:52.560024Z ? ssrmitalentoia: Firebase session cookie has incorrect "iss" (issuer) claim. Expected "https://session.firebase.google.com/mitalento-ia" but got "https://securetoken.google.com/mitalento-ia". Make sure the session cookie comes from the same Firebase project as the service account used to authenticate this SDK. See https://firebase.google.com/docs/auth/admin/manage-cookies for details on how to retrieve a session cookie.
+
+2026-03-18T20:19:52.657096Z I ssrmitalentoia: 
+2026-03-18T20:19:52.660894Z ? ssrmitalentoia: Firebase session cookie has incorrect "iss" (issuer) claim. Expected "https://session.firebase.google.com/mitalento-ia" but got "https://securetoken.google.com/mitalento-ia". Make sure the session cookie comes from the same Firebase project as the service account used to authenticate this SDK. See https://firebase.google.com/docs/auth/admin/manage-cookies for details on how to retrieve a session cookie.
+
+2026-03-18T20:19:52.672265Z I ssrmitalentoia: 
+2026-03-18T20:19:52.677664Z ? ssrmitalentoia: Firebase session cookie has incorrect "iss" (issuer) claim. Expected "https://session.firebase.google.com/mitalento-ia" but got "https://securetoken.google.com/mitalento-ia". Make sure the session cookie comes from the same Firebase project as the service account used to authenticate this SDK. See https://firebase.google.com/docs/auth/admin/manage-cookies for details on how to retrieve a session cookie.
+
+2026-03-18T20:19:52.873358Z I ssrmitalentoia: 
+2026-03-18T20:19:52.877375Z ? ssrmitalentoia: Firebase session cookie has incorrect "iss" (issuer) claim. Expected "https://session.firebase.google.com/mitalento-ia" but got "https://securetoken.google.com/mitalento-ia". Make sure the session cookie comes from the same Firebase project as the service account used to authenticate this SDK. See https://firebase.google.com/docs/auth/admin/manage-cookies for details on how to retrieve a session cookie.
+
+2026-03-18T20:20:05.763508Z E ssrmitalentoia: 
+2026-03-18T20:20:05.770720Z ? ssrmitalentoia: Firebase session cookie has incorrect "iss" (issuer) claim. Expected "https://session.firebase.google.com/mitalento-ia" but got "https://securetoken.google.com/mitalento-ia". Make sure the session cookie comes from the same Firebase project as the service account used to authenticate this SDK. See https://firebase.google.com/docs/auth/admin/manage-cookies for details on how to retrieve a session cookie.
+
+2026-03-18T20:20:05.971031Z ? ssrmitalentoia: Error in chat API: Error: [GoogleGenerativeAI Error]: First content should be with role 'user', got model
+    at <unknown> (.next/server/chunks/[root-of-the-server]__4286d558._.js:1:12147)
+    at new D (.next/server/chunks/[root-of-the-server]__4286d558._.js:1:12782)
+    at b.startChat (.next/server/chunks/[root-of-the-server]__4286d558._.js:1:16335)
+    at N (.next/server/chunks/[root-of-the-server]__f1bea220._.js:20:264)
+    at async d (.next/server/chunks/[root-of-the-server]__f1bea220._.js:20:3441)
+    at async l (.next/server/chunks/[root-of-the-server]__f1bea220._.js:20:4482)
+
+2026-03-18T20:20:38.674925Z I ssrmitalentoia: 
+2026-03-18T20:20:38.687959Z ? ssrmitalentoia: Firebase session cookie has incorrect "iss" (issuer) claim. Expected "https://session.firebase.google.com/mitalento-ia" but got "https://securetoken.google.com/mitalento-ia". Make sure the session cookie comes from the same Firebase project as the service account used to authenticate this SDK. See https://firebase.google.com/docs/auth/admin/manage-cookies for details on how to retrieve a session cookie.
+
+2026-03-18T20:20:39.693841Z I ssrmitalentoia: 
+2026-03-18T20:20:39.698985Z ? ssrmitalentoia: Firebase session cookie has incorrect "iss" (issuer) claim. Expected "https://session.firebase.google.com/mitalento-ia" but got "https://securetoken.google.com/mitalento-ia". Make sure the session cookie comes from the same Firebase project as the service account used to authenticate this SDK. See https://firebase.google.com/docs/auth/admin/manage-cookies for details on how to retrieve a session cookie.
+
+2026-03-18T20:20:39.982597Z I ssrmitalentoia: 
+2026-03-18T20:20:39.987822Z ? ssrmitalentoia: Firebase session cookie has incorrect "iss" (issuer) claim. Expected "https://session.firebase.google.com/mitalento-ia" but got "https://securetoken.google.com/mitalento-ia". Make sure the session cookie comes from the same Firebase project as the service account used to authenticate this SDK. See https://firebase.google.com/docs/auth/admin/manage-cookies for details on how to retrieve a session cookie.
+
+2026-03-18T20:20:40.365480Z I ssrmitalentoia: 
+2026-03-18T20:20:40.370171Z ? ssrmitalentoia: Firebase session cookie has incorrect "iss" (issuer) claim. Expected "https://session.firebase.google.com/mitalento-ia" but got "https://securetoken.google.com/mitalento-ia". Make sure the session cookie comes from the same Firebase project as the service account used to authenticate this SDK. See https://firebase.google.com/docs/auth/admin/manage-cookies for details on how to retrieve a session cookie.
+
+2026-03-18T20:20:41.154503Z I ssrmitalentoia: 
+2026-03-18T20:20:41.159430Z ? ssrmitalentoia: Firebase session cookie has incorrect "iss" (issuer) claim. Expected "https://session.firebase.google.com/mitalento-ia" but got "https://securetoken.google.com/mitalento-ia". Make sure the session cookie comes from the same Firebase project as the service account used to authenticate this SDK. See https://firebase.google.com/docs/auth/admin/manage-cookies for details on how to retrieve a session cookie.
+
+2026-03-18T20:20:41.163709Z I ssrmitalentoia: 
+2026-03-18T20:20:41.167076Z ? ssrmitalentoia: Firebase session cookie has incorrect "iss" (issuer) claim. Expected "https://session.firebase.google.com/mitalento-ia" but got "https://securetoken.google.com/mitalento-ia". Make sure the session cookie comes from the same Firebase project as the service account used to authenticate this SDK. See https://firebase.google.com/docs/auth/admin/manage-cookies for details on how to retrieve a session cookie.
+
+2026-03-18T20:20:41.391194Z I ssrmitalentoia: 
+2026-03-18T20:20:41.395108Z ? ssrmitalentoia: Firebase session cookie has incorrect "iss" (issuer) claim. Expected "https://session.firebase.google.com/mitalento-ia" but got "https://securetoken.google.com/mitalento-ia". Make sure the session cookie comes from the same Firebase project as the service account used to authenticate this SDK. See https://firebase.google.com/docs/auth/admin/manage-cookies for details on how to retrieve a session cookie.
+
+2026-03-18T20:20:41.457992Z I ssrmitalentoia: 
+2026-03-18T20:20:41.461437Z ? ssrmitalentoia: Firebase session cookie has incorrect "iss" (issuer) claim. Expected "https://session.firebase.google.com/mitalento-ia" but got "https://securetoken.google.com/mitalento-ia". Make sure the session cookie comes from the same Firebase project as the service account used to authenticate this SDK. See https://firebase.google.com/docs/auth/admin/manage-cookies for details on how to retrieve a session cookie.
+
+2026-03-18T20:20:42.212094Z I ssrmitalentoia: 
+2026-03-18T20:20:42.216227Z ? ssrmitalentoia: Firebase session cookie has incorrect "iss" (issuer) claim. Expected "https://session.firebase.google.com/mitalento-ia" but got "https://securetoken.google.com/mitalento-ia". Make sure the session cookie comes from the same Firebase project as the service account used to authenticate this SDK. See https://firebase.google.com/docs/auth/admin/manage-cookies for details on how to retrieve a session cookie.
+
+2026-03-18T20:20:42.486520Z I ssrmitalentoia: 
+2026-03-18T20:20:47.106144Z I ssrmitalentoia: 
+2026-03-18T20:20:47.368695Z I ssrmitalentoia: 
+2026-03-18T20:20:47.376743Z ? ssrmitalentoia: Firebase session cookie has incorrect "iss" (issuer) claim. Expected "https://session.firebase.google.com/mitalento-ia" but got "https://securetoken.google.com/mitalento-ia". Make sure the session cookie comes from the same Firebase project as the service account used to authenticate this SDK. See https://firebase.google.com/docs/auth/admin/manage-cookies for details on how to retrieve a session cookie.
+
+2026-03-18T20:20:47.676956Z I ssrmitalentoia: 
+2026-03-18T20:20:47.681756Z ? ssrmitalentoia: Firebase session cookie has incorrect "iss" (issuer) claim. Expected "https://session.firebase.google.com/mitalento-ia" but got "https://securetoken.google.com/mitalento-ia". Make sure the session cookie comes from the same Firebase project as the service account used to authenticate this SDK. See https://firebase.google.com/docs/auth/admin/manage-cookies for details on how to retrieve a session cookie.
+
+2026-03-18T20:20:53.165570Z E ssrmitalentoia: 
+2026-03-18T20:20:53.172785Z ? ssrmitalentoia: Firebase session cookie has incorrect "iss" (issuer) claim. Expected "https://session.firebase.google.com/mitalento-ia" but got "https://securetoken.google.com/mitalento-ia". Make sure the session cookie comes from the same Firebase project as the service account used to authenticate this SDK. See https://firebase.google.com/docs/auth/admin/manage-cookies for details on how to retrieve a session cookie.
+
+2026-03-18T20:20:53.245301Z ? ssrmitalentoia: Error in chat API: Error: [GoogleGenerativeAI Error]: First content should be with role 'user', got model
+    at <unknown> (.next/server/chunks/[root-of-the-server]__4286d558._.js:1:12147)
+    at new D (.next/server/chunks/[root-of-the-server]__4286d558._.js:1:12782)
+    at b.startChat (.next/server/chunks/[root-of-the-server]__4286d558._.js:1:16335)
+    at N (.next/server/chunks/[root-of-the-server]__f1bea220._.js:20:264)
+    at async d (.next/server/chunks/[root-of-the-server]__f1bea220._.js:20:3441)
+    at async l (.next/server/chunks/[root-of-the-server]__f1bea220._.js:20:4482)
+

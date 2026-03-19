@@ -10,11 +10,6 @@ interface AdminPageHeaderProps {
     className?: string;
 }
 
-/**
- * AdminPageHeader — Componente de encabezado compacto para páginas admin.
- * Mobile-first: título pequeño + subtítulo mínimo en mobile, más prominente en desktop.
- * Elimina el espacio vacío superior al usar un diseño comprimido en pantallas pequeñas.
- */
 export default function AdminPageHeader({
     title,
     subtitle,
@@ -23,103 +18,25 @@ export default function AdminPageHeader({
     className = '',
 }: AdminPageHeaderProps) {
     return (
-        <div className={`admin-page-header ${className}`}>
-            <div className="admin-page-header__left">
+        <div className={`flex items-center justify-between gap-4 mb-10 min-h-[56px] ${className}`}>
+            <div className="flex items-center gap-5 min-w-0">
                 {icon && (
-                    <div className="admin-page-header__icon">
+                    <div className="w-12 h-12 rounded-2xl bg-surface-dim text-primary flex items-center justify-center flex-shrink-0 shadow-[0_4px_14px_rgba(17,28,45,0.04)]">
                         {icon}
                     </div>
                 )}
                 <div>
-                    <h1 className="admin-page-header__title">{title}</h1>
-                    {subtitle && (
-                        <p className="admin-page-header__subtitle">{subtitle}</p>
+                     {subtitle && (
+                        <h2 className="text-label-md text-secondary mb-1 truncate">{subtitle}</h2>
                     )}
+                    <h1 className="text-display-md text-on-surface m-0 leading-none truncate">{title}</h1>
                 </div>
             </div>
             {action && (
-                <div className="admin-page-header__action">
+                <div className="flex-shrink-0">
                     {action}
                 </div>
             )}
-
-            <style jsx>{`
-                .admin-page-header {
-                    display: flex;
-                    align-items: center;
-                    justify-content: space-between;
-                    gap: 0.75rem;
-                    margin-bottom: 0.875rem;
-                    min-height: 40px;
-                }
-
-                .admin-page-header__left {
-                    display: flex;
-                    align-items: center;
-                    gap: 0.625rem;
-                    min-width: 0;
-                }
-
-                .admin-page-header__icon {
-                    flex-shrink: 0;
-                    width: 34px;
-                    height: 34px;
-                    border-radius: 10px;
-                    background: var(--primary-100, #ede9fe);
-                    color: var(--primary-700, #6d28d9);
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                }
-
-                .admin-page-header__title {
-                    font-size: 1.1rem;
-                    font-weight: 800;
-                    color: var(--text-primary, #1e293b);
-                    letter-spacing: -0.02em;
-                    line-height: 1.2;
-                    white-space: nowrap;
-                    overflow: hidden;
-                    text-overflow: ellipsis;
-                    margin: 0;
-                }
-
-                .admin-page-header__subtitle {
-                    font-size: 0.72rem;
-                    color: var(--text-muted, #94a3b8);
-                    font-weight: 500;
-                    margin: 0.1rem 0 0;
-                    line-height: 1.3;
-                }
-
-                .admin-page-header__action {
-                    flex-shrink: 0;
-                }
-
-                /* Desktop: más aire */
-                @media (min-width: 768px) {
-                    .admin-page-header {
-                        margin-bottom: 1.5rem;
-                        min-height: 56px;
-                    }
-
-                    .admin-page-header__icon {
-                        width: 44px;
-                        height: 44px;
-                        border-radius: 14px;
-                    }
-
-                    .admin-page-header__title {
-                        font-size: 1.6rem;
-                        white-space: normal;
-                    }
-
-                    .admin-page-header__subtitle {
-                        font-size: 0.875rem;
-                        margin-top: 0.25rem;
-                    }
-                }
-            `}</style>
         </div>
     );
 }

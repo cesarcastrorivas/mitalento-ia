@@ -6,8 +6,8 @@ import { doc, getDoc, query, where, orderBy, getDocs, Timestamp, collection } fr
 import { db } from '@/lib/firebase';
 import { Module } from '@/types';
 import { useAuth } from '@/contexts/AuthContext';
-import styles from './page.module.css';
 import { ChevronLeft, ChevronRight, CheckCircle, Lock, AlertCircle, Trophy, Clock, PlayCircle, Menu, X, Info } from 'lucide-react';
+import { Button } from '@/components/ui/Button';
 import LoadingScreen from '@/components/LoadingScreen';
 import Toast, { ToastType } from '@/components/Toast';
 import dynamic from 'next/dynamic';
@@ -15,50 +15,39 @@ import dynamic from 'next/dynamic';
 const QuizModal = dynamic(() => import('@/components/modules/QuizModal'), {
     ssr: false,
     loading: () => (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-            <div className="bg-white rounded-2xl p-8 flex flex-col items-center gap-4 shadow-2xl">
-                <div className="w-10 h-10 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin" />
-                <p className="text-sm font-medium text-slate-500">Cargando evaluación...</p>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-scrim/60 backdrop-blur-sm">
+            <div className="bg-surface-container-lowest rounded-[2rem] p-10 flex flex-col items-center gap-6 shadow-[0_20px_40px_rgba(17,28,45,0.08)]">
+                <div className="w-12 h-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
+                <p className="text-body-md text-secondary uppercase tracking-widest font-bold font-sans">Cargando evaluación...</p>
             </div>
         </div>
     ),
 });
-
-type ViewState = 'video' | 'quiz' | 'results';
-type TabState = 'info' | 'notes';
 
 export default function ModulePage() {
     const params = useParams();
     const router = useRouter();
     const { user } = useAuth();
     const videoRef = useRef<HTMLVideoElement>(null);
-    const lastWatchedRef = useRef(0); // tracks last % sent to state, avoids stale closure
+    const lastWatchedRef = useRef(0);
     const moduleId = params.id as string;
 
     const [module, setModule] = useState<Module | null>(null);
     const [loading, setLoading] = useState(true);
 
-    // Info Panel State (Right Sidebar)
     const [infoOpen, setInfoOpen] = useState(true);
-
-    // Estado Legacy/Auxiliar
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [watchedPercentage, setWatchedPercentage] = useState(0);
     const [canTakeQuiz, setCanTakeQuiz] = useState(false);
     const [scrolled, setScrolled] = useState(false);
 
     const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
-
-    // New Modal State
     const [showQuizModal, setShowQuizModal] = useState(false);
 
     const [courseModules, setCourseModules] = useState<Module[]>([]);
     const [userProgress, setUserProgress] = useState<Record<string, any>>({});
     const [courseTitle, setCourseTitle] = useState('');
     const [coursePathId, setCoursePathId] = useState<string | null>(null);
-
-    // Legacy ViewState (para evitar errores en lógica no migrada, aunque intentaremos no usarlo)
-    const [viewState, setViewState] = useState<ViewState>('video');
 
     useEffect(() => {
         loadModuleData();
@@ -83,16 +72,15 @@ export default function ModulePage() {
     }, [moduleId, user]);
 
     const loadModuleData = async () => {
-        // MOCK DATA FOR PREVIEW
         if (moduleId === 'preview') {
             const mockModule: Module = {
                 id: 'preview',
                 courseId: 'mock-course',
                 title: 'Introducción al Liderazgo Efectivo',
-                description: 'Aprende los fundamentos del liderazgo moderno y cómo inspirar a tu equipo para alcanzar resultados extraordinarios. Esta lección cubre los principios básicos de comunicación, empatía y visión estratégica.',
-                videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4', // Sample video
+                description: 'Aprende los fundamentos del liderazgo moderno y cómo inspirar a tu equipo para alcanzar resultados extraordinarios.',
+                videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
                 order: 1,
-                isActive: true, // Assuming isActive is required
+                isActive: true,
                 passingScore: 80,
                 requiredWatchPercentage: 90,
                 transcription: 'Transcripción de ejemplo...',
@@ -102,7 +90,6 @@ export default function ModulePage() {
             setModule(mockModule);
             setCourseTitle('Curso de Liderazgo Avanzado');
 
-            // Mock sibling modules
             const mockModules: Module[] = [
                 mockModule,
                 { ...mockModule, id: '2', title: 'Comunicación Asertiva', order: 2, videoUrl: '' },
@@ -112,7 +99,6 @@ export default function ModulePage() {
             ];
             setCourseModules(mockModules);
 
-            // Mock user progress
             setUserProgress({
                 'preview': { completed: false, score: 0 },
                 '2': { completed: false, score: 0 }
@@ -123,7 +109,6 @@ export default function ModulePage() {
         }
 
         try {
-            // 1. Módulo + progreso del usuario en paralelo (independientes entre sí)
             const [moduleDoc, userDocSnap] = await Promise.all([
                 getDoc(doc(db, 'modules', moduleId)),
                 user ? getDoc(doc(db, 'users', user.uid)) : Promise.resolve(null),
@@ -140,15 +125,9 @@ export default function ModulePage() {
                 setUserProgress(userDocSnap.data()?.progress || {});
             }
 
-            // 2. Usar datos denormalizados si existen, sino fallback a fetch del curso
-            if (currentModuleData.courseTitle) {
-                setCourseTitle(currentModuleData.courseTitle);
-            }
-            if (currentModuleData.pathId) {
-                setCoursePathId(currentModuleData.pathId);
-            }
+            if (currentModuleData.courseTitle) setCourseTitle(currentModuleData.courseTitle);
+            if (currentModuleData.pathId) setCoursePathId(currentModuleData.pathId);
 
-            // Cargar módulos hermanos (siempre necesario para la sidebar)
             if (currentModuleData.courseId) {
                 const siblingsQ = query(
                     collection(db, 'modules'),
@@ -157,7 +136,6 @@ export default function ModulePage() {
                     orderBy('order', 'asc')
                 );
 
-                // Solo fetch del curso si no hay datos denormalizados
                 if (!currentModuleData.courseTitle || !currentModuleData.pathId) {
                     const [courseDoc, modulesSnapshot] = await Promise.all([
                         getDoc(doc(db, 'courses', currentModuleData.courseId)),
@@ -172,7 +150,6 @@ export default function ModulePage() {
 
                     setCourseModules(modulesSnapshot.docs.map(d => ({ id: d.id, ...d.data() } as Module)));
                 } else {
-                    // Datos denormalizados disponibles: solo cargar siblings
                     const modulesSnapshot = await getDocs(siblingsQ);
                     setCourseModules(modulesSnapshot.docs.map(d => ({ id: d.id, ...d.data() } as Module)));
                 }
@@ -186,7 +163,6 @@ export default function ModulePage() {
     };
 
     const handleBack = () => {
-        // Al "volver", vamos a la ruta de aprendizaje (lista de cursos)
         if (coursePathId) {
             router.push(`/paths/${coursePathId}`);
         } else {
@@ -198,7 +174,6 @@ export default function ModulePage() {
         if (!videoRef.current || !module) return;
         const percentage = (videoRef.current.currentTime / videoRef.current.duration) * 100;
 
-        // Only update state every 2% to avoid re-renders on every video frame (~30/s)
         if (percentage - lastWatchedRef.current >= 2) {
             lastWatchedRef.current = percentage;
             setWatchedPercentage(percentage);
@@ -230,23 +205,25 @@ export default function ModulePage() {
     if (!module) return null;
 
     return (
-        <div className={styles.layout}>
-            {/* 0. Overlay Transparente (Mobile Drawer) */}
-            <div
-                className={`${styles.sidebarOverlay} ${sidebarOpen ? styles.active : ''}`}
-                onClick={() => setSidebarOpen(false)}
-            />
+        <div className="flex bg-surface font-sans text-on-surface h-screen overflow-hidden">
+            {/* Sidebar Overlay (Mobile) */}
+            {sidebarOpen && (
+                <div
+                    className="fixed inset-0 bg-scrim/20 backdrop-blur-sm z-40 lg:hidden transition-opacity"
+                    onClick={() => setSidebarOpen(false)}
+                />
+            )}
 
-            {/* 1. Sidebar de Navegación (Izquierda) */}
-            <aside className={`${styles.sidebar} ${sidebarOpen ? styles.sidebarOpen : styles.sidebarClosed} select-none`}>
-                <div className={styles.sidebarHeader}>
-                    <h2 className="line-clamp-2">{courseTitle || 'Contenido del Curso'}</h2>
-                    <button onClick={() => setSidebarOpen(false)} className="md:hidden">
+            {/* Sidebar de Navegación */}
+            <aside className={`fixed lg:relative inset-y-0 left-0 z-50 w-72 bg-surface border-r border-outline-variant/15 flex flex-col transition-transform duration-300 ease-in-out ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0 lg:hidden'}`}>
+                <div className="p-6 border-b border-outline-variant/15 flex items-center justify-between">
+                    <h2 className="text-display-sm text-on-surface leading-snug line-clamp-2">{courseTitle || 'Contenido del Curso'}</h2>
+                    <button onClick={() => setSidebarOpen(false)} className="lg:hidden p-2 text-secondary hover:text-on-surface hover:bg-surface-dim rounded-full transition-colors">
                         <X size={20} />
                     </button>
                 </div>
 
-                <div className={styles.moduleList}>
+                <div className="flex-1 overflow-y-auto p-4 space-y-2">
                     {courseModules.map((m, idx) => {
                         const isCompleted = userProgress[m.id]?.completed;
                         const isCurrent = m.id === module.id;
@@ -257,22 +234,24 @@ export default function ModulePage() {
                                 key={m.id}
                                 onClick={() => !isLocked && router.push(`/modules/${m.id}`)}
                                 disabled={isLocked}
-                                className={`${styles.moduleItem} ${isCurrent ? styles.active : ''} ${isLocked ? styles.locked : ''}`}
+                                className={`w-full text-left flex items-start p-4 rounded-2xl transition-all duration-300 border border-transparent ${isCurrent ? 'bg-primary-container/20 border-primary/20' : isLocked ? 'opacity-50 cursor-not-allowed' : 'hover:bg-surface-dim'}`}
                             >
-                                <div className={styles.moduleStatus}>
+                                <div className="mt-1 mr-4">
                                     {isCompleted ? (
-                                        <CheckCircle size={16} className="text-green-500" />
+                                        <CheckCircle size={18} className="text-emerald-500" />
                                     ) : isLocked ? (
-                                        <Lock size={16} className="text-gray-400" />
+                                        <Lock size={18} className="text-outline-variant" />
                                     ) : isCurrent ? (
-                                        <PlayCircle size={16} className="text-purple-600" />
+                                        <PlayCircle size={18} className="text-primary animate-pulse" />
                                     ) : (
-                                        <div className={styles.emptyCircle} />
+                                        <div className="w-4 h-4 rounded-full border border-outline-variant" />
                                     )}
                                 </div>
-                                <div className={styles.moduleInfo}>
-                                    <span className={styles.moduleTitle}>{m.order}. {m.title}</span>
-                                    <span className={styles.moduleDuration}>
+                                <div className="flex-1">
+                                    <span className={`block text-body-md ${isCurrent ? 'font-bold text-primary' : 'font-medium text-on-surface'}`}>
+                                        {m.order}. {m.title}
+                                    </span>
+                                    <span className={`block text-[10px] tracking-wide uppercase mt-1 ${isCurrent ? 'text-primary' : isCompleted ? 'text-emerald-500' : 'text-secondary'}`}>
                                         {isCurrent ? 'Reproduciendo' : isCompleted ? 'Completado' : 'Pendiente'}
                                     </span>
                                 </div>
@@ -282,48 +261,48 @@ export default function ModulePage() {
                 </div>
             </aside>
 
-            {/* 2. Contenido Principal (Centro - Video + Metadata) */}
-            <main className={styles.mainContent}>
+            {/* Contenido Principal */}
+            <main className="flex-1 flex flex-col h-full bg-surface overflow-hidden relative">
                 {/* Header Superior */}
-                <header className={styles.topBar}>
-                    <div className="flex items-center gap-3">
-                        <button onClick={() => setSidebarOpen(!sidebarOpen)} className={styles.menuToggle} title="Menú de Curso">
+                <header className="h-16 border-b border-outline-variant/15 flex items-center justify-between px-4 sm:px-6 bg-surface/80 backdrop-blur-md z-30 shrink-0">
+                    <div className="flex items-center gap-2">
+                        <button onClick={() => setSidebarOpen(!sidebarOpen)} className="p-2 text-on-surface hover:bg-surface-dim rounded-lg transition-colors lg:hidden" title="Menú de Curso">
                             <Menu size={20} />
                         </button>
-                        <button onClick={handleBack} className={styles.backLink}>
+                        <button onClick={handleBack} className="flex items-center gap-2 text-sm font-bold text-secondary hover:text-on-surface transition-colors uppercase tracking-wider">
                             <ChevronLeft size={16} /> <span className="hidden sm:inline">Volver</span>
                         </button>
                     </div>
 
-                    {/* Título y Progreso Breve */}
-                    <div className="flex-1 text-center hidden md:block">
-                        <span className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1 block">LECCIÓN ACTUAL</span>
-                        <span className="text-sm font-bold text-gray-800 line-clamp-1">{module.title}</span>
+                    <div className="flex-1 text-center hidden md:block px-6">
+                        <span className="text-[10px] font-extrabold text-primary uppercase tracking-widest mb-1 block">LECCIÓN ACTUAL</span>
+                        <span className="text-sm font-bold text-on-surface line-clamp-1">{module.title}</span>
                     </div>
 
                     <div className="flex items-center gap-3">
                         {nextModule ? (
-                            <button
+                            <Button
                                 onClick={handleNext}
-                                className={`${styles.nextLink} ${isNextLocked ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                title={isNextLocked ? 'Completa esta lección para continuar' : 'Siguiente Lección'}
+                                variant="tertiary"
+                                className={isNextLocked ? 'opacity-50' : ''}
+                                title={isNextLocked ? 'Completa esta lección' : 'Siguiente Lección'}
                                 disabled={isNextLocked}
                             >
-                                <span className="hidden sm:inline">Siguiente</span> <ChevronRight size={16} />
-                            </button>
+                                <span className="hidden sm:inline uppercase text-[11px] tracking-wider px-2">Siguiente</span> <ChevronRight size={16} />
+                            </Button>
                         ) : (
-                            <button
+                            <Button
                                 onClick={handleBack}
-                                className={styles.nextLink}
+                                variant="tertiary"
                                 title="Volver al curso"
                             >
-                                <span className="hidden sm:inline">Finalizar</span> <CheckCircle size={16} className="ml-1" />
-                            </button>
+                                <span className="hidden sm:inline uppercase text-[11px] tracking-wider px-2">Finalizar</span> <CheckCircle size={16} className="ml-1" />
+                            </Button>
                         )}
 
                         <button
                             onClick={() => setInfoOpen(!infoOpen)}
-                            className={`${styles.menuToggle} ${infoOpen ? 'bg-indigo-50 text-indigo-600' : ''}`}
+                            className={`p-2 rounded-lg transition-colors ${infoOpen ? 'bg-primary/10 text-primary' : 'text-on-surface hover:bg-surface-dim'}`}
                             title="Información de la Lección"
                         >
                             {infoOpen ? <ChevronRight size={20} /> : <Info size={20} />}
@@ -331,152 +310,100 @@ export default function ModulePage() {
                     </div>
                 </header>
 
-                <div className={styles.videoContainer}>
-                    {/* Área de Video - Modo Cine Estático */}
-                    <div className={styles.videoStage}>
-                        <video
-                            ref={videoRef}
-                            src={module.videoUrl}
-                            controls
-                            onTimeUpdate={handleTimeUpdate}
-                            onEnded={() => {
-                                // Cuando el video termina (100%), abrir quiz automáticamente
-                                if (canTakeQuiz) {
-                                    setShowQuizModal(true);
-                                }
-                            }}
-                            className={styles.videoPlayer}
-                        />
+                <div className="flex-1 overflow-y-auto w-full relative">
+                    <div className="w-full flex justify-center bg-surface-container-lowest">
+                        <div className="w-full max-w-5xl aspect-video bg-surface-dim relative shadow-md">
+                            <video
+                                ref={videoRef}
+                                src={module.videoUrl}
+                                controls
+                                onTimeUpdate={handleTimeUpdate}
+                                onEnded={() => {
+                                    if (canTakeQuiz) {
+                                        setShowQuizModal(true);
+                                    }
+                                }}
+                                className="w-full h-full object-contain"
+                            />
+                        </div>
                     </div>
 
-                    {/* Información de la Lección debajo del video */}
-                    <div className={styles.videoDescription}>
-                        <h3 className="text-lg font-bold text-gray-700 mb-2 mt-2">Acerca de esta lección</h3>
-                        <p className="text-gray-600 leading-relaxed max-w-4xl text-base">{module.description}</p>
+                    <div className="max-w-5xl mx-auto p-6 md:p-10 pb-24">
+                        <h3 className="text-display-md text-on-surface mb-6">Acerca de esta lección</h3>
+                        <p className="text-body-lg text-secondary leading-relaxed max-w-4xl">{module.description}</p>
+                    </div>
+                </div>
+            </main>
 
-                        {/* 2.5 Tarjeta de Progreso (Visible solo en Móvil) */}
-                        <div className={styles.mobileStatsCard}>
-                            <div className={styles.sidebarStatItem}>
-                                <div className={styles.statHeaderRow}>
-                                    <div className={styles.sidebarStatLabel}>
-                                        <Clock size={16} className="text-indigo-500" />
+            {/* Panel de Información (Derecha) */}
+            <aside className={`fixed inset-y-0 right-0 z-40 w-80 lg:w-96 bg-surface-container-lowest border-l border-outline-variant/15 transform transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0 ${infoOpen ? 'translate-x-0' : 'translate-x-full lg:hidden'} pt-16 lg:pt-0`}>
+                <div className="h-full flex flex-col">
+                    <div className="p-6 border-b border-outline-variant/15 flex items-center justify-between">
+                        <span className="text-sm font-bold text-on-surface uppercase tracking-wider">Tu Progreso</span>
+                        <button onClick={() => setInfoOpen(false)} className="lg:hidden p-2 text-secondary hover:text-on-surface hover:bg-surface-dim rounded-full transition-colors">
+                            <X size={20} />
+                        </button>
+                    </div>
+
+                    <div className="p-6 flex-1 space-y-8 overflow-y-auto">
+                        <div className="space-y-6">
+                            {/* Progreso Video */}
+                            <div className="space-y-2">
+                                <div className="flex justify-between items-center text-sm font-bold">
+                                    <div className="flex items-center gap-2 text-secondary">
+                                        <Clock size={16} className="text-primary" />
                                         <span>Progreso Video</span>
                                     </div>
-                                    <span className={styles.statValue}>{Math.round(watchedPercentage)}%</span>
+                                    <span className="text-on-surface">{Math.round(watchedPercentage)}%</span>
                                 </div>
-                                <div className={styles.progressBarContainer}>
+                                <div className="h-2 w-full bg-surface-dim rounded-full overflow-hidden">
                                     <div
-                                        className={styles.progressBarFill}
+                                        className="h-full bg-primary transition-all duration-300 ease-out rounded-full"
                                         style={{ width: `${Math.round(watchedPercentage)}%` }}
                                     ></div>
                                 </div>
                             </div>
 
-                            <div className={styles.sidebarStatItem}>
-                                <div className={styles.statHeaderRow}>
-                                    <div className={styles.sidebarStatLabel}>
-                                        <Trophy size={16} className={canTakeQuiz ? 'text-green-500' : 'text-gray-400'} />
+                            {/* Requisito Quiz */}
+                            <div className="space-y-2">
+                                <div className="flex justify-between items-center text-sm font-bold">
+                                    <div className="flex items-center gap-2 text-secondary">
+                                        <Trophy size={16} className={canTakeQuiz ? 'text-emerald-500' : 'text-outline-variant'} />
                                         <span>Requisito Quiz</span>
                                     </div>
-                                    <span className={styles.statValue}>{module.requiredWatchPercentage}%</span>
+                                    <span className="text-on-surface">{module.requiredWatchPercentage}%</span>
                                 </div>
-                                <div className={styles.progressBarContainer}>
+                                <div className="h-2 w-full bg-surface-dim rounded-full overflow-hidden">
                                     <div
-                                        className={styles.progressBarFill}
-                                        style={{ width: `${module.requiredWatchPercentage}%`, backgroundColor: '#e2e8f0' }}
+                                        className="h-full bg-outline-variant transition-all duration-300 ease-out rounded-full"
+                                        style={{ width: `${module.requiredWatchPercentage}%` }}
                                     ></div>
                                 </div>
                             </div>
-
-                            {!canTakeQuiz && (
-                                <div className="bg-orange-50 border border-orange-100 rounded-xl p-3 text-xs text-orange-800 flex items-start gap-2">
-                                    <AlertCircle size={16} className="mt-0.5 flex-shrink-0 text-orange-500" />
-                                    <p>Debes ver al menos el <strong>{module.requiredWatchPercentage}% del video</strong> para habilitar la evaluación.</p>
-                                </div>
-                            )}
-
-                            <div className={styles.sidebarCta}>
-                                <button
-                                    onClick={handleStartQuiz}
-                                    disabled={!canTakeQuiz && !userProgress[module.id]?.completed}
-                                    className={styles.ctaButton}
-                                >
-                                    {userProgress[module.id]?.completed ? 'Revisar Resultados' : 'Iniciar Evaluación'}
-                                    <ChevronRight size={18} />
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </main>
-
-            {/* 3. Panel de Información (Derecha) */}
-            <aside className={`${styles.infoPanel} ${infoOpen ? '' : styles.infoClosed}`}>
-                <div className={styles.infoHeader}>
-                    <span className="text-sm font-bold text-gray-400 uppercase tracking-wider">Detalles de la Lección</span>
-                    <button onClick={() => setInfoOpen(false)} className="md:hidden text-gray-400">
-                        <X size={20} />
-                    </button>
-                </div>
-
-                <div className={styles.infoContent}>
-                    {/* El título principal se movió debajo del video. La sidebar derecha ahora es puramente funcional. */}
-
-                    <div className={styles.sidebarStats}>
-                        <div className={styles.sidebarStatItem}>
-                            <div className={styles.statHeaderRow}>
-                                <div className={styles.sidebarStatLabel}>
-                                    <Clock size={16} className="text-indigo-500" />
-                                    <span>Progreso Video</span>
-                                </div>
-                                <span className={styles.statValue}>{Math.round(watchedPercentage)}%</span>
-                            </div>
-                            <div className={styles.progressBarContainer}>
-                                <div
-                                    className={styles.progressBarFill}
-                                    style={{ width: `${Math.round(watchedPercentage)}%` }}
-                                ></div>
-                            </div>
                         </div>
 
-                        <div className={styles.sidebarStatItem}>
-                            <div className={styles.statHeaderRow}>
-                                <div className={styles.sidebarStatLabel}>
-                                    <Trophy size={16} className={canTakeQuiz ? 'text-green-500' : 'text-gray-400'} />
-                                    <span>Requisito Quiz</span>
-                                </div>
-                                <span className={styles.statValue}>{module.requiredWatchPercentage}%</span>
+                        {!canTakeQuiz && (
+                            <div className="glass-panel bg-orange-50/50 border border-orange-200/50 rounded-2xl p-4 flex items-start gap-3">
+                                <AlertCircle size={20} className="text-orange-500 flex-shrink-0" />
+                                <p className="text-xs text-orange-900 leading-relaxed font-medium">Debes ver al menos el <strong className="font-extrabold">{module.requiredWatchPercentage}% del video</strong> para habilitar la evaluación y avanzar.</p>
                             </div>
-                            <div className={styles.progressBarContainer}>
-                                <div
-                                    className={styles.progressBarFill}
-                                    style={{ width: `${module.requiredWatchPercentage}%`, backgroundColor: '#e2e8f0' }}
-                                ></div>
-                            </div>
-                        </div>
-                    </div>
+                        )}
 
-                    {!canTakeQuiz && (
-                        <div className="bg-orange-50 border border-orange-100 rounded-xl p-3 text-xs text-orange-800 flex items-start gap-2">
-                            <AlertCircle size={16} className="mt-0.5 flex-shrink-0 text-orange-500" />
-                            <p>Debes ver al menos el <strong>{module.requiredWatchPercentage}% del video</strong> para habilitar la evaluación.</p>
+                        <div className="pt-6 border-t border-outline-variant/15 mt-auto">
+                            <Button
+                                onClick={handleStartQuiz}
+                                disabled={!canTakeQuiz && !userProgress[module.id]?.completed}
+                                className="w-full py-4 uppercase tracking-widest text-xs font-black shadow-xl"
+                                variant={userProgress[module.id]?.completed ? 'secondary' : 'primary'}
+                            >
+                                {userProgress[module.id]?.completed ? 'Revisar Resultados' : 'Iniciar Evaluación'}
+                            </Button>
                         </div>
-                    )}
-
-                    <div className={styles.sidebarCta}>
-                        <button
-                            onClick={handleStartQuiz}
-                            disabled={!canTakeQuiz && !userProgress[module.id]?.completed}
-                            className={styles.ctaButton}
-                        >
-                            {userProgress[module.id]?.completed ? 'Revisar Resultados' : 'Iniciar Evaluación'}
-                            <ChevronRight size={18} />
-                        </button>
                     </div>
                 </div>
             </aside>
 
-            {/* NEW QUIZ MODAL (Dynamically Loaded) */}
+            {/* Quiz Modal */}
             {showQuizModal && module && user && (
                 <QuizModal
                     module={module}

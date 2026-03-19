@@ -103,12 +103,17 @@ function buildSystemInstruction(kb: KnowledgeBase): string {
 function toGeminiHistory(history: Array<{ role: string; content: string }>): Array<{ role: 'user' | 'model'; parts: Array<{ text: string }> }> {
     if (!Array.isArray(history)) return [];
 
-    return history
-        .filter(msg => msg.content?.trim())
-        .map(msg => ({
-            role: (msg.role === 'user' ? 'user' : 'model') as 'user' | 'model',
-            parts: [{ text: msg.content }],
-        }));
+    let filteredHistory = history.filter(msg => msg.content?.trim());
+    
+    // Gemini startChat history MUST start with 'user' role.
+    while (filteredHistory.length > 0 && filteredHistory[0].role !== 'user') {
+        filteredHistory.shift();
+    }
+
+    return filteredHistory.map(msg => ({
+        role: (msg.role === 'user' ? 'user' : 'model') as 'user' | 'model',
+        parts: [{ text: msg.content }],
+    }));
 }
 
 export async function POST(req: NextRequest) {

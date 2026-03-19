@@ -36,13 +36,13 @@ export default function StudentLayout({
     // Si es preview, renderizar sin comprobaciones
     if (isPreview) {
         return (
-            <>
+            <div className="min-h-screen bg-surface font-sans text-on-surface">
                 {/* Opcional: Podríamos ocultar la NavBar en preview si quisiéramos, pero mejor dejarla para consistencia */}
                 <StudentNavBar />
-                <main style={{ paddingBottom: '80px' }}>
+                <main className="pb-24 pt-20 md:pl-24">
                     {children}
                 </main>
-            </>
+            </div>
         );
     }
 
@@ -58,18 +58,18 @@ export default function StudentLayout({
     // Hide NavBar for module detail pages to allow fullscreen player
     if (isModuleDetail) {
         return (
-            <main style={{ height: '100vh', overflow: 'hidden' }}>
+            <main className="h-screen w-full overflow-hidden bg-surface text-on-surface">
                 {children}
             </main>
         );
     }
 
     return (
-        <>
+        <div className="min-h-screen bg-surface font-sans text-on-surface">
             <StudentNavBar />
-            <main style={{ paddingBottom: '80px' }}>
+            <main className="pb-24 pt-20 md:pl-24">
                 {children}
             </main>
-        </>
+        </div>
     );
 }

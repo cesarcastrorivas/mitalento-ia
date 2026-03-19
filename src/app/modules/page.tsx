@@ -84,37 +84,28 @@ export default function ModulesPage() {
 
     if (loading) {
         return (
-            <div className="max-w-5xl mx-auto px-6 py-12 space-y-12">
+            <div className="max-w-6xl mx-auto px-4 sm:px-8 py-8 lg:py-16 space-y-12 animate-fade-in">
                 {/* Skeleton Header */}
-                <header className="flex flex-col md:flex-row items-center justify-between gap-6">
-                    <div className="text-center md:text-left">
-                        <div className="sk" style={{ width: '300px', height: '28px', marginBottom: '0.5rem' }} />
-                        <div className="sk" style={{ width: '380px', height: '14px' }} />
+                <header className="flex flex-col md:flex-row items-center justify-between gap-8">
+                    <div className="text-center md:text-left space-y-3">
+                        <div className="w-[300px] max-w-[80vw] mx-auto md:mx-0 h-10 bg-surface-dim animate-pulse rounded-2xl" />
+                        <div className="w-[380px] max-w-[90vw] mx-auto md:mx-0 h-5 bg-surface-dim animate-pulse rounded-lg" />
                     </div>
-                    <div style={{ minWidth: '300px', padding: '1rem', background: 'rgba(255,255,255,0.8)', borderRadius: '20px' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                            <div className="sk" style={{ width: '120px', height: '14px' }} />
-                            <div className="sk" style={{ width: '40px', height: '14px' }} />
-                        </div>
-                        <div className="sk" style={{ width: '100%', height: '8px', borderRadius: '99px' }} />
-                        <div className="sk" style={{ width: '100px', height: '12px', marginTop: '0.5rem', marginLeft: 'auto' }} />
-                    </div>
+                    <div className="w-full md:w-[320px] h-[100px] bg-surface-dim animate-pulse rounded-[2rem]" />
                 </header>
 
                 {/* Skeleton Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                     {[1, 2, 3, 4, 5, 6].map(i => (
-                        <div key={i} style={{ background: '#fff', borderRadius: '20px', overflow: 'hidden', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.02)' }}>
-                            {/* Thumbnail skeleton */}
-                            <div className="sk" style={{ width: '100%', aspectRatio: '16/9', borderRadius: '0' }} />
-                            {/* Content skeleton */}
-                            <div style={{ padding: '1.5rem' }}>
-                                <div className="sk" style={{ width: '80px', height: '12px', marginBottom: '0.75rem' }} />
-                                <div className="sk" style={{ width: '85%', height: '18px', marginBottom: '0.5rem' }} />
-                                <div className="sk" style={{ width: '100%', height: '14px', marginBottom: '0.25rem' }} />
-                                <div className="sk" style={{ width: '65%', height: '14px', marginBottom: '1.5rem' }} />
-                                <div style={{ borderTop: '1px solid #f1f5f9', paddingTop: '1rem' }}>
-                                    <div className="sk" style={{ width: '100%', height: '40px', borderRadius: '12px' }} />
+                        <div key={i} className="card-premium bg-surface-container-lowest h-[400px] rounded-[2rem] overflow-hidden">
+                            <div className="w-full aspect-video bg-surface-dim animate-pulse" />
+                            <div className="p-8 space-y-5">
+                                <div className="w-24 h-4 bg-outline-variant/20 animate-pulse rounded-full" />
+                                <div className="w-3/4 h-7 bg-outline-variant/20 animate-pulse rounded-lg" />
+                                <div className="w-full h-4 bg-outline-variant/10 animate-pulse rounded-lg" />
+                                <div className="w-2/3 h-4 bg-outline-variant/10 animate-pulse rounded-lg" />
+                                <div className="pt-6 mt-auto border-t border-outline-variant/15">
+                                    <div className="w-full h-12 bg-primary/10 animate-pulse rounded-2xl" />
                                 </div>
                             </div>
                         </div>
@@ -129,97 +120,97 @@ export default function ModulesPage() {
     const progress = totalModules > 0 ? (completedCount / totalModules) * 100 : 0;
 
     return (
-        <div className="max-w-5xl mx-auto px-6 py-12 space-y-12">
-            <header className="flex flex-col md:flex-row items-center justify-between gap-6">
+        <div className="max-w-6xl mx-auto px-4 sm:px-8 py-8 lg:py-16 space-y-12">
+            <header className="flex flex-col md:flex-row items-center justify-between gap-8">
                 <div className="text-center md:text-left">
-                    <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Módulos de Entrenamiento</h1>
-                    <p className="text-text-secondary mt-1 max-w-lg">Completa todos los módulos para obtener tu certificación</p>
+                    <h1 className="text-display-lg text-on-surface m-0 mb-2">Módulos de Entrenamiento</h1>
+                    <p className="text-body-lg text-secondary max-w-lg m-0">Completa todos los módulos para obtener tu certificación</p>
                 </div>
 
-                <Card className="!p-4 flex items-center gap-6 min-w-[300px] !bg-white/80">
-                    <div className="flex-1 space-y-2">
-                        <div className="flex justify-between items-end text-sm font-medium">
-                            <span className="text-gray-900">Progreso General</span>
-                            <span className="text-primary-600 font-bold">{Math.round(progress)}%</span>
+                <Card className="card-premium bg-surface-container-lowest flex items-center gap-6 min-w-full md:min-w-[320px] p-6 rounded-[2rem]">
+                    <div className="flex-1 space-y-3">
+                        <div className="flex justify-between items-end text-sm font-bold">
+                            <span className="text-on-surface">Progreso General</span>
+                            <span className="text-primary text-base">{Math.round(progress)}%</span>
                         </div>
-                        <div className="h-2 w-full bg-gray-100 rounded-full overflow-hidden">
-                            <div className="h-full bg-gradient-to-r from-primary-500 to-primary-400 transition-all duration-1000 ease-out rounded-full" style={{ width: `${progress}%` }} />
+                        <div className="h-2.5 w-full bg-surface-dim rounded-full overflow-hidden shadow-inner">
+                            <div className="h-full bg-gradient-to-r from-primary to-primary-container transition-all duration-1000 ease-out rounded-full" style={{ width: `${progress}%` }} />
                         </div>
-                        <p className="text-xs text-text-secondary text-right">{completedCount} de {totalModules} completados</p>
+                        <p className="text-xs font-semibold text-secondary text-right tracking-wide uppercase">{completedCount} de {totalModules} completados</p>
                     </div>
                 </Card>
             </header>
 
             {modules.length === 0 ? (
-                <div className="col-span-full flex flex-col items-center justify-center p-12 text-center bg-white/50 rounded-[32px] border border-dashed border-gray-300">
-                    <div className="text-4xl mb-4 opacity-50">📚</div>
-                    <h3 className="text-xl font-bold text-gray-900 mb-2">Sin módulos disponibles</h3>
-                    <p className="text-text-secondary">Aún no hay módulos de entrenamiento disponibles. Contacta a tu administrador.</p>
+                <div className="col-span-full flex flex-col items-center justify-center p-16 text-center card-premium bg-surface-container-lowest rounded-[3rem]">
+                    <div className="text-6xl mb-6 opacity-40">📚</div>
+                    <h3 className="text-display-sm text-on-surface m-0 mb-3">Sin módulos disponibles</h3>
+                    <p className="text-body-lg text-secondary max-w-md">Aún no hay módulos de entrenamiento disponibles. Contacta a tu administrador.</p>
                 </div>
             ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                     {modules.map((module, index) => {
                         const isLocked = index > 0 && !modules[index - 1].completed;
 
                         return (
                             <Card
                                 key={module.id}
-                                className={`!p-0 h-full flex flex-col ${isLocked ? 'opacity-70 grayscale' : 'hover:!scale-[1.02]'}`}
-                                glass={!isLocked}
+                                className={`card-premium bg-surface-container-lowest h-full flex flex-col p-0 overflow-hidden transform transition-all duration-500 rounded-[2rem] ${isLocked ? 'opacity-70 grayscale hover:grayscale-0' : 'hover:-translate-y-2 hover:shadow-[0_20px_40px_rgba(17,28,45,0.08)]'}`}
+                                glass={false}
                             >
                                 {/* Thumbnail Area */}
-                                <div className="aspect-video bg-gray-100 relative overflow-hidden group">
+                                <div className="aspect-video bg-surface-dim relative group">
                                     {isLocked ? (
-                                        <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-100/80 backdrop-blur-sm z-10 text-gray-500">
-                                            <span className="text-3xl mb-2">🔒</span>
-                                            <span className="text-xs font-bold uppercase tracking-wider">Bloqueado</span>
+                                        <div className="absolute inset-0 flex flex-col items-center justify-center bg-surface-dim/80 backdrop-blur-md z-10 text-secondary">
+                                            <span className="text-4xl mb-3">🔒</span>
+                                            <span className="text-xs font-bold uppercase tracking-widest">Bloqueado</span>
                                         </div>
                                     ) : (
                                         <>
                                             <video src={module.videoUrl} preload="none" className="w-full h-full object-cover" />
-                                            <div className="absolute inset-0 bg-black/10 group-hover:bg-black/20 transition-colors flex items-center justify-center">
-                                                <div className="w-12 h-12 rounded-full bg-white/30 backdrop-blur-md flex items-center justify-center text-white shadow-lg group-hover:scale-110 transition-transform">
-                                                    ▶
+                                            <div className="absolute inset-0 bg-primary/20 group-hover:bg-primary/10 transition-colors flex items-center justify-center">
+                                                <div className="w-14 h-14 rounded-full glass-panel flex flex-col items-center justify-center text-primary shadow-lg group-hover:scale-110 transition-transform duration-300">
+                                                    <span className="ml-1 text-xl">▶</span>
                                                 </div>
                                             </div>
                                         </>
                                     )}
 
                                     {module.completed && (
-                                        <div className="absolute top-3 right-3 px-2 py-1 bg-green-500 text-white text-[10px] font-bold rounded-full shadow-sm flex items-center gap-1">
+                                        <div className="absolute top-4 right-4 px-3 py-1.5 bg-emerald-500 text-white text-[11px] font-bold tracking-widest uppercase rounded-full shadow-lg flex items-center gap-1.5 border border-emerald-400">
                                             <span>✓</span> Completado
                                         </div>
                                     )}
                                 </div>
 
                                 {/* Content Area */}
-                                <div className="p-6 flex-1 flex flex-col">
-                                    <span className="text-xs font-bold text-primary-600 uppercase tracking-wider mb-2 block">
+                                <div className="p-8 flex-1 flex flex-col">
+                                    <span className="text-[11px] font-extrabold text-primary uppercase tracking-widest mb-3 block">
                                         Módulo {module.order}
                                     </span>
-                                    <h3 className="text-lg font-bold text-gray-900 mb-2 leading-tight">{module.title}</h3>
-                                    <p className="text-sm text-text-secondary line-clamp-2 mb-4 flex-1">{module.description}</p>
+                                    <h3 className="text-h3 text-on-surface m-0 mb-3">{module.title}</h3>
+                                    <p className="text-body-md text-secondary line-clamp-3 mb-6 flex-1">{module.description}</p>
 
                                     {/* Stats / Footer */}
-                                    <div className="pt-4 border-t border-gray-100/50 space-y-4">
+                                    <div className="pt-6 mt-auto border-t border-outline-variant/15 space-y-5">
                                         {module.score !== null && (
-                                            <div className="flex items-center justify-between text-xs font-medium">
-                                                <span className={`${module.score >= module.passingScore ? 'text-green-600' : 'text-orange-500'}`}>
+                                            <div className="flex items-center justify-between text-sm font-bold">
+                                                <span className={`${module.score >= module.passingScore ? 'text-emerald-600' : 'text-orange-500'}`}>
                                                     Mejor nota: {module.score}%
                                                 </span>
-                                                <span className="text-text-muted">
+                                                <span className="text-outline-variant">
                                                     {module.attempts} intento{module.attempts !== 1 ? 's' : ''}
                                                 </span>
                                             </div>
                                         )}
 
                                         {isLocked ? (
-                                            <Button disabled variant="secondary" className="w-full !text-xs !py-3">
+                                            <Button disabled variant="tertiary" className="w-full py-4 text-sm tracking-wide">
                                                 Bloqueado
                                             </Button>
                                         ) : (
-                                            <Link href={`/modules/${module.id}`} className="block">
-                                                <Button className="w-full !text-xs !py-3 shadow-lg shadow-primary-500/20">
+                                            <Link href={`/modules/${module.id}`} className="block w-full">
+                                                <Button className="w-full py-4 text-sm" variant={module.completed ? 'secondary' : 'primary'}>
                                                     {module.completed ? 'Repasar Módulo' : module.score !== null ? 'Mejorar Nota' : 'Comenzar Módulo'}
                                                 </Button>
                                             </Link>

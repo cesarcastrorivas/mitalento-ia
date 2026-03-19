@@ -42,89 +42,89 @@ interface AdminDashboardClientProps {
 
 export function AdminDashboardClient({ stats, recentActivity }: AdminDashboardClientProps) {
     return (
-        <div className="space-y-6 lg:space-y-10">
+        <div className="space-y-12 lg:space-y-16">
             <AdminPageHeader
                 title="Dashboard"
                 subtitle="Centro de control"
-                icon={<LayoutDashboard size={18} />}
+                icon={<LayoutDashboard size={20} />}
                 action={
-                    <div className="hidden sm:flex items-center gap-1.5">
-                        <span className="flex h-2 w-2 rounded-full bg-[var(--success)]" />
-                        <span className="text-[10px] font-semibold text-[var(--text-secondary)] uppercase tracking-wider">Operativo</span>
+                    <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20">
+                        <span className="flex h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)]" />
+                        <span className="text-[11px] font-bold text-emerald-700 tracking-widest uppercase">Operativo</span>
                     </div>
                 }
             />
 
             {/* Stats Grid - PWA Compact Native KPIs */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-8">
                 <StatCard
-                    icon={<Users size={24} />}
+                    icon={<Users size={26} strokeWidth={1.5} />}
                     value={stats.activeStudents}
                     label="Estudiantes Activos"
-                    color="text-[var(--primary-600)] bg-[var(--primary-50)]"
+                    color="text-primary bg-primary-container/30"
                 />
                 <StatCard
-                    icon={<Award size={24} />}
+                    icon={<Award size={26} strokeWidth={1.5} />}
                     value={`${stats.certificationRate}%`}
                     label="Tasa de Certificación"
-                    color="text-emerald-600 bg-emerald-50"
+                    color="text-emerald-700 bg-emerald-500/10"
                 />
                 <StatCard
-                    icon={<ClipboardList size={24} />}
+                    icon={<ClipboardList size={26} strokeWidth={1.5} />}
                     value={stats.pendingEvaluations}
                     label="Evaluaciones Pendientes"
                     color={stats.pendingEvaluations > 0
-                        ? "text-amber-600 bg-amber-50"
-                        : "text-slate-500 bg-slate-50"
+                        ? "text-secondary bg-secondary-container"
+                        : "text-outline-variant bg-surface-dim"
                     }
                     alert={stats.pendingEvaluations > 0}
                 />
                 <StatCard
-                    icon={<Target size={24} />}
+                    icon={<Target size={26} strokeWidth={1.5} />}
                     value={`${stats.averageScore}%`}
                     label="Promedio General"
-                    color="text-[var(--primary-500)] bg-[var(--primary-50)]"
+                    color="text-primary bg-primary-container/30"
                 />
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
                 {/* Main Action Area */}
-                <div className="lg:col-span-2 space-y-6">
-                    <div className="bg-[var(--bg-surface)] rounded-2xl p-6 shadow-sm border border-[rgba(0,0,0,0.04)]">
-                        <div className="flex items-center justify-between mb-6">
-                            <h3 className="text-h3 text-[var(--text-primary)]">Actividad Reciente</h3>
+                <div className="lg:col-span-2 space-y-8">
+                    <div className="card-premium bg-surface-container-lowest rounded-[2rem] p-8 sm:p-10">
+                        <div className="flex items-center justify-between mb-8">
+                            <h3 className="text-display-sm text-on-surface m-0">Actividad Reciente</h3>
                         </div>
                         <div className="space-y-4">
                             {recentActivity.length === 0 ? (
-                                <div className="text-center py-8">
-                                    <div className="text-3xl mb-2">📭</div>
-                                    <p className="text-sm text-[var(--text-muted)]">Sin actividad reciente aún</p>
+                                <div className="text-center py-12 bg-surface rounded-2xl border border-outline-variant/10">
+                                    <div className="text-4xl mb-4 opacity-50">📭</div>
+                                    <p className="text-label-md text-secondary">Sin actividad reciente aún</p>
                                 </div>
                             ) : (
                                 recentActivity.map((activity) => (
-                                    <div key={activity.id} className="flex items-center gap-4 py-2 border-b border-[rgba(0,0,0,0.03)] last:border-0">
-                                        <div className={`w-10 h-10 rounded-full flex items-center justify-center ${activity.type === 'quiz'
+                                    <div key={activity.id} className="flex items-center gap-5 p-4 rounded-2xl hover:bg-surface-container-low transition-colors duration-300">
+                                        <div className={`w-12 h-12 rounded-[14px] flex items-center justify-center flex-shrink-0 ${activity.type === 'quiz'
                                             ? activity.passed
-                                                ? 'bg-emerald-50 text-emerald-600'
-                                                : 'bg-red-50 text-red-500'
-                                            : 'bg-amber-50 text-amber-600'
+                                                ? 'bg-emerald-500/10 text-emerald-600'
+                                                : 'bg-red-500/10 text-red-500'
+                                            : 'bg-secondary-container/50 text-secondary'
                                             }`}>
                                             {activity.type === 'quiz'
                                                 ? activity.passed
-                                                    ? <CheckCircle size={18} />
-                                                    : <XCircle size={18} />
-                                                : <Clock size={18} />
+                                                    ? <CheckCircle size={22} strokeWidth={1.5} />
+                                                    : <XCircle size={22} strokeWidth={1.5} />
+                                                : <Clock size={22} strokeWidth={1.5} />
                                             }
                                         </div>
                                         <div className="flex-1 min-w-0">
-                                            <p className="text-sm font-medium text-[var(--text-primary)] truncate">
+                                            <p className="text-body-lg font-bold text-on-surface truncate mb-0.5">
                                                 {activity.studentName}
                                             </p>
-                                            <p className="text-xs text-[var(--text-muted)]">
+                                            <p className="text-label-md text-secondary truncate">
                                                 {activity.detail}
                                             </p>
                                         </div>
-                                        <div className="text-xs text-[var(--text-muted)] whitespace-nowrap">
+                                        <div className="text-sm font-medium text-outline-variant whitespace-nowrap hidden sm:block">
                                             {formatTimeAgo(activity.timestamp)}
                                         </div>
                                     </div>
@@ -135,18 +135,18 @@ export function AdminDashboardClient({ stats, recentActivity }: AdminDashboardCl
                 </div>
 
                 {/* Sidebar / Helper Area */}
-                <div className="space-y-6">
-                    <div className="bg-gradient-to-b from-[var(--bg-surface)] to-[var(--bg-elevated)] rounded-3xl p-8 border border-[rgba(255,255,255,0.6)] shadow-sm">
-                        <div className="flex items-center gap-3 mb-6">
-                            <div className="w-10 h-10 rounded-xl bg-[var(--primary-100)] text-[var(--primary-700)] flex items-center justify-center">
-                                <BookOpen size={20} />
+                <div className="space-y-8">
+                    <div className="card-premium bg-gradient-to-br from-surface-container-lowest to-surface-container-low rounded-[2rem] p-8 sm:p-10 border border-white">
+                        <div className="flex items-center gap-4 mb-8">
+                            <div className="w-12 h-12 rounded-2xl bg-surface-dim text-primary flex items-center justify-center shadow-[0_4px_14px_rgba(17,28,45,0.04)]">
+                                <BookOpen size={22} strokeWidth={1.5} />
                             </div>
-                            <h3 className="text-lg font-bold text-[var(--text-primary)]">Guía Rápida</h3>
+                            <h3 className="text-display-sm text-on-surface m-0">Guía Rápida</h3>
                         </div>
 
-                        <div className="space-y-6 relative">
+                        <div className="space-y-8 relative">
                             {/* Connecting Line */}
-                            <div className="absolute top-[20px] left-[19px] bottom-[20px] w-[2px] bg-[var(--primary-100)] -z-10" />
+                            <div className="absolute top-[24px] left-[23px] bottom-[24px] w-[2px] bg-primary-container/50 -z-10" />
 
                             <GuideStep
                                 step="1"
@@ -165,9 +165,9 @@ export function AdminDashboardClient({ stats, recentActivity }: AdminDashboardCl
                             />
                         </div>
 
-                        <div className="mt-8">
+                        <div className="mt-10">
                             <Link href="/admin/paths" className="block w-full">
-                                <Button className="w-full !bg-[var(--primary-600)] hover:!bg-[var(--primary-700)] text-white shadow-lg shadow-[rgba(124,58,237,0.25)] !py-6 !rounded-xl text-base">
+                                <Button className="w-full py-4 text-body-lg">
                                     Crear Nueva Ruta
                                 </Button>
                             </Link>
@@ -202,22 +202,22 @@ function StatCard({ icon, value, label, color, alert }: {
     alert?: boolean;
 }) {
     return (
-        <Card className="card-premium flex flex-col justify-between h-full !p-3 sm:!p-6 !shadow-sm hover:!shadow-md transition-shadow !border border-[rgba(0,0,0,0.03)]">
-            <div className="flex items-start justify-between mb-3 sm:mb-4">
-                <div className={`p-2.5 sm:p-3.5 rounded-xl sm:rounded-2xl ${color} select-none`}>
-                    <div className="scale-75 sm:scale-100 origin-center">
+        <Card className="card-premium bg-surface-container-lowest flex flex-col justify-between h-full p-5 sm:p-8">
+            <div className="flex items-start justify-between mb-8">
+                <div className={`p-4 rounded-[1.25rem] ${color} select-none`}>
+                    <div className="scale-90 sm:scale-100 origin-top-left transition-transform duration-300">
                         {icon}
                     </div>
                 </div>
                 {alert && (
-                    <div className="hidden sm:flex items-center text-xs font-bold text-amber-600 bg-amber-50 px-2 py-1 rounded-full">
+                    <div className="hidden sm:flex items-center text-[10px] tracking-widest uppercase font-bold text-secondary bg-secondary-container px-3 py-1.5 rounded-full">
                         Acción requerida
                     </div>
                 )}
             </div>
             <div>
-                <span className="block text-2xl sm:text-4xl font-bold text-[var(--text-primary)] leading-none mb-1 sm:mb-2 tracking-tight">{value}</span>
-                <span className="text-[10px] sm:text-sm font-medium text-[var(--text-secondary)] leading-tight block">{label}</span>
+                <span className="block text-4xl sm:text-5xl font-extrabold text-on-surface leading-none mb-3 tracking-tighter">{value}</span>
+                <span className="text-sm font-semibold text-secondary leading-tight block">{label}</span>
             </div>
         </Card>
     );
@@ -225,13 +225,13 @@ function StatCard({ icon, value, label, color, alert }: {
 
 function GuideStep({ step, title, desc }: { step: string; title: string; desc: string }) {
     return (
-        <div className="relative flex items-start gap-4 group">
-            <div className="w-10 h-10 rounded-full bg-white border-4 border-[var(--bg-surface)] flex items-center justify-center text-sm font-bold text-[var(--primary-700)] shadow-sm z-10">
+        <div className="relative flex items-start gap-5 group">
+            <div className="w-12 h-12 rounded-full bg-surface-container-lowest border-4 border-surface flex items-center justify-center text-sm font-extrabold text-primary shadow-sm z-10 transition-transform duration-300 group-hover:scale-110">
                 {step}
             </div>
-            <div className="pt-1">
-                <h4 className="font-bold text-[var(--text-primary)] text-sm mb-1 group-hover:text-[var(--primary-600)] transition-colors">{title}</h4>
-                <p className="text-xs text-[var(--text-secondary)] leading-relaxed">{desc}</p>
+            <div className="pt-2">
+                <h4 className="font-extrabold text-on-surface text-base mb-1.5 group-hover:text-primary transition-colors">{title}</h4>
+                <p className="text-sm text-secondary leading-relaxed">{desc}</p>
             </div>
         </div>
     );

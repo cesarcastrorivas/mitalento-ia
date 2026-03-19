@@ -53,9 +53,9 @@ export default function AdminShell({
 
     if (loading) {
         return (
-            <div className="flex flex-col items-center justify-center min-h-screen bg-[var(--bg-main)]">
-                <div className="w-8 h-8 border-2 border-[var(--primary-100)] border-t-[var(--primary-700)] rounded-full animate-spin mb-4"></div>
-                <p className="text-[var(--text-secondary)] text-sm font-medium animate-pulse">Cargando...</p>
+            <div className="flex flex-col items-center justify-center min-h-screen bg-surface">
+                <div className="w-8 h-8 border-2 border-surface-dim border-t-primary rounded-full animate-spin mb-4"></div>
+                <p className="text-outline-variant text-sm font-medium animate-pulse">Cargando...</p>
             </div>
         );
     }
@@ -65,24 +65,24 @@ export default function AdminShell({
     }
 
     return (
-        <div className="flex min-h-[100dvh] bg-[var(--bg-main)] font-sans text-[var(--text-primary)]">
+        <div className="flex min-h-[100dvh] bg-surface font-sans text-on-surface">
             {/* Global Top Header (Native iOS Style PWA) */}
-            <header className="fixed top-0 left-0 right-0 min-h-[64px] pt-[env(safe-area-inset-top,0px)] bg-white/80 backdrop-blur-xl border-b border-[rgba(0,0,0,0.05)] z-50 px-4 xl:px-6 flex items-center justify-between shadow-sm transition-all duration-300">
+            <header className="fixed top-0 left-0 right-0 min-h-[64px] pt-[env(safe-area-inset-top,0px)] glass-panel z-50 px-4 xl:px-6 flex items-center justify-between border-b border-outline-variant/15 transition-all duration-300">
                 <div className="flex items-center gap-4 lg:gap-6">
                     <button
                         onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-                        className="p-2 -ml-2 text-[var(--text-secondary)] hover:text-[var(--primary-600)] hover:bg-[var(--primary-50)] rounded-lg transition-all active:scale-95"
+                        className="p-2 -ml-2 text-on-surface hover:text-primary hover:bg-surface-container-low rounded-lg transition-all active:scale-95"
                         title={isSidebarOpen ? "Cerrar menú" : "Abrir menú"}
                     >
                         {isSidebarOpen ? <X size={24} /> : <Menu size={24} />}
                     </button>
                     {/* Brand */}
                     <div className="flex items-center gap-2.5 select-none">
-                        <div className="w-8 h-8 flex items-center justify-center rounded-lg bg-gradient-to-tr from-[var(--primary-700)] to-[var(--primary-500)] text-white shadow-md">
+                        <div className="w-8 h-8 flex items-center justify-center rounded-lg bg-gradient-to-tr from-primary to-primary-container text-white shadow-md">
                             <GraduationCap size={16} strokeWidth={2.5} />
                         </div>
-                        <span className="font-extrabold text-[var(--primary-700)] text-lg tracking-tight uppercase hidden sm:block">
-                            Mi Talento <span className="text-[var(--text-muted)] font-medium">| Admin</span>
+                        <span className="font-extrabold text-primary text-lg tracking-tight uppercase hidden sm:block">
+                            Mi Talento <span className="text-secondary font-medium">| Admin</span>
                         </span>
                     </div>
                 </div>
@@ -90,10 +90,10 @@ export default function AdminShell({
                 {/* Top Right User Info & Actions */}
                 <div className="flex items-center gap-4">
                     <div className="hidden md:flex flex-col items-end justify-center">
-                        <p className="text-sm font-bold text-[var(--text-primary)] leading-tight">{user.displayName}</p>
-                        <p className="text-[10px] text-[var(--text-secondary)] font-medium uppercase tracking-wider">{user.email}</p>
+                        <p className="text-sm font-bold text-on-surface leading-tight">{user.displayName}</p>
+                        <p className="text-[10px] text-outline-variant font-medium uppercase tracking-wider">{user.email}</p>
                     </div>
-                    <div className="relative w-9 h-9 rounded-full bg-gradient-to-br from-[var(--primary-900)] to-[var(--primary-700)] flex flex-shrink-0 items-center justify-center text-white font-bold text-sm shadow-sm border border-white overflow-hidden">
+                    <div className="relative w-9 h-9 rounded-full bg-gradient-to-br from-primary to-primary-container flex flex-shrink-0 items-center justify-center text-white font-bold text-sm shadow-sm border border-white overflow-hidden">
                         {user.photoURL ? (
                             <Image src={user.photoURL} alt={user.displayName || ''} fill className="object-cover" sizes="36px" />
                         ) : (
@@ -102,7 +102,7 @@ export default function AdminShell({
                     </div>
                     <button
                         onClick={signOut}
-                        className="p-2 text-[var(--text-secondary)] hover:text-[var(--error)] hover:bg-[rgba(239,68,68,0.08)] rounded-lg transition-colors"
+                        className="p-2 text-on-surface hover:text-error hover:bg-error/10 rounded-lg transition-colors"
                         title="Cerrar sesión"
                     >
                         <LogOut size={18} />
@@ -113,14 +113,14 @@ export default function AdminShell({
             {/* Mobile/Tablet Backdrop */}
             {isSidebarOpen && (
                 <div
-                    className="fixed inset-0 bg-[rgba(15,23,42,0.2)] backdrop-blur-sm z-40 lg:hidden animate-in fade-in duration-200"
+                    className="fixed inset-0 bg-[#111c2d]/20 backdrop-blur-sm z-40 lg:hidden animate-in fade-in duration-200"
                     onClick={() => setIsSidebarOpen(false)}
                 />
             )}
 
             {/* Sidebar Drawer */}
             <aside className={`
-                fixed top-0 bottom-0 left-0 bg-[var(--bg-surface)] border-r border-[rgba(0,0,0,0.04)] z-[45] w-[260px]
+                fixed top-0 bottom-0 left-0 bg-surface-container-lowest border-r border-outline-variant/15 z-[45] w-[260px]
                 transition-transform duration-300 cubic-bezier(0.4, 0, 0.2, 1) shadow-xl
                 flex flex-col pt-[calc(env(safe-area-inset-top,0px)+4rem)] pb-[env(safe-area-inset-bottom,0px)] select-none
                 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
@@ -129,7 +129,7 @@ export default function AdminShell({
                     {/* Navigation */}
                     <div className="px-3 space-y-7 overflow-y-auto flex-1 custom-scrollbar">
                         <div className="space-y-1">
-                            <p className="px-3 text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest mb-3">Principal</p>
+                            <p className="px-3 text-[10px] font-bold text-outline-variant uppercase tracking-widest mb-3">Principal</p>
                             <NavLink href="/admin" icon={<LayoutDashboard size={18} />} text="Dashboard" active={pathname === '/admin'} />
                             <NavLink href="/admin/paths" icon={<Map size={18} />} text="Rutas y Cursos" active={pathname.startsWith('/admin/paths')} />
                             <NavLink href="/admin/users" icon={<Users size={18} />} text="Usuarios" active={pathname.startsWith('/admin/users')} />
@@ -138,7 +138,7 @@ export default function AdminShell({
                         </div>
 
                         <div className="space-y-1">
-                            <p className="px-3 text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest mb-3">Analítica</p>
+                            <p className="px-3 text-[10px] font-bold text-outline-variant uppercase tracking-widest mb-3">Analítica</p>
                             <NavLink href="/admin/reports" icon={<BarChart3 size={18} />} text="Reportes" active={pathname.startsWith('/admin/reports')} />
                         </div>
                     </div>
@@ -150,7 +150,7 @@ export default function AdminShell({
                 pt-14 sm:pt-[calc(env(safe-area-inset-top,0px)+4rem)] flex-1 min-w-0 h-[100dvh] overflow-hidden transition-all duration-300
                 ${isSidebarOpen ? 'lg:pl-[260px]' : 'pl-0'}
             `}>
-                <div className="px-3 pt-2 pb-[calc(env(safe-area-inset-bottom,0px)+6rem)] lg:px-8 lg:pt-5 lg:pb-10 w-full max-w-none mx-auto animate-fade-in h-full overflow-auto custom-scrollbar">
+                <div className="px-4 pt-4 pb-[calc(env(safe-area-inset-bottom,0px)+6rem)] lg:px-12 lg:pt-8 lg:pb-16 w-full max-w-[1400px] mx-auto animate-fade-in h-full overflow-auto custom-scrollbar">
                     {children}
                 </div>
             </main>
@@ -163,20 +163,20 @@ function NavLink({ href, icon, text, active }: { href: string; icon: React.React
         <Link
             href={href}
             className={`
-                group flex items-center px-3 py-2.5 mx-2 rounded-lg transition-all duration-200 justify-between
+                group flex items-center px-4 py-3 mx-2 rounded-xl transition-all duration-300 justify-between
                 ${active
-                    ? 'bg-[var(--primary-50)] text-[var(--primary-700)] font-medium'
-                    : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)]'
+                    ? 'bg-surface-container-low text-primary font-bold shadow-[0_4px_10px_rgba(71,30,82,0.06)]'
+                    : 'text-on-surface hover:text-primary hover:bg-surface-dim/40'
                 }
             `}
         >
             <div className="flex items-center gap-3">
-                <span className={`transition-transform duration-200 ${active ? 'scale-110 text-[var(--primary-600)]' : 'group-hover:scale-105'}`}>
+                <span className={`transition-transform duration-300 ${active ? 'scale-110 text-primary' : 'group-hover:scale-105 opacity-80'}`}>
                     {icon}
                 </span>
-                <span className="text-[13px] whitespace-nowrap overflow-hidden text-ellipsis">{text}</span>
+                <span className="text-[14px] whitespace-nowrap overflow-hidden text-ellipsis leading-none">{text}</span>
             </div>
-            {active && <div className="w-1.5 h-1.5 rounded-full bg-[var(--primary-500)] flex-shrink-0" />}
+            {active && <div className="w-1.5 h-1.5 rounded-full bg-secondary flex-shrink-0" />}
         </Link>
     );
 }

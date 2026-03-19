@@ -465,7 +465,7 @@ export default function CourseModulesPage({ params }: { params: Promise<{ course
                             )}
                         </div>
                         <div className="flex gap-2">
-                            <Button variant="ghost" onClick={() => setShowModal(false)}>
+                            <Button variant="tertiary" onClick={() => setShowModal(false)}>
                                 Cancelar
                             </Button>
                             {wizardStep < 3 ? (

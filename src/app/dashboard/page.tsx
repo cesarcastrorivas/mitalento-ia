@@ -3,9 +3,7 @@ import { getServerUser } from '@/lib/server-auth';
 import { LearningPath, User, Certificate, Course } from '@/types';
 import { FIXED_PATHS } from '@/lib/constants';
 import Link from 'next/link';
-import { redirect } from 'next/navigation';
-import styles from './page.module.css';
-import { Award, BookOpen, Briefcase, Building2, Crown, Globe, LineChart, Target, Sun, CloudSun, Moon, Trophy, Layers, Route } from 'lucide-react';
+import { Award, BookOpen, Crown, Building2, LineChart, Sun, CloudSun, Moon, Trophy, Layers, Route, ArrowRight } from 'lucide-react';
 import { MotivationalPhrase } from '@/components/MotivationalPhrase';
 
 const PATH_ICONS: Record<string, any> = {
@@ -17,7 +15,6 @@ const PATH_ICONS: Record<string, any> = {
 export default async function StudentDashboard() {
     const userClaims = await getServerUser();
     if (!userClaims) {
-        // Return null instead of redirecting; DashboardGuard in layout.tsx will handle the redirect.
         return null;
     }
 
@@ -36,7 +33,6 @@ export default async function StudentDashboard() {
     // 3. Prepare all parallel queries
     let pathsPromise = Promise.resolve([] as any[]);
     if (assignedIds.length > 0) {
-        // firebase-admin 'in' query works up to 10 elements. Assuming assignedIds < 10.
         pathsPromise = db.collection('learning_paths').where('__name__', 'in', assignedIds).get()
             .then((snap: any) => snap.docs.map((d: any) => ({ id: d.id, ...d.data() })));
     }
@@ -44,7 +40,7 @@ export default async function StudentDashboard() {
     const certsPromise = db.collection('certificates').where('userId', '==', uid).where('isActive', '==', true).get()
         .then((snap: any) => snap.docs.map((d: any) => ({ id: d.id, ...d.data() } as Certificate)));
 
-    // Filter courses only from the user's assigned paths (Firestore 'in' supports up to 30 values)
+    // Filter courses only from the user's assigned paths
     const pathIdsToQuery = uniquePathIds.slice(0, 30);
     const coursesPromise = pathIdsToQuery.length > 0
         ? db.collection('courses')
@@ -69,7 +65,7 @@ export default async function StudentDashboard() {
         sessionsPromise,
     ]);
 
-    // 4b. Fetch modules filtered by the user's course IDs (depends on allCourses)
+    // 4b. Fetch modules filtered by the user's course IDs
     const courseIds = allCourses.map((c: Course) => c.id).slice(0, 30);
     const allModules = courseIds.length > 0
         ? await db.collection('modules')
@@ -88,7 +84,6 @@ export default async function StudentDashboard() {
     const totalRoutes = uniquePathIds.length;
     const routesCompleted = (userData?.completedPaths || []).length;
 
-    // Courses and modules are already filtered server-side by pathId/courseId
     const totalModules = allModules.length;
 
     const passedModules = new Set<string>();
@@ -119,7 +114,6 @@ export default async function StudentDashboard() {
         totalRoutes,
     };
 
-    // Saludo estático según hora de servidor
     const getGreeting = () => {
         const limaTime = new Date().toLocaleString('en-US', { timeZone: 'America/Lima', hour: 'numeric', hour12: false });
         const hour = parseInt(limaTime, 10);
@@ -128,157 +122,191 @@ export default async function StudentDashboard() {
         return { text: 'Buenas noches', type: 'evening' };
     };
     const greeting = getGreeting();
-
     const firstName = (userClaims as any).name ? (userClaims as any).name.split(' ')[0] : (userData?.displayName?.split(' ')[0] || '');
 
-    // Frase motivacional delegada al Client Component <MotivationalPhrase />
-
     return (
-        <div className={styles.page}>
+        <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 space-y-12 pb-24 font-sans text-on-surface animate-fade-in scroll-smooth">
+            
             {/* Hero Section */}
-            <header className={styles.hero}>
-                <div className={styles.heroBackground}>
-                    <div className={styles.heroOrb1}></div>
-                    <div className={styles.heroOrb2}></div>
-                    <div className={styles.heroOrb3}></div>
-                </div>
-                <div className={styles.heroContent}>
-                    <div className={styles.greetingRow}>
-                        <span className={styles.greetingIconWrapper}>
-                            {greeting.type === 'morning' && <Sun className="w-5 h-5 text-amber-500" strokeWidth={2.5} />}
-                            {greeting.type === 'afternoon' && <CloudSun className="w-5 h-5 text-amber-500" strokeWidth={2.5} />}
-                            {greeting.type === 'evening' && <Moon className="w-5 h-5 text-indigo-400" strokeWidth={2.5} />}
-                        </span>
-                        <span className={styles.greetingLabel}>{greeting.text}</span>
+            <header className="relative w-full rounded-[2.5rem] bg-surface-dim overflow-hidden p-8 lg:p-12 border border-outline-variant/20 shadow-sm isolate">
+                {/* Atmospheric decoration */}
+                <div className="absolute top-0 right-0 -mr-20 -mt-20 w-96 h-96 rounded-full bg-primary/5 blur-[100px] -z-10 pointer-events-none" />
+                <div className="absolute bottom-0 left-0 -ml-20 -mb-20 w-80 h-80 rounded-full bg-secondary/5 blur-[100px] -z-10 pointer-events-none" />
+
+                <div className="max-w-3xl mb-10">
+                    <div className="flex items-center gap-3 mb-6">
+                        <div className="w-10 h-10 rounded-xl bg-surface-container-lowest flex items-center justify-center shadow-sm border border-outline-variant/10 text-primary">
+                            {greeting.type === 'morning' && <Sun size={20} strokeWidth={2} />}
+                            {greeting.type === 'afternoon' && <CloudSun size={20} strokeWidth={2} />}
+                            {greeting.type === 'evening' && <Moon size={20} strokeWidth={2} />}
+                        </div>
+                        <span className="text-label-md text-secondary font-bold tracking-widest uppercase">{greeting.text}</span>
                     </div>
-                    <h1 className={styles.heroTitle}>
+                    
+                    <h1 className="text-display-md text-on-surface mb-4">
                         {firstName ? (
-                            <>Hola, <span className={styles.heroName}>{firstName}</span></>
+                            <>Hola, <span className="font-light">{firstName}</span></>
                         ) : (
                             'Bienvenido'
                         )}
                     </h1>
-                    <MotivationalPhrase className={styles.heroSubtitle} />
+                    <div className="text-body-lg text-outline-variant font-medium max-w-2xl leading-relaxed">
+                        <MotivationalPhrase />
+                    </div>
+                </div>
 
-                    {/* Stats rápidos */}
-                    <div className={styles.statsRow}>
-                        <div className={styles.statCard}>
-                            <span className={styles.statIcon}><Trophy className="w-6 h-6 text-amber-500" strokeWidth={2.5} /></span>
-                            <div>
-                                <span className={styles.statNumber}>{progressStats.progressPercent}%</span>
-                                <span className={styles.statLabel}>Progreso Total</span>
-                            </div>
+                {/* Stats Row */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                    <div className="card-premium bg-surface-container-lowest p-6 flex items-center gap-5 border border-outline-variant/10 group">
+                        <div className="w-14 h-14 rounded-2xl bg-amber-500/10 text-amber-600 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                            <Trophy size={26} strokeWidth={1.5} />
                         </div>
-                        <div className={styles.statCard}>
-                            <span className={styles.statIcon}><Layers className="w-6 h-6 text-blue-500" strokeWidth={2.5} /></span>
-                            <div>
-                                <span className={styles.statNumber}>{progressStats.completedModules}/{progressStats.totalModules}</span>
-                                <span className={styles.statLabel}>Módulos</span>
-                            </div>
+                        <div>
+                            <span className="block text-3xl font-extrabold text-on-surface leading-none tracking-tight mb-1">
+                                {progressStats.progressPercent}%
+                            </span>
+                            <span className="text-label-md text-secondary">Progreso Total</span>
                         </div>
-                        <div className={styles.statCard}>
-                            <span className={styles.statIcon}><Route className="w-6 h-6 text-emerald-500" strokeWidth={2.5} /></span>
-                            <div>
-                                <span className={styles.statNumber}>{progressStats.routesCompleted}/{progressStats.totalRoutes}</span>
-                                <span className={styles.statLabel}>Rutas</span>
-                            </div>
+                    </div>
+                    
+                    <div className="card-premium bg-surface-container-lowest p-6 flex items-center gap-5 border border-outline-variant/10 group">
+                        <div className="w-14 h-14 rounded-2xl bg-primary-container/40 text-primary flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                            <Layers size={26} strokeWidth={1.5} />
+                        </div>
+                        <div>
+                            <span className="block text-3xl font-extrabold text-on-surface leading-none tracking-tight mb-1">
+                                {progressStats.completedModules} <span className="text-outline-variant/50 text-xl">/ {progressStats.totalModules}</span>
+                            </span>
+                            <span className="text-label-md text-secondary">Módulos</span>
+                        </div>
+                    </div>
+
+                    <div className="card-premium bg-surface-container-lowest p-6 flex items-center gap-5 border border-outline-variant/10 group">
+                        <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                            <Route size={26} strokeWidth={1.5} />
+                        </div>
+                        <div>
+                            <span className="block text-3xl font-extrabold text-on-surface leading-none tracking-tight mb-1">
+                                {progressStats.routesCompleted} <span className="text-outline-variant/50 text-xl">/ {progressStats.totalRoutes}</span>
+                            </span>
+                            <span className="text-label-md text-secondary">Rutas</span>
                         </div>
                     </div>
                 </div>
             </header>
 
-            {/* Sección de Rutas */}
-            <section className={styles.pathsSection}>
-                <div className={styles.sectionHeader}>
-                    <h2 className={styles.sectionTitle}>Tus Rutas de Aprendizaje</h2>
-                    <p className={styles.sectionSubtitle}>Selecciona un camino para continuar tu formación</p>
+            {/* Paths Section */}
+            <section className="space-y-8 animate-fade-in-up" style={{ animationDelay: '100ms' }}>
+                <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+                    <div>
+                        <h2 className="text-display-sm text-on-surface mb-2">Tus Rutas de Aprendizaje</h2>
+                        <p className="text-body-lg text-secondary">Trazando el camino hacia la excelencia profesional.</p>
+                    </div>
                 </div>
 
-                <div className={styles.pathsGrid}>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                     {paths.map((path, index) => {
                         const IconComponent = PATH_ICONS[path.id] || BookOpen;
+                        const isMandatory = FIXED_PATHS.some(fp => fp.id === path.id);
+                        
                         return (
-                        <Link key={path.id} href={`/paths/${path.id}`} className={styles.pathLink} style={{ animationDelay: `${index * 0.1}s` }}>
-                            <div className={`group ${styles.pathCard}`}>
-                                <div className={styles.pathCardGlow}></div>
-                                <div className={`${styles.pathIconWrapper} bg-slate-50/50 border-b border-slate-100/50 flex justify-center items-center py-8`}>
-                                    <div className="w-16 h-16 rounded-2xl bg-indigo-50 border border-indigo-200 flex items-center justify-center text-indigo-600 shadow-sm transition-transform duration-300 group-hover:scale-110 group-hover:-translate-y-1">
-                                        <IconComponent className="w-8 h-8 stroke-[1.5]" />
+                            <Link 
+                                key={path.id} 
+                                href={`/paths/${path.id}`} 
+                                className="group block focus:outline-none focus-visible:ring-4 focus-visible:ring-primary/20 rounded-[2rem]"
+                                style={{ animationDelay: `${index * 50}ms` }}
+                            >
+                                <div className="card-premium h-full bg-surface-container-lowest flex flex-col p-8 border border-outline-variant/10 hover:border-primary/20 transition-all duration-500 hover:-translate-y-1">
+                                    <div className="flex justify-between items-start mb-10">
+                                        <div className="w-16 h-16 rounded-[1.25rem] bg-surface-dim text-primary flex items-center justify-center transition-transform duration-500 group-hover:scale-110 group-hover:bg-primary-container/30">
+                                            <IconComponent size={32} strokeWidth={1.5} />
+                                        </div>
+                                        <div className={`px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest ${
+                                            isMandatory 
+                                            ? 'bg-secondary-container/50 text-secondary border border-secondary/10' 
+                                            : 'bg-surface-dim text-outline-variant border border-outline-variant/10'
+                                        }`}>
+                                            {isMandatory ? 'Esencial' : 'Especialización'}
+                                        </div>
+                                    </div>
+                                    
+                                    <h3 className="text-headline-sm text-on-surface mb-3 group-hover:text-primary transition-colors">{path.title}</h3>
+                                    <p className="text-body-md text-secondary leading-relaxed mb-6 flex-1 line-clamp-3">
+                                        {path.description}
+                                    </p>
+                                    
+                                    <div className="pt-6 border-t border-outline-variant/10 flex items-center justify-between mt-auto">
+                                        <span className="text-label-md text-outline-variant font-medium">Explorar ruta</span>
+                                        <div className="w-10 h-10 rounded-full bg-surface-container-low flex items-center justify-center text-on-surface group-hover:bg-primary group-hover:text-white transition-all duration-300">
+                                            <ArrowRight size={20} strokeWidth={2} />
+                                        </div>
                                     </div>
                                 </div>
-                                <div className={styles.pathBody}>
-                                    <h3 className={styles.pathTitle}>{path.title}</h3>
-                                    <p className={styles.pathDescription}>{path.description}</p>
-                                </div>
-                                <div className={styles.pathFooter}>
-                                    <span className={`${styles.pathBadge} ${!FIXED_PATHS.some(fp => fp.id === path.id) ? 'bg-indigo-50 text-indigo-600 border border-indigo-100' : ''}`}>
-                                        {FIXED_PATHS.some(fp => fp.id === path.id) ? 'Ruta obligatoria' : 'Especialización'}
-                                    </span>
-                                    <span className={styles.pathArrow}>
-                                        Explorar <span>→</span>
-                                    </span>
-                                </div>
-                            </div>
-                        </Link>
+                            </Link>
                         );
                     })}
 
                     {paths.length === 0 && (
-                        <div className={styles.emptyState}>
-                            <div className={styles.emptyIcon}>📭</div>
-                            <h3 className={styles.emptyTitle}>No tienes rutas asignadas</h3>
-                            <p className={styles.emptyText}>Contacta a tu administrador para que te asigne una ruta de aprendizaje.</p>
+                        <div className="col-span-full py-20 card-premium bg-surface-dim border border-dashed border-outline-variant/20 flex flex-col items-center justify-center text-center">
+                            <div className="w-20 h-20 rounded-full bg-surface-container-lowest mb-6 flex items-center justify-center shadow-sm">
+                                <Route className="w-8 h-8 text-outline-variant" strokeWidth={1.5} />
+                            </div>
+                            <h3 className="text-headline-sm text-on-surface mb-2">Aún no hay rutas</h3>
+                            <p className="text-body-lg text-secondary max-w-md mx-auto">Contacta a un administrador para que asigne tu camino de aprendizaje.</p>
                         </div>
                     )}
                 </div>
             </section>
 
-            {/* Sección de Certificados */}
+            {/* Certificates Section */}
             {certificates.length > 0 && (
-                <section className={styles.pathsSection}>
-                    <div className={styles.sectionHeader}>
-                        <h2 className={styles.sectionTitle}>Mis Certificados</h2>
-                        <p className={styles.sectionSubtitle}>
-                            {certificates.length} certificado{certificates.length !== 1 ? 's' : ''} obtenido{certificates.length !== 1 ? 's' : ''}
-                        </p>
+                <section className="space-y-8 animate-fade-in-up" style={{ animationDelay: '200ms' }}>
+                    <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 pt-8 border-t border-outline-variant/10">
+                        <div>
+                            <h2 className="text-display-sm text-on-surface mb-2">Logros Alcanzados</h2>
+                            <p className="text-body-lg text-secondary">Reconocimiento a tu esfuerzo y dedicación.</p>
+                        </div>
+                        <div className="px-4 py-2 rounded-xl bg-surface-dim border border-outline-variant/10 text-label-md text-secondary font-medium">
+                            {certificates.length} Certificado{certificates.length !== 1 ? 's' : ''}
+                        </div>
                     </div>
 
-                    <div className={styles.pathsGrid}>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                         {certificates.map((cert: any, index: number) => {
-                            const CERT_COLORS: Record<string, string> = {
-                                fundamental: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-                                professional: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
-                                elite: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
-                            };
                             const LEVEL_LABELS: Record<string, string> = {
                                 fundamental: 'Nivel Fundamental',
                                 professional: 'Nivel Profesional',
                                 elite: 'Nivel Élite',
                             };
                             return (
-                                <Link key={cert.id} href="/certificate" className={styles.pathLink} style={{ animationDelay: `${index * 0.1}s` }}>
-                                    <div className={`group ${styles.pathCard}`}>
-                                        <div className={styles.pathCardGlow}></div>
-                                        <div className={`${styles.pathIconWrapper} bg-slate-50/50 border-b border-slate-100/50`}>
-                                            <div className="w-16 h-16 rounded-2xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600 shadow-sm transition-transform duration-300 group-hover:scale-110 group-hover:-translate-y-1">
-                                                <Award className="w-8 h-8 stroke-[1.5]" />
+                                <Link 
+                                    key={cert.id} 
+                                    href="/certificate" 
+                                    className="group block focus:outline-none focus-visible:ring-4 focus-visible:ring-emerald-500/20 rounded-[2rem]"
+                                    style={{ animationDelay: `${index * 50}ms` }}
+                                >
+                                    <div className="card-premium h-full bg-surface-container-lowest flex flex-col p-8 border border-outline-variant/10 hover:border-emerald-500/30 transition-all duration-500 hover:-translate-y-1">
+                                        <div className="flex justify-between items-start mb-8">
+                                            <div className="w-16 h-16 rounded-[1.25rem] bg-emerald-500/10 text-emerald-600 flex items-center justify-center transition-transform duration-500 group-hover:scale-110 group-hover:shadow-[0_4px_20px_rgba(16,185,129,0.2)]">
+                                                <Award size={32} strokeWidth={1.5} />
+                                            </div>
+                                            <div className="px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest bg-emerald-500/10 text-emerald-700 border border-emerald-500/20">
+                                                Acreditado
                                             </div>
                                         </div>
-                                        <div className={styles.pathBody}>
-                                            <h3 className={styles.pathTitle}>
-                                                {cert.pathTitle || LEVEL_LABELS[cert.level] || 'Certificado'}
-                                            </h3>
-                                            <p className={styles.pathDescription}>
-                                                {LEVEL_LABELS[cert.level] || 'Certificado'} • Puntaje: {cert.score}%
-                                            </p>
-                                        </div>
-                                        <div className={styles.pathFooter}>
-                                            <span className={styles.pathBadge} style={{ background: 'rgba(16,185,129,0.1)', color: '#10b981' }}>
-                                                ✓ Certificado
-                                            </span>
-                                            <span className={styles.pathArrow}>
-                                                Ver <span>→</span>
-                                            </span>
+                                        
+                                        <h3 className="text-headline-sm text-on-surface mb-2">
+                                            {cert.pathTitle || LEVEL_LABELS[cert.level] || 'Certificado'}
+                                        </h3>
+                                        <p className="text-body-md text-secondary mb-6 flex-1">
+                                            {LEVEL_LABELS[cert.level] || 'Certificado'}
+                                        </p>
+                                        
+                                        <div className="pt-6 border-t border-outline-variant/10 flex items-center justify-between mt-auto">
+                                            <span className="text-label-md text-emerald-600 font-bold">Ver credencial</span>
+                                            <div className="w-24 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-700 font-bold group-hover:bg-emerald-500 group-hover:text-white transition-all duration-300">
+                                                {cert.score}%
+                                            </div>
                                         </div>
                                     </div>
                                 </Link>
@@ -290,3 +318,4 @@ export default async function StudentDashboard() {
         </div>
     );
 }
+

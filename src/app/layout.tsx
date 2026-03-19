@@ -1,10 +1,11 @@
 import type { Metadata, Viewport } from "next";
-import { Inter } from "next/font/google";
+import { Inter, Manrope } from "next/font/google";
 import { AuthProvider } from "@/contexts/AuthContext";
 import InstallPrompt from "@/components/InstallPrompt";
 import "./globals.css";
 
-const inter = Inter({ subsets: ["latin"] });
+const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
+const manrope = Manrope({ subsets: ["latin"], variable: "--font-manrope" });
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -12,7 +13,7 @@ export const viewport: Viewport = {
   maximumScale: 1,
   userScalable: false,
   viewportFit: "cover",
-  themeColor: "#4C1D95",
+  themeColor: "#471E52",
 };
 
 export const metadata: Metadata = {
@@ -45,7 +46,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es" suppressHydrationWarning>
-      <body className={`${inter.className} bg-bg-main text-text-primary antialiased selection:bg-primary-500/20`}>
+      <body className={`${inter.variable} ${manrope.variable} font-sans bg-surface text-on-surface antialiased selection:bg-primary/20`}>
         <AuthProvider>
           {children}
         </AuthProvider>
