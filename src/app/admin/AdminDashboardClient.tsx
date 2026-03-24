@@ -124,7 +124,7 @@ export function AdminDashboardClient({ stats, recentActivity }: AdminDashboardCl
                                                 {activity.detail}
                                             </p>
                                         </div>
-                                        <div className="text-sm font-medium text-outline-variant whitespace-nowrap hidden sm:block">
+                                        <div className="text-sm font-bold text-gray-500 whitespace-nowrap hidden sm:block">
                                             {formatTimeAgo(activity.timestamp)}
                                         </div>
                                     </div>

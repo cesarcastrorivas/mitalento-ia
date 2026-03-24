@@ -198,7 +198,7 @@ export default function ModulesPage() {
                                                 <span className={`${module.score >= module.passingScore ? 'text-emerald-600' : 'text-orange-500'}`}>
                                                     Mejor nota: {module.score}%
                                                 </span>
-                                                <span className="text-outline-variant">
+                                                <span className="text-secondary/80">
                                                     {module.attempts} intento{module.attempts !== 1 ? 's' : ''}
                                                 </span>
                                             </div>

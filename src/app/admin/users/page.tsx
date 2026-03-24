@@ -323,16 +323,28 @@ export default function UsersPage() {
         if (!editingUser) return;
         try {
             setSavingEdit(true);
-            const updateData: Record<string, any> = {
+
+            const payload: Record<string, string> = {
                 displayName: editFormData.displayName,
                 email: editFormData.email,
                 role: editFormData.role,
             };
-            // Solo guardar contraseña si se proporcionó una nueva
             if (editFormData.password.trim()) {
-                updateData.password = editFormData.password;
+                payload.password = editFormData.password;
             }
-            await updateDoc(doc(db, 'users', editingUser.uid), updateData);
+
+            const response = await fetch(`/api/admin/users/${editingUser.uid}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload),
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                throw new Error(result.error || 'Error al actualizar usuario');
+            }
+
             // Actualizar localmente
             setUsers(users.map(u => u.uid === editingUser.uid ? {
                 ...u,

@@ -3,7 +3,7 @@ import { getServerUser } from '@/lib/server-auth';
 import { LearningPath, User, Certificate, Course } from '@/types';
 import { FIXED_PATHS } from '@/lib/constants';
 import Link from 'next/link';
-import { Award, BookOpen, Crown, Building2, LineChart, Sun, CloudSun, Moon, Trophy, Layers, Route, ArrowRight } from 'lucide-react';
+import { Award, BookOpen, Crown, Building2, LineChart, Sun, CloudSun, Moon, Trophy, Layers, Route, ArrowRight, TrendingUp, ChevronRight } from 'lucide-react';
 import { MotivationalPhrase } from '@/components/MotivationalPhrase';
 
 const PATH_ICONS: Record<string, any> = {
@@ -125,86 +125,71 @@ export default async function StudentDashboard() {
     const firstName = (userClaims as any).name ? (userClaims as any).name.split(' ')[0] : (userData?.displayName?.split(' ')[0] || '');
 
     return (
-        <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 space-y-12 pb-24 font-sans text-on-surface animate-fade-in scroll-smooth">
+        <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 pt-20 sm:pt-28 pb-32 space-y-8 sm:space-y-10 font-sans animate-fade-in scroll-smooth">
             
             {/* Hero Section */}
-            <header className="relative w-full rounded-[2.5rem] bg-surface-dim overflow-hidden p-8 lg:p-12 border border-outline-variant/20 shadow-sm isolate">
-                {/* Atmospheric decoration */}
-                <div className="absolute top-0 right-0 -mr-20 -mt-20 w-96 h-96 rounded-full bg-primary/5 blur-[100px] -z-10 pointer-events-none" />
-                <div className="absolute bottom-0 left-0 -ml-20 -mb-20 w-80 h-80 rounded-full bg-secondary/5 blur-[100px] -z-10 pointer-events-none" />
-
-                <div className="max-w-3xl mb-10">
-                    <div className="flex items-center gap-3 mb-6">
-                        <div className="w-10 h-10 rounded-xl bg-surface-container-lowest flex items-center justify-center shadow-sm border border-outline-variant/10 text-primary">
-                            {greeting.type === 'morning' && <Sun size={20} strokeWidth={2} />}
-                            {greeting.type === 'afternoon' && <CloudSun size={20} strokeWidth={2} />}
-                            {greeting.type === 'evening' && <Moon size={20} strokeWidth={2} />}
+            <section className="space-y-6">
+                <div className="flex items-center justify-between">
+                    <div className="space-y-1">
+                        <div className="flex items-center gap-2 text-primary/80 mb-2">
+                            {greeting.type === 'morning' && <Sun size={20} strokeWidth={2.5} className="text-amber-500" />}
+                            {greeting.type === 'afternoon' && <CloudSun size={20} strokeWidth={2.5} className="text-amber-500" />}
+                            {greeting.type === 'evening' && <Moon size={20} strokeWidth={2.5} className="text-indigo-400" />}
+                            <span className="font-label text-xs font-bold uppercase tracking-wider">{greeting.text}</span>
                         </div>
-                        <span className="text-label-md text-secondary font-bold tracking-widest uppercase">{greeting.text}</span>
-                    </div>
-                    
-                    <h1 className="text-display-md text-on-surface mb-4">
-                        {firstName ? (
-                            <>Hola, <span className="font-light">{firstName}</span></>
-                        ) : (
-                            'Bienvenido'
-                        )}
-                    </h1>
-                    <div className="text-body-lg text-outline-variant font-medium max-w-2xl leading-relaxed">
-                        <MotivationalPhrase />
+                        <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-on-surface">
+                            {firstName ? `Hola, ${firstName}.` : 'Bienvenido.'}
+                        </h1>
+                        <div className="text-on-surface-variant text-sm font-medium italic mt-2">
+                            <MotivationalPhrase />
+                        </div>
                     </div>
                 </div>
 
-                {/* Stats Row */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                    <div className="card-premium bg-surface-container-lowest p-6 flex items-center gap-5 border border-outline-variant/10 group">
-                        <div className="w-14 h-14 rounded-2xl bg-amber-500/10 text-amber-600 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                            <Trophy size={26} strokeWidth={1.5} />
+                {/* Stats Bento Grid */}
+                <div className="grid grid-cols-2 gap-3 sm:gap-4 mt-6 max-w-2xl">
+                    <div className="col-span-2 bg-white p-5 sm:p-6 rounded-[2rem] card-premium relative overflow-hidden">
+                        <div className="relative z-10 flex justify-between items-end">
+                            <div className="space-y-1">
+                                <span className="text-[10px] sm:text-xs font-bold text-on-surface-variant uppercase tracking-widest">Progreso Total</span>
+                                <div className="text-4xl sm:text-5xl font-extrabold tracking-tighter leading-none mt-1 text-primary">{progressStats.progressPercent}%</div>
+                            </div>
+                            <div className="w-10 h-10 sm:w-12 sm:h-12 bg-purple-50 rounded-full flex items-center justify-center text-primary">
+                                <TrendingUp className="w-5 h-5 sm:w-6 sm:h-6" strokeWidth={2.5} />
+                            </div>
                         </div>
-                        <div>
-                            <span className="block text-3xl font-extrabold text-on-surface leading-none tracking-tight mb-1">
-                                {progressStats.progressPercent}%
-                            </span>
-                            <span className="text-label-md text-secondary">Progreso Total</span>
+                        <div className="mt-6 sm:mt-8 flex items-center gap-3">
+                            <div className="flex-1 h-2 bg-purple-100 rounded-full overflow-hidden">
+                                <div className="h-full bg-gradient-to-r from-primary to-primary-container rounded-full transition-all duration-1000 ease-out" style={{ width: `${progressStats.progressPercent}%` }}></div>
+                            </div>
                         </div>
                     </div>
                     
-                    <div className="card-premium bg-surface-container-lowest p-6 flex items-center gap-5 border border-outline-variant/10 group">
-                        <div className="w-14 h-14 rounded-2xl bg-primary-container/40 text-primary flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                            <Layers size={26} strokeWidth={1.5} />
-                        </div>
+                    <div className="bg-white p-4 sm:p-5 rounded-[1.5rem] sm:rounded-3xl card-premium flex flex-col justify-between min-h-[110px] sm:min-h-[120px]">
+                        <BookOpen className="w-5 h-5 sm:w-6 sm:h-6 text-[#6f46b9] mb-3" strokeWidth={2} />
                         <div>
-                            <span className="block text-3xl font-extrabold text-on-surface leading-none tracking-tight mb-1">
-                                {progressStats.completedModules} <span className="text-outline-variant/50 text-xl">/ {progressStats.totalModules}</span>
-                            </span>
-                            <span className="text-label-md text-secondary">Módulos</span>
+                            <div className="text-xl sm:text-2xl font-bold text-on-surface">{progressStats.completedModules}/{progressStats.totalModules}</div>
+                            <div className="text-[10px] font-bold uppercase text-on-surface-variant tracking-wider">Módulos</div>
                         </div>
                     </div>
-
-                    <div className="card-premium bg-surface-container-lowest p-6 flex items-center gap-5 border border-outline-variant/10 group">
-                        <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                            <Route size={26} strokeWidth={1.5} />
-                        </div>
+                    <div className="bg-white p-4 sm:p-5 rounded-[1.5rem] sm:rounded-3xl card-premium flex flex-col justify-between min-h-[110px] sm:min-h-[120px]">
+                        <Route className="w-5 h-5 sm:w-6 sm:h-6 text-[#849244] mb-3" strokeWidth={2} />
                         <div>
-                            <span className="block text-3xl font-extrabold text-on-surface leading-none tracking-tight mb-1">
-                                {progressStats.routesCompleted} <span className="text-outline-variant/50 text-xl">/ {progressStats.totalRoutes}</span>
-                            </span>
-                            <span className="text-label-md text-secondary">Rutas</span>
+                            <div className="text-xl sm:text-2xl font-bold text-on-surface">{progressStats.routesCompleted}/{progressStats.totalRoutes}</div>
+                            <div className="text-[10px] font-bold uppercase text-on-surface-variant tracking-wider">Rutas</div>
                         </div>
                     </div>
                 </div>
-            </header>
+            </section>
 
-            {/* Paths Section */}
-            <section className="space-y-8 animate-fade-in-up" style={{ animationDelay: '100ms' }}>
-                <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-                    <div>
-                        <h2 className="text-display-sm text-on-surface mb-2">Tus Rutas de Aprendizaje</h2>
-                        <p className="text-body-lg text-secondary">Trazando el camino hacia la excelencia profesional.</p>
-                    </div>
+            {/* Learning Routes */}
+            <section className="space-y-5 animate-fade-in-up" style={{ animationDelay: '100ms' }}>
+                <div className="flex items-center justify-between mb-2">
+                    <h2 className="text-xl font-bold text-on-surface">Tus Rutas de Aprendizaje</h2>
+                    <span className="text-[#471e52] text-xs font-bold hidden sm:block">Ver todas</span>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div className="flex overflow-x-auto pb-6 -mx-4 px-4 sm:mx-0 sm:px-0 sm:pb-0 sm:grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 snap-x snap-mandatory [&::-webkit-scrollbar]:hidden [scrollbar-width:none]">
                     {paths.map((path, index) => {
                         const IconComponent = PATH_ICONS[path.id] || BookOpen;
                         const isMandatory = FIXED_PATHS.some(fp => fp.id === path.id);
@@ -213,33 +198,36 @@ export default async function StudentDashboard() {
                             <Link 
                                 key={path.id} 
                                 href={`/paths/${path.id}`} 
-                                className="group block focus:outline-none focus-visible:ring-4 focus-visible:ring-primary/20 rounded-[2rem]"
+                                className="group flex-none w-[85vw] sm:w-auto block focus:outline-none focus-visible:ring-4 focus-visible:ring-primary/20 rounded-3xl snap-center sm:snap-align-none"
                                 style={{ animationDelay: `${index * 50}ms` }}
                             >
-                                <div className="card-premium h-full bg-surface-container-lowest flex flex-col p-8 border border-outline-variant/10 hover:border-primary/20 transition-all duration-500 hover:-translate-y-1">
-                                    <div className="flex justify-between items-start mb-10">
-                                        <div className="w-16 h-16 rounded-[1.25rem] bg-surface-dim text-primary flex items-center justify-center transition-transform duration-500 group-hover:scale-110 group-hover:bg-primary-container/30">
-                                            <IconComponent size={32} strokeWidth={1.5} />
+                                <div className="bg-white p-5 sm:p-6 rounded-3xl card-premium space-y-4 relative overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_12px_36px_rgba(0,0,0,0.08)] h-full flex flex-col">
+                                    <div className="flex justify-between items-start mb-2">
+                                        <div className="p-3 bg-purple-100/50 rounded-xl text-[#471e52]">
+                                            <IconComponent size={24} strokeWidth={2} />
                                         </div>
-                                        <div className={`px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest ${
+                                        <span className={`px-3 py-1 text-[10px] font-extrabold rounded-full uppercase tracking-tighter ${
                                             isMandatory 
-                                            ? 'bg-secondary-container/50 text-secondary border border-secondary/10' 
-                                            : 'bg-surface-dim text-outline-variant border border-outline-variant/10'
+                                            ? 'bg-[#f5a944] text-white' 
+                                            : 'bg-gray-100 text-gray-600'
                                         }`}>
                                             {isMandatory ? 'Esencial' : 'Especialización'}
-                                        </div>
+                                        </span>
                                     </div>
                                     
-                                    <h3 className="text-headline-sm text-on-surface mb-3 group-hover:text-primary transition-colors">{path.title}</h3>
-                                    <p className="text-body-md text-secondary leading-relaxed mb-6 flex-1 line-clamp-3">
-                                        {path.description}
-                                    </p>
+                                    <div className="flex-1">
+                                        <h3 className="text-lg font-bold text-on-surface">{path.title}</h3>
+                                        <p className="text-on-surface-variant text-sm mt-1 mb-4 leading-relaxed line-clamp-2">
+                                            {path.description}
+                                        </p>
+                                    </div>
                                     
-                                    <div className="pt-6 border-t border-outline-variant/10 flex items-center justify-between mt-auto">
-                                        <span className="text-label-md text-outline-variant font-medium">Explorar ruta</span>
-                                        <div className="w-10 h-10 rounded-full bg-surface-container-low flex items-center justify-center text-on-surface group-hover:bg-primary group-hover:text-white transition-all duration-300">
-                                            <ArrowRight size={20} strokeWidth={2} />
-                                        </div>
+                                    <button className="w-full bg-[#471e52] text-white py-3 rounded-xl font-bold text-sm shadow-sm transition-all active:scale-95 group-hover:bg-[#60356a]">
+                                        Explorar ruta
+                                    </button>
+                                    
+                                    <div className="absolute top-0 right-0 p-4 opacity-[0.03] pointer-events-none transition-transform duration-500 group-hover:scale-110">
+                                        <IconComponent size={120} strokeWidth={1.5} />
                                     </div>
                                 </div>
                             </Link>
@@ -247,12 +235,12 @@ export default async function StudentDashboard() {
                     })}
 
                     {paths.length === 0 && (
-                        <div className="col-span-full py-20 card-premium bg-surface-dim border border-dashed border-outline-variant/20 flex flex-col items-center justify-center text-center">
-                            <div className="w-20 h-20 rounded-full bg-surface-container-lowest mb-6 flex items-center justify-center shadow-sm">
-                                <Route className="w-8 h-8 text-outline-variant" strokeWidth={1.5} />
+                        <div className="col-span-full p-8 bg-white rounded-3xl border border-outline-variant/15 flex flex-col items-center justify-center text-center py-16">
+                            <div className="w-16 h-16 rounded-full bg-gray-50 mb-4 flex items-center justify-center">
+                                <Route className="w-8 h-8 text-gray-400" strokeWidth={1.5} />
                             </div>
-                            <h3 className="text-headline-sm text-on-surface mb-2">Aún no hay rutas</h3>
-                            <p className="text-body-lg text-secondary max-w-md mx-auto">Contacta a un administrador para que asigne tu camino de aprendizaje.</p>
+                            <h3 className="text-lg font-bold text-on-surface mb-2">Aún no hay rutas</h3>
+                            <p className="text-on-surface-variant text-sm max-w-sm mx-auto">Contacta a un administrador para que asigne tu camino de aprendizaje.</p>
                         </div>
                     )}
                 </div>
@@ -260,18 +248,12 @@ export default async function StudentDashboard() {
 
             {/* Certificates Section */}
             {certificates.length > 0 && (
-                <section className="space-y-8 animate-fade-in-up" style={{ animationDelay: '200ms' }}>
-                    <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 pt-8 border-t border-outline-variant/10">
-                        <div>
-                            <h2 className="text-display-sm text-on-surface mb-2">Logros Alcanzados</h2>
-                            <p className="text-body-lg text-secondary">Reconocimiento a tu esfuerzo y dedicación.</p>
-                        </div>
-                        <div className="px-4 py-2 rounded-xl bg-surface-dim border border-outline-variant/10 text-label-md text-secondary font-medium">
-                            {certificates.length} Certificado{certificates.length !== 1 ? 's' : ''}
-                        </div>
+                <section className="space-y-4 animate-fade-in-up" style={{ animationDelay: '200ms' }}>
+                    <div className="flex items-center justify-between mb-2">
+                        <h2 className="text-xl font-bold text-on-surface">Logros Alcanzados</h2>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <div className="flex overflow-x-auto pb-4 -mx-4 px-4 sm:mx-0 sm:px-0 sm:pb-0 sm:grid sm:grid-cols-2 lg:grid-cols-3 gap-4 snap-x snap-mandatory [&::-webkit-scrollbar]:hidden [scrollbar-width:none]">
                         {certificates.map((cert: any, index: number) => {
                             const LEVEL_LABELS: Record<string, string> = {
                                 fundamental: 'Nivel Fundamental',
@@ -282,31 +264,30 @@ export default async function StudentDashboard() {
                                 <Link 
                                     key={cert.id} 
                                     href="/certificate" 
-                                    className="group block focus:outline-none focus-visible:ring-4 focus-visible:ring-emerald-500/20 rounded-[2rem]"
+                                    className="block flex-none w-[85vw] sm:w-auto group focus:outline-none focus-visible:ring-4 focus-visible:ring-primary/20 rounded-3xl snap-center sm:snap-align-none"
                                     style={{ animationDelay: `${index * 50}ms` }}
                                 >
-                                    <div className="card-premium h-full bg-surface-container-lowest flex flex-col p-8 border border-outline-variant/10 hover:border-emerald-500/30 transition-all duration-500 hover:-translate-y-1">
-                                        <div className="flex justify-between items-start mb-8">
-                                            <div className="w-16 h-16 rounded-[1.25rem] bg-emerald-500/10 text-emerald-600 flex items-center justify-center transition-transform duration-500 group-hover:scale-110 group-hover:shadow-[0_4px_20px_rgba(16,185,129,0.2)]">
-                                                <Award size={32} strokeWidth={1.5} />
+                                    <div className="bg-gray-50/80 p-4 rounded-[1.5rem] flex items-center gap-4 border border-outline-variant/10 transition-all hover:bg-white hover:shadow-sm">
+                                        <div className="w-14 h-14 bg-white rounded-full flex shrink-0 items-center justify-center shadow-sm text-[#2a3300]">
+                                            <Award size={28} strokeWidth={2} className="fill-current text-[#404c03]" />
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <div className="flex justify-between items-center gap-2">
+                                                <h4 className="font-bold text-on-surface text-sm truncate">
+                                                    {cert.pathTitle || LEVEL_LABELS[cert.level] || 'Certificado'}
+                                                </h4>
+                                                <span className="text-[10px] font-bold text-[#acbb69] uppercase shrink-0">
+                                                    {cert.score}% SCORE
+                                                </span>
                                             </div>
-                                            <div className="px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest bg-emerald-500/10 text-emerald-700 border border-emerald-500/20">
-                                                Acreditado
+                                            <div className="flex items-center gap-1.5 mt-1">
+                                                <span className="text-xs text-on-surface-variant font-medium">Acreditado</span>
+                                                <div className="h-1 w-1 bg-outline-variant rounded-full shrink-0"></div>
+                                                <span className="text-[#471e52] text-xs font-bold truncate">Ver credencial</span>
                                             </div>
                                         </div>
-                                        
-                                        <h3 className="text-headline-sm text-on-surface mb-2">
-                                            {cert.pathTitle || LEVEL_LABELS[cert.level] || 'Certificado'}
-                                        </h3>
-                                        <p className="text-body-md text-secondary mb-6 flex-1">
-                                            {LEVEL_LABELS[cert.level] || 'Certificado'}
-                                        </p>
-                                        
-                                        <div className="pt-6 border-t border-outline-variant/10 flex items-center justify-between mt-auto">
-                                            <span className="text-label-md text-emerald-600 font-bold">Ver credencial</span>
-                                            <div className="w-24 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-700 font-bold group-hover:bg-emerald-500 group-hover:text-white transition-all duration-300">
-                                                {cert.score}%
-                                            </div>
+                                        <div className="text-outline-variant group-hover:text-primary transition-colors pr-2 shrink-0">
+                                            <ChevronRight size={20} strokeWidth={2} />
                                         </div>
                                     </div>
                                 </Link>

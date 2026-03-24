@@ -69,29 +69,26 @@ function StudentNavBar() {
                 </header>
             )}
 
-            {/* Bottom Navigation */}
-            <nav className="fixed bottom-0 left-0 right-0 z-50 glass-panel border-t border-outline-variant/15 pb-[env(safe-area-inset-bottom)] md:hidden">
-                <div className="flex items-center justify-around h-16 max-w-md mx-auto px-2">
+            {/* Bottom Navigation (Floating Pill Style) */}
+            <nav className="fixed bottom-6 w-full z-50 md:hidden px-4 pb-[env(safe-area-inset-bottom)] pointer-events-none">
+                <div className="bg-white/90 backdrop-blur-md rounded-[2rem] border border-outline-variant/20 shadow-[0_20px_40px_rgba(71,30,82,0.12)] flex justify-around items-center p-2 mx-auto max-w-[22rem] pointer-events-auto">
                     {navItems.map((item) => {
-                        const isActive = pathname === item.href ||
-                            (item.href === '/dashboard' && pathname.startsWith('/paths/')) ||
-                            (item.href === '/dashboard' && pathname.startsWith('/courses/')) ||
-                            (item.href === '/dashboard' && pathname.startsWith('/modules/'));
+                        const isDashboardSubPath = item.href === '/dashboard' && (pathname.startsWith('/paths/') || pathname.startsWith('/courses/') || pathname.startsWith('/modules/'));
+                        const isActive = pathname === item.href || isDashboardSubPath;
                         const Icon = item.icon;
 
                         return (
                             <Link
                                 key={item.href}
                                 href={item.href}
-                                className={`flex flex-col items-center justify-center w-full h-full gap-1 transition-colors relative ${isActive ? 'text-primary' : 'text-secondary hover:text-on-surface'}`}
+                                className={`flex flex-col items-center justify-center px-4 sm:px-5 py-2 rounded-[1.5rem] transition-all duration-300 ease-out ${
+                                    isActive 
+                                    ? 'bg-primary/10 text-primary scale-105 active:scale-95' 
+                                    : 'text-gray-400 hover:bg-purple-50 hover:text-primary active:scale-95'
+                                }`}
                             >
-                                <div className="relative flex items-center justify-center">
-                                    <Icon size={24} strokeWidth={isActive ? 2.5 : 2} className={isActive ? 'animate-fade-in-up' : ''} />
-                                    {isActive && (
-                                        <div className="absolute -inset-2 bg-primary/5 rounded-full -z-10" />
-                                    )}
-                                </div>
-                                <span className="text-[10px] font-bold tracking-wide uppercase mt-1">
+                                <Icon size={22} strokeWidth={isActive ? 2.5 : 2} />
+                                <span className="font-sans text-[10px] font-bold uppercase tracking-wider mt-1">
                                     {item.label}
                                 </span>
                             </Link>

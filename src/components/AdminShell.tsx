@@ -90,8 +90,8 @@ export default function AdminShell({
                 {/* Top Right User Info & Actions */}
                 <div className="flex items-center gap-4">
                     <div className="hidden md:flex flex-col items-end justify-center">
-                        <p className="text-sm font-bold text-on-surface leading-tight">{user.displayName}</p>
-                        <p className="text-[10px] text-outline-variant font-medium uppercase tracking-wider">{user.email}</p>
+                        <p className="text-sm font-extrabold text-gray-900 leading-tight">{user.displayName}</p>
+                        <p className="text-[10px] text-gray-600 font-bold uppercase tracking-wider">{user.email}</p>
                     </div>
                     <div className="relative w-9 h-9 rounded-full bg-gradient-to-br from-primary to-primary-container flex flex-shrink-0 items-center justify-center text-white font-bold text-sm shadow-sm border border-white overflow-hidden">
                         {user.photoURL ? (
@@ -129,7 +129,7 @@ export default function AdminShell({
                     {/* Navigation */}
                     <div className="px-3 space-y-7 overflow-y-auto flex-1 custom-scrollbar">
                         <div className="space-y-1">
-                            <p className="px-3 text-[10px] font-bold text-outline-variant uppercase tracking-widest mb-3">Principal</p>
+                            <p className="px-3 text-[10px] font-extrabold text-gray-500 uppercase tracking-widest mb-3">Principal</p>
                             <NavLink href="/admin" icon={<LayoutDashboard size={18} />} text="Dashboard" active={pathname === '/admin'} />
                             <NavLink href="/admin/paths" icon={<Map size={18} />} text="Rutas y Cursos" active={pathname.startsWith('/admin/paths')} />
                             <NavLink href="/admin/users" icon={<Users size={18} />} text="Usuarios" active={pathname.startsWith('/admin/users')} />
@@ -138,7 +138,7 @@ export default function AdminShell({
                         </div>
 
                         <div className="space-y-1">
-                            <p className="px-3 text-[10px] font-bold text-outline-variant uppercase tracking-widest mb-3">Analítica</p>
+                            <p className="px-3 text-[10px] font-extrabold text-gray-500 uppercase tracking-widest mb-3">Analítica</p>
                             <NavLink href="/admin/reports" icon={<BarChart3 size={18} />} text="Reportes" active={pathname.startsWith('/admin/reports')} />
                         </div>
                     </div>

@@ -1,10 +1,14 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, Manrope } from "next/font/google";
+import { Poppins, Manrope } from "next/font/google";
 import { AuthProvider } from "@/contexts/AuthContext";
 import InstallPrompt from "@/components/InstallPrompt";
 import "./globals.css";
 
-const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
+const poppins = Poppins({ 
+  weight: ['300', '400', '500', '600', '700', '800'],
+  subsets: ["latin"], 
+  variable: "--font-poppins" 
+});
 const manrope = Manrope({ subsets: ["latin"], variable: "--font-manrope" });
 
 export const viewport: Viewport = {
@@ -46,7 +50,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es" suppressHydrationWarning>
-      <body className={`${inter.variable} ${manrope.variable} font-sans bg-surface text-on-surface antialiased selection:bg-primary/20`}>
+      <body className={`${poppins.variable} ${manrope.variable} font-sans bg-surface text-on-surface antialiased selection:bg-primary/20`}>
         <AuthProvider>
           {children}
         </AuthProvider>

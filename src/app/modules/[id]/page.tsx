@@ -18,7 +18,7 @@ const QuizModal = dynamic(() => import('@/components/modules/QuizModal'), {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-scrim/60 backdrop-blur-sm">
             <div className="bg-surface-container-lowest rounded-[2rem] p-10 flex flex-col items-center gap-6 shadow-[0_20px_40px_rgba(17,28,45,0.08)]">
                 <div className="w-12 h-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
-                <p className="text-body-md text-secondary uppercase tracking-widest font-bold font-sans">Cargando evaluación...</p>
+                <p className="text-[10px] text-secondary uppercase tracking-widest font-bold">Cargando evaluación...</p>
             </div>
         </div>
     ),
@@ -217,7 +217,7 @@ export default function ModulePage() {
             {/* Sidebar de Navegación */}
             <aside className={`fixed lg:relative inset-y-0 left-0 z-50 w-72 bg-surface border-r border-outline-variant/15 flex flex-col transition-transform duration-300 ease-in-out ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0 lg:hidden'}`}>
                 <div className="p-6 border-b border-outline-variant/15 flex items-center justify-between">
-                    <h2 className="text-display-sm text-on-surface leading-snug line-clamp-2">{courseTitle || 'Contenido del Curso'}</h2>
+                    <h2 className="text-xl font-bold text-on-surface leading-snug line-clamp-2">{courseTitle || 'Contenido del Curso'}</h2>
                     <button onClick={() => setSidebarOpen(false)} className="lg:hidden p-2 text-secondary hover:text-on-surface hover:bg-surface-dim rounded-full transition-colors">
                         <X size={20} />
                     </button>
@@ -240,7 +240,7 @@ export default function ModulePage() {
                                     {isCompleted ? (
                                         <CheckCircle size={18} className="text-emerald-500" />
                                     ) : isLocked ? (
-                                        <Lock size={18} className="text-outline-variant" />
+                                        <Lock size={18} className="text-secondary opacity-60" />
                                     ) : isCurrent ? (
                                         <PlayCircle size={18} className="text-primary animate-pulse" />
                                     ) : (
@@ -248,7 +248,7 @@ export default function ModulePage() {
                                     )}
                                 </div>
                                 <div className="flex-1">
-                                    <span className={`block text-body-md ${isCurrent ? 'font-bold text-primary' : 'font-medium text-on-surface'}`}>
+                                    <span className={`block text-sm ${isCurrent ? 'font-bold text-primary' : 'font-medium text-on-surface'}`}>
                                         {m.order}. {m.title}
                                     </span>
                                     <span className={`block text-[10px] tracking-wide uppercase mt-1 ${isCurrent ? 'text-primary' : isCompleted ? 'text-emerald-500' : 'text-secondary'}`}>
@@ -329,8 +329,8 @@ export default function ModulePage() {
                     </div>
 
                     <div className="max-w-5xl mx-auto p-6 md:p-10 pb-24">
-                        <h3 className="text-display-md text-on-surface mb-6">Acerca de esta lección</h3>
-                        <p className="text-body-lg text-secondary leading-relaxed max-w-4xl">{module.description}</p>
+                        <h3 className="text-2xl font-bold text-on-surface tracking-tight mb-4">Acerca de esta lección</h3>
+                        <p className="text-base text-on-surface-variant leading-relaxed max-w-4xl">{module.description}</p>
                     </div>
                 </div>
             </main>
@@ -368,7 +368,7 @@ export default function ModulePage() {
                             <div className="space-y-2">
                                 <div className="flex justify-between items-center text-sm font-bold">
                                     <div className="flex items-center gap-2 text-secondary">
-                                        <Trophy size={16} className={canTakeQuiz ? 'text-emerald-500' : 'text-outline-variant'} />
+                                        <Trophy size={16} className={canTakeQuiz ? 'text-emerald-500' : 'text-secondary/70'} />
                                         <span>Requisito Quiz</span>
                                     </div>
                                     <span className="text-on-surface">{module.requiredWatchPercentage}%</span>

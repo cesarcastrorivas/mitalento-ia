@@ -128,6 +128,103 @@ export async function DELETE(
 }
 
 /**
+ * PUT /api/admin/users/[id]
+ *
+ * Admin edit: updates Firebase Auth credentials (email, password, displayName)
+ * AND Firestore profile (email, displayName, role).
+ * Passwords are NEVER stored in Firestore — only in Firebase Auth.
+ */
+export async function PUT(
+    request: NextRequest,
+    { params }: { params: { id: string } | Promise<{ id: string }> }
+) {
+    try {
+        if (!verifySameOrigin(request)) {
+            return NextResponse.json({ error: 'Solicitud no permitida' }, { status: 403 });
+        }
+
+        const user = await getServerUser();
+        if (!user) {
+            return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+        }
+
+        if (user.role !== 'admin') {
+            return NextResponse.json({ error: 'Acceso denegado: se requiere rol de administrador' }, { status: 403 });
+        }
+
+        const resolvedParams = await params;
+        const uid = resolvedParams.id;
+
+        if (!uid) {
+            return NextResponse.json({ error: 'UID de usuario no proporcionado' }, { status: 400 });
+        }
+
+        const body = await request.json();
+        const { email, password, displayName, role } = body;
+
+        if (!email || !displayName) {
+            return NextResponse.json({ error: 'Email y nombre son requeridos' }, { status: 400 });
+        }
+
+        const adminAuth = getAdminAuth();
+        const adminDb = getAdminDb();
+
+        // 1. Update Firebase Auth (email, displayName, and optionally password)
+        const authUpdate: Record<string, string> = { email, displayName };
+        if (password && password.trim()) {
+            authUpdate.password = password;
+        }
+
+        try {
+            await adminAuth.updateUser(uid, authUpdate);
+        } catch (authError: any) {
+            if (authError.code === 'auth/email-already-exists') {
+                return NextResponse.json(
+                    { error: 'El correo electrónico ya está en uso por otra cuenta.' },
+                    { status: 400 }
+                );
+            }
+            if (authError.code === 'auth/invalid-email') {
+                return NextResponse.json(
+                    { error: 'El correo electrónico no es válido.' },
+                    { status: 400 }
+                );
+            }
+            if (authError.code === 'auth/invalid-password') {
+                return NextResponse.json(
+                    { error: 'La contraseña debe tener al menos 6 caracteres.' },
+                    { status: 400 }
+                );
+            }
+            throw authError;
+        }
+
+        // 2. Update Firestore (never store password here)
+        const firestoreUpdate: Record<string, any> = {
+            email,
+            displayName,
+            role: role || 'student',
+            updatedAt: new Date(),
+            updatedBy: user.uid,
+        };
+
+        await adminDb.collection('users').doc(uid).update(firestoreUpdate);
+
+        return NextResponse.json({
+            success: true,
+            message: 'Usuario actualizado exitosamente en Auth y Firestore',
+        });
+
+    } catch (error: any) {
+        console.error('Error actualizando usuario:', error);
+        return NextResponse.json(
+            { error: 'Error al actualizar el usuario' },
+            { status: 500 }
+        );
+    }
+}
+
+/**
  * PATCH /api/admin/users/[id]
  *
  * Batch-update user fields server-side.
