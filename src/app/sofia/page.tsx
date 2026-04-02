@@ -2,8 +2,9 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { Send, Bot, User as UserIcon, Sparkles, Loader2 } from 'lucide-react';
+import { Send, Bot, User as UserIcon, Sparkles, Loader2, Home } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
+import Link from 'next/link';
 
 interface Message {
     role: 'user' | 'model';
@@ -126,7 +127,7 @@ export default function SofiaPage() {
         <div className="fixed inset-0 flex flex-col bg-bg-main overflow-hidden font-sans">
             <div className="flex flex-col h-full w-full max-w-3xl mx-auto pb-[calc(env(safe-area-inset-bottom,0px)+64px)] md:pb-[calc(env(safe-area-inset-bottom,0px)+80px)]">
                 {/* ── Header Premium ── */}
-                <header className="shrink-0 flex items-center gap-4 mt-safe pt-4 md:pt-6 mb-2 px-4 md:px-2 py-3 bg-white/60 backdrop-blur-xl border border-white/40 shadow-[0_8px_32px_rgba(0,0,0,0.04)] rounded-b-3xl md:rounded-3xl sticky top-0 z-20 transition-all select-none">
+                <header className="shrink-0 flex items-center gap-4 mt-safe pt-4 md:pt-6 mb-2 px-4 md:px-2 py-3 bg-white/60 backdrop-blur-xl border border-white/40 shadow-[0_8px_32px_rgba(0,0,0,0.04)] rounded-b-3xl md:rounded-3xl sticky top-0 z-20 transition-all select-none relative">
                     <div className="relative shrink-0 ml-2">
                         <div
                             className="w-12 h-12 rounded-full flex items-center justify-center shadow-sm"
@@ -143,6 +144,13 @@ export default function SofiaPage() {
                         </div>
                         <p className="text-[13px] text-gray-500 font-medium mt-0.5">Asistente de IA · En línea</p>
                     </div>
+                    <Link
+                        href="/dashboard"
+                        className="w-10 h-10 flex items-center justify-center rounded-full bg-white/80 border border-gray-200 text-gray-500 hover:text-gray-900 hover:bg-white shadow-sm transition-all hover:-translate-y-0.5 active:scale-95 absolute right-4 md:right-6"
+                        title="Volver a Inicio"
+                    >
+                        <Home size={18} strokeWidth={2.5} className="mb-0.5" />
+                    </Link>
                 </header>
 
                 {/* ── Chat Container ── */}

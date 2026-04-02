@@ -165,7 +165,7 @@ function NavLink({ href, icon, text, active }: { href: string; icon: React.React
             className={`
                 group flex items-center px-4 py-3 mx-2 rounded-xl transition-all duration-300 justify-between
                 ${active
-                    ? 'bg-surface-container-low text-primary font-bold shadow-[0_4px_10px_rgba(71,30,82,0.06)]'
+                    ? 'bg-surface-container-low text-primary font-extrabold shadow-[0_4px_10px_rgba(71,30,82,0.06)]'
                     : 'text-on-surface hover:text-primary hover:bg-surface-dim/40'
                 }
             `}

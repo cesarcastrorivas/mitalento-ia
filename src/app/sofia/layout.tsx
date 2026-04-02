@@ -27,7 +27,7 @@ export default function SofiaLayout({
     return (
         <>
             <StudentNavBar />
-            <div style={{ paddingBottom: '80px' }}>
+            <div className="pb-[80px] md:pb-0 md:pl-[104px] lg:pl-[120px]">
                 {children}
             </div>
         </>

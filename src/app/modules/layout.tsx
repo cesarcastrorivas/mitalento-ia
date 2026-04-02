@@ -67,7 +67,7 @@ export default function StudentLayout({
     return (
         <div className="min-h-screen bg-surface font-sans text-on-surface">
             <StudentNavBar />
-            <main className="pb-24 pt-20 md:pl-24">
+            <main className="pt-20 pb-[80px] md:pb-0 md:pl-[104px] lg:pl-[120px]">
                 {children}
             </main>
         </div>

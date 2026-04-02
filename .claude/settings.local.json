@@ -1,7 +1,14 @@
 {
   "permissions": {
     "allow": [
-      "Bash(npx firebase deploy --only firestore:indexes)"
+      "Bash(npx firebase deploy --only firestore:indexes)",
+      "Bash(xargs grep:*)",
+      "Bash(npm root:*)",
+      "Read(//c/Users/cesar/AppData/Roaming/npm/node_modules/firebase-tools/lib/**)",
+      "Bash(node -e \":*)",
+      "Bash(npx firebase:*)",
+      "Bash(tee /tmp/deploy_debug.txt)",
+      "Bash(node scripts/patch-firebase-tools-run.js)"
     ]
   }
 }

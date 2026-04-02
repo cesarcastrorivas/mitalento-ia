@@ -49,8 +49,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="es" suppressHydrationWarning>
-      <body className={`${poppins.variable} ${manrope.variable} font-sans bg-surface text-on-surface antialiased selection:bg-primary/20`}>
+    <html lang="es" suppressHydrationWarning className={`${poppins.variable} ${manrope.variable}`}>
+      <body className="font-sans bg-surface text-on-surface antialiased selection:bg-primary/20">
         <AuthProvider>
           {children}
         </AuthProvider>

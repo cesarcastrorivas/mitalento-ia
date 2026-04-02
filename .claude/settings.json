@@ -7,7 +7,11 @@
       "Bash(grep \"firebase-admin\" /c/Users/cesar/mitalento-ia/.firebase/mitalento-ia/functions/.next/server/chunks/[root-of-the-server]__38d16e10._.js)",
       "Bash(firebase deploy --only hosting,functions)",
       "Bash(python3 -c \":*)",
-      "Bash(xargs grep -oh '\"\"firebase-admin[^\"\"]*\"\"')"
+      "Bash(xargs grep -oh '\"\"firebase-admin[^\"\"]*\"\"')",
+      "Read(//c/Users/cesar/.claude/**)"
+    ],
+    "additionalDirectories": [
+      "C:\\Users\\cesar\\.claude"
     ]
   }
 }

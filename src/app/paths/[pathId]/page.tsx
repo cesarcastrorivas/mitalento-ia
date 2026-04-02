@@ -169,14 +169,14 @@ export default function PathDetailsPage({ params }: { params: Promise<{ pathId: 
                         <div className="h-6 bg-outline-variant/20 rounded w-48" />
                     </div>
                     
-                    <div className="relative space-y-8 before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-outline-variant/30 before:to-transparent">
+                    <div className="relative space-y-8 before:absolute before:inset-0 before:ml-5 before:-translate-x-px before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-outline-variant/30 before:to-transparent">
                         {[1, 2, 3, 4].map(i => (
-                            <div key={i} className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
-                                <div className="flex items-center justify-center w-10 h-10 rounded-full border-4 border-surface bg-surface-dim shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 text-secondary z-10">
+                            <div key={i} className="relative flex items-start gap-4 md:gap-8 group is-active">
+                                <div className="flex items-center justify-center w-10 h-10 rounded-full border-4 border-surface bg-surface-dim shadow shrink-0 text-secondary z-10">
                                 </div>
-                                <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] p-4 rounded-xl border border-outline-variant/10 bg-surface-container-lowest shadow-sm">
+                                <div className="flex-1 min-w-0 p-6 rounded-[1.5rem] border border-outline-variant/10 bg-surface-container-lowest shadow-sm">
                                     <div className="flex items-center justify-between mb-3">
-                                        <div className="h-4 bg-outline-variant/20 rounded w-16" />
+                                        <div className="h-4 bg-outline-variant/20 rounded w-24" />
                                         <div className="h-4 bg-outline-variant/20 rounded w-20" />
                                     </div>
                                     <div className="h-5 bg-outline-variant/20 rounded w-3/4 mb-2" />
@@ -223,43 +223,43 @@ export default function PathDetailsPage({ params }: { params: Promise<{ pathId: 
                     ]} />
                 </div>
 
-                <div className="card-premium bg-surface-container-low p-8 sm:p-10 lg:sticky lg:top-[7rem] relative overflow-hidden transition-shadow duration-500">
+                <div className="card-premium bg-[#60356a] text-white p-8 sm:p-10 lg:sticky lg:top-[7rem] relative overflow-hidden transition-shadow duration-500 rounded-[2rem] shadow-xl">
                     {/* Decorative blurred background */}
-                    <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 blur-[80px] -z-10 -translate-y-1/2 translate-x-1/2 pointer-events-none rounded-full" />
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 blur-[80px] -z-10 -translate-y-1/2 translate-x-1/2 pointer-events-none rounded-full" />
                     
-                    <div className="w-20 h-20 rounded-[1.5rem] bg-surface-container-lowest text-primary flex items-center justify-center mb-8 shadow-sm transition-transform duration-500 hover:scale-105 hover:bg-white">
+                    <div className="w-20 h-20 rounded-[1.5rem] bg-[#f5a944] text-white flex items-center justify-center mb-8 shadow-md transition-transform duration-500 hover:scale-105">
                         {(() => {
                             const IconComponent = EMOJI_TO_ICON[path.icon || ''] || BookOpen;
                             return <IconComponent size={36} strokeWidth={1.5} />;
                         })()}
                     </div>
                     
-                    <h1 className="text-display-sm text-on-surface mb-4 leading-tight">{path.title}</h1>
-                    <p className="text-body-lg text-secondary mb-10 leading-relaxed font-light">{path.description}</p>
+                    <h1 className="text-display-sm text-white mb-4 leading-tight">{path.title}</h1>
+                    <p className="text-body-lg text-white/80 mb-10 leading-relaxed font-light">{path.description}</p>
 
-                    <div className="grid grid-cols-3 gap-4 mb-10 py-6 border-y border-outline-variant/10 text-center">
+                    <div className="grid grid-cols-3 gap-4 mb-10 py-6 border-y border-white/10 text-center">
                         <div>
-                            <span className="block text-2xl font-extrabold text-on-surface mb-1">{courses.length}</span>
-                            <span className="text-[11px] font-bold text-secondary uppercase tracking-widest leading-tight block">Cursos</span>
+                            <span className="block text-2xl font-extrabold text-[#f5a944] mb-1">{courses.length}</span>
+                            <span className="text-[11px] font-bold text-[#f5a944] uppercase tracking-widest leading-tight block">Cursos</span>
                         </div>
                         <div>
-                            <span className="block text-2xl font-extrabold text-on-surface mb-1">{totalModulesInPath}</span>
-                            <span className="text-[11px] font-bold text-secondary uppercase tracking-widest leading-tight block">Módulos</span>
+                            <span className="block text-2xl font-extrabold text-[#f5a944] mb-1">{totalModulesInPath}</span>
+                            <span className="text-[11px] font-bold text-[#f5a944] uppercase tracking-widest leading-tight block">Módulos</span>
                         </div>
                         <div>
-                            <span className="block text-2xl font-extrabold text-emerald-600 mb-1">{completedModulesInPath}</span>
-                            <span className="text-[11px] font-bold text-secondary uppercase tracking-widest leading-tight block">Logrados</span>
+                            <span className="block text-2xl font-extrabold text-white mb-1">{completedModulesInPath}</span>
+                            <span className="text-[11px] font-bold text-white/80 uppercase tracking-widest leading-tight block">Logrados</span>
                         </div>
                     </div>
 
                     <div>
                         <div className="flex items-center justify-between mb-3">
-                            <span className="text-label-md font-bold text-on-surface uppercase tracking-wider">Progreso</span>
-                            <span className="text-headline-sm text-primary font-bold">{pathProgress}%</span>
+                            <span className="text-label-md font-bold text-white uppercase tracking-wider">Progreso</span>
+                            <span className="text-headline-sm text-white font-bold">{pathProgress}%</span>
                         </div>
-                        <div className="h-2 w-full bg-surface-dim rounded-full overflow-hidden">
+                        <div className="h-2 w-full bg-white/20 rounded-full overflow-hidden">
                             <div
-                                className="h-full bg-primary transition-all duration-1000 ease-out rounded-full"
+                                className="h-full bg-[#f5a944] transition-all duration-1000 ease-out rounded-full"
                                 style={{ width: `${pathProgress}%` }}
                             />
                         </div>
@@ -281,8 +281,8 @@ export default function PathDetailsPage({ params }: { params: Promise<{ pathId: 
                     </div>
                 </div>
 
-                {/* Timeline UI via Tailwind based on "cruip" or vertical line styling */}
-                <div className="relative space-y-6 lg:space-y-8 before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-outline-variant/30 before:via-outline-variant/40 before:to-transparent">
+                {/* Timeline UI via Tailwind based on a left-aligned vertical line */}
+                <div className="relative space-y-6 lg:space-y-8 before:absolute before:inset-0 before:ml-5 before:-translate-x-px before:h-full before:w-0.5 before:bg-gradient-to-b before:from-outline-variant/30 before:via-outline-variant/40 before:to-transparent">
                     {courses.map((course, index) => {
                         const isCompleted = course.progress === 100;
                         const isLocked = course.isLocked;
@@ -290,23 +290,23 @@ export default function PathDetailsPage({ params }: { params: Promise<{ pathId: 
 
                         let dotColors = "border-surface bg-surface-dim text-secondary";
                         if (isCompleted) dotColors = "border-surface bg-emerald-500 text-white shadow-[0_0_0_4px_rgba(16,185,129,0.15)]";
-                        if (isActive) dotColors = "border-surface bg-primary text-white shadow-[0_0_0_4px_rgba(71,30,82,0.15)] ring-4 ring-primary/20"; // Adding extra glow
+                        if (isActive) dotColors = "border-surface bg-[#60356a] text-white shadow-[0_0_0_4px_rgba(96,53,106,0.15)] ring-4 ring-[#60356a]/20";
 
                         return (
                             <div
                                 key={course.id}
-                                className={`relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group ${isActive ? 'is-active' : ''}`}
+                                className={`relative flex items-start gap-4 md:gap-8 group ${isActive ? 'is-active' : ''}`}
                             >
                                 {/* Timeline Dot */}
-                                <div className={`flex items-center justify-center w-10 h-10 rounded-full border-4 shrink-0 z-10 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 transition-colors duration-300 ${dotColors}`}>
+                                <div className={`flex items-center justify-center w-10 h-10 rounded-full border-4 shrink-0 z-10 transition-colors duration-300 ${dotColors}`}>
                                     {isCompleted ? <CheckCircle size={14} strokeWidth={3} /> : <span className="text-xs font-bold">{course.order}</span>}
                                 </div>
 
                                 {/* Timeline Card */}
-                                <div className={`w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] focus-within:ring-4 ring-primary/20 rounded-[1.5rem] transition-all duration-300 ${isLocked ? 'opacity-60 grayscale-[0.3]' : 'hover:-translate-y-1'}`}>
+                                <div className={`flex-1 min-w-0 focus-within:ring-4 ring-[#60356a]/20 rounded-[1.5rem] transition-all duration-300 ${isLocked ? 'opacity-60 grayscale-[0.3]' : 'hover:-translate-y-1'}`}>
                                     <Link
                                         href={isLocked || !course.nextModuleId ? '#' : `/modules/${course.nextModuleId}`}
-                                        className={`card-premium block bg-surface-container-lowest ${isActive ? 'shadow-[0_8px_30px_rgb(71,30,82,0.08)]' : ''} p-6 sm:p-8 outline-none rounded-[1.5rem]`}
+                                        className={`card-premium block ${isActive ? 'bg-[#f5a944] shadow-lg shadow-[#f5a944]/30' : 'bg-surface-container-lowest'} p-6 sm:p-8 outline-none rounded-[1.5rem]`}
                                         aria-disabled={isLocked}
                                         tabIndex={isLocked ? -1 : 0}
                                     >
@@ -314,43 +314,43 @@ export default function PathDetailsPage({ params }: { params: Promise<{ pathId: 
                                             <div className="flex-shrink-0">
                                                 <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-colors ${
                                                     isCompleted ? 'bg-emerald-500/10 text-emerald-600' :
-                                                    isActive ? 'bg-primary-container/40 text-primary' :
+                                                    isActive ? 'bg-[#60356a] text-[#f5a944]' :
                                                     'bg-surface-dim text-secondary'
                                                 }`}>
-                                                    {isLocked ? <Lock size={26} strokeWidth={1.5} /> : isCompleted ? <CheckCircle size={26} strokeWidth={1.5} /> : <PlayCircle size={26} strokeWidth={1.5} />}
+                                                    {isLocked ? <Lock size={26} strokeWidth={1.5} /> : isCompleted ? <CheckCircle size={26} strokeWidth={1.5} /> : <PlayCircle size={26} strokeWidth={2} />}
                                                 </div>
                                             </div>
 
                                             <div className="flex-1 min-w-0">
                                                 <div className="flex flex-wrap items-center justify-between gap-2 mb-3 text-[10px] font-bold uppercase tracking-widest">
-                                                    <span className={`${isActive ? 'text-primary' : 'text-secondary'}`}>Curso {course.order}</span>
-                                                    <span className="text-secondary bg-surface-dim px-2 py-0.5 rounded-full border border-outline-variant/10 whitespace-nowrap">
+                                                    <span className={`${isActive ? 'text-[#60356a]' : 'text-primary'}`}>Curso {course.order}</span>
+                                                    <span className={`${isActive ? 'text-[#60356a] bg-white/20 border-white/10' : 'text-secondary bg-surface-dim border-outline-variant/10'} px-2 py-0.5 rounded-full border whitespace-nowrap`}>
                                                         {course.completedModules} / {course.totalModules} Módulos
                                                     </span>
                                                 </div>
-                                                <h3 className={`text-headline-sm mb-2 ${isActive ? 'text-primary' : 'text-on-surface'} transition-colors leading-tight`}>
+                                                <h3 className={`text-headline-sm mb-2 ${isActive ? 'text-[#60356a]' : 'text-on-surface'} transition-colors leading-tight`}>
                                                     {course.title}
                                                 </h3>
-                                                <p className="text-body-md text-secondary leading-relaxed line-clamp-3 mb-5">
+                                                <p className={`text-body-md ${isActive ? 'text-[#60356a]/90' : 'text-secondary'} leading-relaxed line-clamp-3 mb-5`}>
                                                     {course.description}
                                                 </p>
                                                 
                                                 {/* Progress Indicator inside card */}
                                                 {!isLocked && (
                                                     <div className="flex items-center gap-4">
-                                                        <div className="flex-1 h-1.5 bg-surface-dim rounded-full overflow-hidden">
+                                                        <div className={`flex-1 h-1.5 ${isActive ? 'bg-white' : 'bg-surface-dim'} rounded-full overflow-hidden`}>
                                                             <div 
-                                                                className={`h-full rounded-full transition-all duration-1000 ${isCompleted ? 'bg-emerald-500' : 'bg-primary'}`}
+                                                                className={`h-full rounded-full transition-all duration-1000 ${isCompleted ? 'bg-emerald-500' : isActive ? 'bg-[#60356a]' : 'bg-primary'}`}
                                                                 style={{ width: `${course.progress}%` }}
                                                             />
                                                         </div>
-                                                        <span className={`text-xs font-bold ${isCompleted ? 'text-emerald-600' : 'text-primary'}`}>{course.progress}%</span>
+                                                        <span className={`text-xs font-bold ${isCompleted ? 'text-emerald-600' : isActive ? 'text-[#60356a]' : 'text-primary'}`}>{course.progress}%</span>
                                                     </div>
                                                 )}
                                             </div>
 
                                             {!isLocked && (
-                                                <div className="hidden sm:flex self-center w-10 h-10 rounded-full bg-surface-container-lowest border border-outline-variant/10 items-center justify-center text-secondary group-hover:bg-primary group-hover:text-white group-hover:border-primary transition-all duration-300 ml-2">
+                                                <div className={`hidden sm:flex self-center w-10 h-10 rounded-full ${isActive ? 'bg-[#60356a] text-white border-transparent' : 'bg-surface-container-lowest border border-outline-variant/10 text-secondary group-hover:bg-primary group-hover:text-white group-hover:border-primary'} items-center justify-center transition-all duration-300 ml-2`}>
                                                     <ChevronRight size={20} strokeWidth={2} />
                                                 </div>
                                             )}

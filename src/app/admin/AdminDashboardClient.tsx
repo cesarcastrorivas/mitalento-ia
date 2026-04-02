@@ -50,7 +50,7 @@ export function AdminDashboardClient({ stats, recentActivity }: AdminDashboardCl
                 action={
                     <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20">
                         <span className="flex h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)]" />
-                        <span className="text-[11px] font-bold text-emerald-700 tracking-widest uppercase">Operativo</span>
+                        <span className="text-[11px] font-extrabold text-emerald-700 tracking-widest uppercase">Operativo</span>
                     </div>
                 }
             />
@@ -117,14 +117,14 @@ export function AdminDashboardClient({ stats, recentActivity }: AdminDashboardCl
                                             }
                                         </div>
                                         <div className="flex-1 min-w-0">
-                                            <p className="text-body-lg font-bold text-on-surface truncate mb-0.5">
+                                            <p className="text-body-lg font-extrabold text-on-surface truncate mb-0.5">
                                                 {activity.studentName}
                                             </p>
                                             <p className="text-label-md text-secondary truncate">
                                                 {activity.detail}
                                             </p>
                                         </div>
-                                        <div className="text-sm font-bold text-gray-500 whitespace-nowrap hidden sm:block">
+                                        <div className="text-sm font-extrabold text-gray-500 whitespace-nowrap hidden sm:block">
                                             {formatTimeAgo(activity.timestamp)}
                                         </div>
                                     </div>
@@ -210,14 +210,14 @@ function StatCard({ icon, value, label, color, alert }: {
                     </div>
                 </div>
                 {alert && (
-                    <div className="hidden sm:flex items-center text-[10px] tracking-widest uppercase font-bold text-secondary bg-secondary-container px-3 py-1.5 rounded-full">
+                    <div className="hidden sm:flex items-center text-[10px] tracking-widest uppercase font-extrabold text-secondary bg-secondary-container px-3 py-1.5 rounded-full">
                         Acción requerida
                     </div>
                 )}
             </div>
             <div>
                 <span className="block text-4xl sm:text-5xl font-extrabold text-on-surface leading-none mb-3 tracking-tighter">{value}</span>
-                <span className="text-sm font-semibold text-secondary leading-tight block">{label}</span>
+                <span className="text-sm font-extrabold text-secondary leading-tight block">{label}</span>
             </div>
         </Card>
     );

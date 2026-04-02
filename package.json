@@ -2,12 +2,16 @@
   "name": "mi-talento-ia",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": "20"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
     "deploy": "firebase deploy",
+    "postinstall": "node scripts/patch-firebase-tools-run.js",
     "postbuild": "node scripts/patch-turbopack-externals.js"
   },
   "dependencies": {
@@ -32,7 +36,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.1.6",
-    "firebase-tools": "^13.29.1",
+    "firebase-tools": "^15.11.0",
     "sharp": "^0.34.5",
     "tailwindcss": "^4",
     "typescript": "^5"
