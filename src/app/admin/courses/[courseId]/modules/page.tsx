@@ -166,7 +166,7 @@ export default function CourseModulesPage({ params }: { params: Promise<{ course
 
             // 2. Poll for completion every 5 seconds
             const taskId = startData.taskId;
-            const maxPolls = 60; // 5 minutes max (60 * 5s)
+            const maxPolls = 120; // 10 minutes max (120 * 5s)
             for (let i = 0; i < maxPolls; i++) {
                 await new Promise(r => setTimeout(r, 5000));
 
@@ -188,7 +188,7 @@ export default function CourseModulesPage({ params }: { params: Promise<{ course
                 // status === 'processing' → keep polling
             }
 
-            throw new Error('La transcripción tardó demasiado. Intenta con un video más corto.');
+            throw new Error('La transcripción tardó más de 10 minutos. Intenta de nuevo o usa un video más corto.');
         } catch (error) {
             console.error('Error generating transcription:', error);
             alert(`Error: ${error instanceof Error ? error.message : String(error)}`);
