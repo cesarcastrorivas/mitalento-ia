@@ -117,6 +117,12 @@ export default function CourseModulesPage({ params }: { params: Promise<{ course
             return;
         }
 
+        const maxSizeMB = 300;
+        if (file.size > maxSizeMB * 1024 * 1024) {
+            alert(`El video pesa ${(file.size / 1024 / 1024).toFixed(0)}MB. El máximo permitido es ${maxSizeMB}MB. Comprime el video antes de subirlo.`);
+            return;
+        }
+
         setIsUploading(true);
         setUploadProgress(0);
 
@@ -645,7 +651,8 @@ export default function CourseModulesPage({ params }: { params: Promise<{ course
                                                     <UploadCloud size={24} />
                                                 </div>
                                                 <h4 className="text-slate-900 font-medium text-sm mb-1">Subir Video MP4</h4>
-                                                <p className="text-slate-400 text-xs">Máx. 500MB</p>
+                                                <p className="text-slate-400 text-xs">Máx. 300MB</p>
+                                                <p className="text-slate-400 text-xs mt-1">Videos menores a 100MB se transcriben más rápido</p>
                                             </>
                                         )}
                                         <input
@@ -674,7 +681,7 @@ export default function CourseModulesPage({ params }: { params: Promise<{ course
                                         disabled={!formData.videoUrl || isTranscribing}
                                         leftIcon={isTranscribing ? <div className="animate-spin rounded-full h-3 w-3 border-2 border-purple-600 border-t-transparent" /> : <Wand2 size={12} />}
                                     >
-                                        {isTranscribing ? 'Generando...' : 'Generar Automáticamente'}
+                                        {isTranscribing ? 'Transcribiendo video...' : 'Generar Automáticamente'}
                                     </Button>
                                 </div>
                                 <textarea
