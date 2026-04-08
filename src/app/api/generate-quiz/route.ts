@@ -3,6 +3,8 @@ import { generateQuizFromTranscription, secondaryGeminiJsonModel } from '@/lib/g
 import { getServerUser } from '@/lib/server-auth';
 import { checkRateLimit } from '@/lib/rate-limit';
 
+export const maxDuration = 60; // Permitir ejecución hasta 60s (límite de Vercel Hobby, 300 para Pro)
+
 export async function POST(request: NextRequest) {
     try {
         const user = await getServerUser();

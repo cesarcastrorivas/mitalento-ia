@@ -3,6 +3,8 @@ import { transcribeVideo, secondaryGeminiModel, secondaryFileManager } from '@/l
 import { getServerUser } from '@/lib/server-auth';
 import { checkRateLimit } from '@/lib/rate-limit';
 
+export const maxDuration = 300;
+
 export async function POST(request: NextRequest) {
     try {
         const user = await getServerUser();
@@ -10,12 +12,10 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ success: false, error: 'No autorizado' }, { status: 401 });
         }
 
-        // Transcription is an admin-only operation (used when creating/editing modules)
         if (user.role !== 'admin') {
             return NextResponse.json({ success: false, error: 'Acceso denegado' }, { status: 403 });
         }
 
-        // 5 transcripciones/hora por admin (operación costosa)
         const rl = await checkRateLimit(user.uid, 'transcribe', 5);
         if (!rl.allowed) {
             return NextResponse.json(
@@ -37,9 +37,9 @@ export async function POST(request: NextRequest) {
         }
 
         const result = await transcribeVideo(
-            videoUrl, 
-            videoTitle, 
-            secondaryGeminiModel, 
+            videoUrl,
+            videoTitle,
+            secondaryGeminiModel,
             secondaryFileManager
         );
 
@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
     } catch (error) {
         console.error('Error in /api/transcribe:', error);
         return NextResponse.json(
-            { success: false, error: 'Error procesando video' },
+            { success: false, error: error instanceof Error ? error.message : String(error) },
             { status: 500 }
         );
     }

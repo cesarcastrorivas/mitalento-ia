@@ -160,16 +160,26 @@ export default function CourseModulesPage({ params }: { params: Promise<{ course
                 }),
             });
 
-            const data = await response.json();
+            const text = await response.text();
+            if (!text) {
+                throw new Error('El servidor no respondió. Posible timeout. Intenta con un video más corto.');
+            }
+
+            let data;
+            try {
+                data = JSON.parse(text);
+            } catch {
+                throw new Error(`Error del servidor (status ${response.status}). Posible timeout.`);
+            }
 
             if (!data.success) {
-                throw new Error(data.error);
+                throw new Error(data.error || 'Error desconocido');
             }
 
             setFormData(prev => ({ ...prev, transcription: data.text }));
         } catch (error) {
             console.error('Error generating transcription:', error);
-            alert('Error al generar la transcripción. Por favor intenta de nuevo.');
+            alert(`Error: ${error instanceof Error ? error.message : String(error)}`);
         } finally {
             setIsTranscribing(false);
         }

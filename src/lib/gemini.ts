@@ -39,7 +39,9 @@ function validateVideoUrl(url: string): void {
         throw new Error('URL de video inválida');
     }
 
-    if (parsed.protocol !== 'https:') {
+    const isDev = process.env.NODE_ENV === 'development';
+
+    if (parsed.protocol !== 'https:' && !isDev) {
         throw new Error('Solo se permiten URLs con protocolo HTTPS');
     }
 
@@ -47,18 +49,18 @@ function validateVideoUrl(url: string): void {
 
     // Block loopback, link-local, and common cloud metadata endpoints
     const blockedExact = ['localhost', '0.0.0.0', '::1'];
-    if (blockedExact.includes(host)) {
+    if (blockedExact.includes(host) && !isDev) {
         throw new Error('URL de video no permitida');
     }
 
     const blockedPrefixes = ['127.', '169.254.']; // loopback, link-local/metadata
-    if (blockedPrefixes.some(p => host.startsWith(p))) {
+    if (blockedPrefixes.some(p => host.startsWith(p)) && !isDev) {
         throw new Error('URL de video no permitida');
     }
 
     // Block RFC-1918 private ranges: 10.x, 172.16–31.x, 192.168.x
     const octets = host.split('.').map(Number);
-    if (octets.length === 4 && octets.every(n => !isNaN(n))) {
+    if (octets.length === 4 && octets.every(n => !isNaN(n)) && !isDev) {
         const [a, b] = octets;
         if (a === 10) throw new Error('URL de video no permitida');
         if (a === 172 && b >= 16 && b <= 31) throw new Error('URL de video no permitida');
