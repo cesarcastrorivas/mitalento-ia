@@ -17,6 +17,11 @@ export const secondaryGeminiModel = secondaryGenAI.getGenerativeModel({
     model: 'gemini-3.1-pro-preview',
 });
 
+// Flash-lite model for fallback on large video transcription
+const secondaryGeminiFlashModel = secondaryGenAI.getGenerativeModel({
+    model: 'gemini-3.1-flash-lite-preview',
+});
+
 // JSON specific model for quizzes
 export const secondaryGeminiJsonModel = secondaryGenAI.getGenerativeModel({
     model: 'gemini-3.1-pro-preview',
@@ -482,18 +487,38 @@ export async function transcribeVideo(
         - El texto debe ser fluido y legible.
         - Si hay texto importante en pantalla que no se dice en voz alta, puedes incluirlo entre corchetes [Texto en pantalla: ...].`;
 
-        const result = await modelToUse.generateContent([
+        const contentParts = [
             { fileData: { mimeType: file.mimeType, fileUri: file.uri } },
             { text: prompt }
-        ]);
+        ];
 
-        const text = result.response.text();
-        console.log(`[transcribe] COMPLETE in ${((Date.now() - requestStart) / 1000).toFixed(1)}s, text length: ${text.length}`);
+        // Retry with exponential backoff + fallback to flash-lite on persistent failure
+        const modelsToTry = [modelToUse, secondaryGeminiFlashModel];
+        let lastError: Error | null = null;
 
-        // Cleanup Gemini file
-        fmToUse.deleteFile(uploadName).catch(console.error);
+        for (const model of modelsToTry) {
+            for (let attempt = 0; attempt < 3; attempt++) {
+                try {
+                    console.log(`[transcribe] generateContent attempt ${attempt + 1} with ${model === modelToUse ? 'pro' : 'flash-lite'}...`);
+                    const result = await model.generateContent(contentParts);
+                    const text = result.response.text();
+                    console.log(`[transcribe] COMPLETE in ${((Date.now() - requestStart) / 1000).toFixed(1)}s, text length: ${text.length}`);
 
-        return { text, success: true };
+                    // Cleanup Gemini file
+                    fmToUse.deleteFile(uploadName!).catch(console.error);
+                    return { text, success: true };
+                } catch (err) {
+                    lastError = err instanceof Error ? err : new Error(String(err));
+                    const isServerError = lastError.message.includes('500') || lastError.message.includes('503');
+                    console.warn(`[transcribe] Attempt ${attempt + 1} failed: ${lastError.message.slice(0, 120)}`);
+                    if (!isServerError) break; // Don't retry on 4xx errors
+                    if (attempt < 2) await new Promise(r => setTimeout(r, 2000 * Math.pow(2, attempt)));
+                }
+            }
+            console.log(`[transcribe] All attempts failed with current model, trying next...`);
+        }
+
+        throw lastError || new Error('Transcription failed after all retries');
 
     } catch (error) {
         console.error('Error in transcribeVideo:', error);
