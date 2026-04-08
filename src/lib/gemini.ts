@@ -448,10 +448,13 @@ export async function transcribeVideo(
     let uploadName: string | null = null;
 
     try {
-        console.log('Downloading video for transcription:', videoTitle);
-        tempFilePath = await downloadFile(videoUrl, '.mp4');
+        const requestStart = Date.now();
 
-        console.log('Uploading to Gemini (resumable):', tempFilePath);
+        console.log('[transcribe] Downloading video:', videoTitle);
+        tempFilePath = await downloadFile(videoUrl, '.mp4');
+        console.log(`[transcribe] Downloaded in ${((Date.now() - requestStart) / 1000).toFixed(1)}s`);
+
+        console.log('[transcribe] Uploading to Gemini (resumable):', tempFilePath);
         const uploadResult = await resumableUploadFile(tempFilePath, {
             mimeType: 'video/mp4',
             displayName: `Transcription: ${videoTitle}`,
@@ -460,14 +463,18 @@ export async function transcribeVideo(
         fileUri = uploadResult.file.uri;
         uploadName = uploadResult.file.name;
 
-        console.log('Uploaded video URI:', fileUri);
+        // Free tmpfs immediately - file is already in Gemini
+        if (tempFilePath && fs.existsSync(tempFilePath)) {
+            fs.unlinkSync(tempFilePath);
+            tempFilePath = null;
+        }
+        console.log(`[transcribe] Uploaded in ${((Date.now() - requestStart) / 1000).toFixed(1)}s, temp file freed`);
 
         // Wait for processing
-        console.log('Waiting for Gemini to process video for transcription...');
+        console.log('[transcribe] Waiting for Gemini to process...');
         await waitForProcessing(uploadName, fmToUse);
         const file = await fmToUse.getFile(uploadName);
-
-        console.log('Video processed. Generating transcription...');
+        console.log(`[transcribe] Processed in ${((Date.now() - requestStart) / 1000).toFixed(1)}s. Generating transcription...`);
 
         const prompt = `Genera una transcripción detallada y precisa de todo el audio de este video.
         - Si hay diferentes hablantes, trata de distinguirlos si es posible (ej: Hablante 1, Hablante 2).
@@ -481,6 +488,7 @@ export async function transcribeVideo(
         ]);
 
         const text = result.response.text();
+        console.log(`[transcribe] COMPLETE in ${((Date.now() - requestStart) / 1000).toFixed(1)}s, text length: ${text.length}`);
 
         // Cleanup Gemini file
         fmToUse.deleteFile(uploadName).catch(console.error);
