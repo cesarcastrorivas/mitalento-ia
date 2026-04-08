@@ -176,6 +176,120 @@ export interface QuizGenerationResult {
     error?: string;
 }
 
+// ─── Resumable upload: streams file in 8 MB chunks to avoid OOM ─────────────
+
+const CHUNK_SIZE = 8 * 1024 * 1024; // 8 MiB (multiple of 256 KiB as required by Google)
+
+interface UploadedFileInfo {
+    name: string;
+    uri: string;
+    mimeType: string;
+    state: string;
+}
+
+/**
+ * Uploads a file to Gemini File API using resumable upload protocol.
+ * Unlike the SDK's uploadFile() which loads the entire file into memory,
+ * this streams the file in 8 MB chunks keeping peak memory at ~8 MB.
+ */
+async function resumableUploadFile(
+    filePath: string,
+    metadata: { mimeType: string; displayName?: string },
+    geminiApiKey: string,
+): Promise<{ file: UploadedFileInfo }> {
+    const fileSize = fs.statSync(filePath).size;
+    const baseUrl = 'https://generativelanguage.googleapis.com/upload/v1beta/files';
+
+    console.log(`Resumable upload: ${(fileSize / 1024 / 1024).toFixed(1)} MB in ${Math.ceil(fileSize / CHUNK_SIZE)} chunks`);
+
+    // Phase 1: Initiate resumable upload session
+    const initResponse = await fetch(`${baseUrl}?key=${geminiApiKey}`, {
+        method: 'POST',
+        headers: {
+            'X-Goog-Upload-Protocol': 'resumable',
+            'X-Goog-Upload-Command': 'start',
+            'X-Goog-Upload-Header-Content-Length': String(fileSize),
+            'X-Goog-Upload-Header-Content-Type': metadata.mimeType,
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            file: { displayName: metadata.displayName || '' },
+        }),
+    });
+
+    if (!initResponse.ok) {
+        const errText = await initResponse.text();
+        throw new Error(`Failed to initiate resumable upload: ${initResponse.status} ${errText}`);
+    }
+
+    const uploadUrl = initResponse.headers.get('x-goog-upload-url');
+    if (!uploadUrl) throw new Error('No upload URL returned from Gemini');
+
+    // Phase 2: Upload file in chunks
+    const fileHandle = await fs.promises.open(filePath, 'r');
+    const buffer = Buffer.alloc(Math.min(CHUNK_SIZE, fileSize));
+    let offset = 0;
+
+    try {
+        while (offset < fileSize) {
+            const remaining = fileSize - offset;
+            const bytesToRead = Math.min(CHUNK_SIZE, remaining);
+            const isLast = remaining <= CHUNK_SIZE;
+
+            const { bytesRead } = await fileHandle.read(buffer, 0, bytesToRead, offset);
+            const chunk = buffer.subarray(0, bytesRead);
+
+            const command = isLast ? 'upload, finalize' : 'upload';
+
+            let chunkResponse: Response | null = null;
+            // Retry up to 3 times per chunk
+            for (let attempt = 0; attempt < 3; attempt++) {
+                try {
+                    chunkResponse = await fetch(uploadUrl, {
+                        method: 'POST',
+                        headers: {
+                            'X-Goog-Upload-Command': command,
+                            'X-Goog-Upload-Offset': String(offset),
+                            'Content-Length': String(bytesRead),
+                        },
+                        body: chunk,
+                    });
+                    if (chunkResponse.ok || chunkResponse.status < 500) break;
+                } catch (err) {
+                    if (attempt === 2) throw err;
+                }
+                await new Promise(r => setTimeout(r, 1000 * Math.pow(2, attempt)));
+            }
+
+            if (!chunkResponse || (!chunkResponse.ok && !isLast)) {
+                throw new Error(`Chunk upload failed at offset ${offset}: ${chunkResponse?.status}`);
+            }
+
+            if (isLast) {
+                const result = await chunkResponse.json();
+                console.log('Resumable upload complete:', result.file?.name);
+                return result as { file: UploadedFileInfo };
+            }
+
+            offset += bytesRead;
+        }
+    } finally {
+        await fileHandle.close();
+    }
+
+    throw new Error('Upload completed without finalize response');
+}
+
+/** Resolves the API key for a given file manager instance */
+function getApiKeyForManager(fmToUse: GoogleAIFileManager): string {
+    if (fmToUse === secondaryFileManager) {
+        return process.env.GEMINI_API_KEY_SECONDARY || apiKey;
+    }
+    return apiKey;
+}
+
+// ─── File download ──────────────────────────────────────────────────────────
+
 /**
  * Downloads a file from a URL to a temporary local file
  */
@@ -214,13 +328,13 @@ export async function generateQuizFromVideo(
         // Note: FileManager.uploadFile requires a path, not a stream currently in Node implementation usually
         tempFilePath = await downloadFile(videoUrl, '.mp4');
 
-        console.log('Uploading to Gemini:', tempFilePath);
+        console.log('Uploading to Gemini (resumable):', tempFilePath);
 
-        // 2. Upload to Gemini
-        const uploadResult = await fmToUse.uploadFile(tempFilePath, {
+        // 2. Upload to Gemini using resumable upload (memory-efficient)
+        const uploadResult = await resumableUploadFile(tempFilePath, {
             mimeType: 'video/mp4',
             displayName: `Module: ${videoTitle}`,
-        });
+        }, getApiKeyForManager(fmToUse));
 
         fileUri = uploadResult.file.uri;
         uploadName = uploadResult.file.name;
@@ -337,11 +451,11 @@ export async function transcribeVideo(
         console.log('Downloading video for transcription:', videoTitle);
         tempFilePath = await downloadFile(videoUrl, '.mp4');
 
-        console.log('Uploading to Gemini:', tempFilePath);
-        const uploadResult = await fmToUse.uploadFile(tempFilePath, {
+        console.log('Uploading to Gemini (resumable):', tempFilePath);
+        const uploadResult = await resumableUploadFile(tempFilePath, {
             mimeType: 'video/mp4',
             displayName: `Transcription: ${videoTitle}`,
-        });
+        }, getApiKeyForManager(fmToUse));
 
         fileUri = uploadResult.file.uri;
         uploadName = uploadResult.file.name;
