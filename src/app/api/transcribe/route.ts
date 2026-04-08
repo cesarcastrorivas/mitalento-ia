@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { transcribeVideo, secondaryGeminiModel, secondaryFileManager } from '@/lib/gemini';
 import { getServerUser } from '@/lib/server-auth';
 import { checkRateLimit } from '@/lib/rate-limit';
+import { getAdminDb } from '@/lib/firebase-admin';
 
 export const maxDuration = 300;
 
@@ -27,7 +28,7 @@ export async function POST(request: NextRequest) {
         const body = await request.json();
         const { videoUrl, videoTitle = 'Video del Módulo' } = body;
 
-        console.log('Transcribing video:', { videoTitle, requestedBy: user.uid });
+        console.log('Transcribing video (async):', { videoTitle, requestedBy: user.uid });
 
         if (!videoUrl) {
             return NextResponse.json(
@@ -36,20 +37,46 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        const result = await transcribeVideo(
+        // Create a task document in Firestore
+        const db = getAdminDb();
+        const taskRef = await db.collection('transcription_tasks').add({
+            status: 'processing',
             videoUrl,
             videoTitle,
-            secondaryGeminiModel,
-            secondaryFileManager
-        );
+            requestedBy: user.uid,
+            createdAt: new Date(),
+            text: '',
+            error: '',
+        });
 
-        if (!result.success) {
-            throw new Error(result.error);
-        }
+        const taskId = taskRef.id;
+        console.log('[transcribe] Task created:', taskId);
 
+        // Process in background - don't await
+        transcribeVideo(videoUrl, videoTitle, secondaryGeminiModel, secondaryFileManager)
+            .then(async (result) => {
+                await db.collection('transcription_tasks').doc(taskId).update({
+                    status: result.success ? 'completed' : 'failed',
+                    text: result.text || '',
+                    error: result.error || '',
+                    completedAt: new Date(),
+                });
+                console.log(`[transcribe] Task ${taskId} ${result.success ? 'completed' : 'failed'}`);
+            })
+            .catch(async (err) => {
+                await db.collection('transcription_tasks').doc(taskId).update({
+                    status: 'failed',
+                    error: err instanceof Error ? err.message : String(err),
+                    completedAt: new Date(),
+                });
+                console.error(`[transcribe] Task ${taskId} error:`, err);
+            });
+
+        // Respond immediately
         return NextResponse.json({
             success: true,
-            text: result.text,
+            taskId,
+            status: 'processing',
         });
 
     } catch (error) {

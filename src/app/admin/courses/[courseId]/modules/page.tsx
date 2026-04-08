@@ -149,34 +149,46 @@ export default function CourseModulesPage({ params }: { params: Promise<{ course
 
         setIsTranscribing(true);
         try {
+            // 1. Start the transcription task
             const response = await fetch('/api/transcribe', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     videoUrl: formData.videoUrl,
                     videoTitle: formData.title || 'Video del Módulo',
                 }),
             });
 
-            const text = await response.text();
-            if (!text) {
-                throw new Error('El servidor no respondió. Posible timeout. Intenta con un video más corto.');
+            const startData = await response.json();
+            if (!startData.success || !startData.taskId) {
+                throw new Error(startData.error || 'Error al iniciar transcripción');
             }
 
-            let data;
-            try {
-                data = JSON.parse(text);
-            } catch {
-                throw new Error(`Error del servidor (status ${response.status}). Posible timeout.`);
+            // 2. Poll for completion every 5 seconds
+            const taskId = startData.taskId;
+            const maxPolls = 60; // 5 minutes max (60 * 5s)
+            for (let i = 0; i < maxPolls; i++) {
+                await new Promise(r => setTimeout(r, 5000));
+
+                const statusRes = await fetch(`/api/transcribe-status/${taskId}`);
+                const statusData = await statusRes.json();
+
+                if (!statusData.success) {
+                    throw new Error(statusData.error || 'Error consultando estado');
+                }
+
+                if (statusData.status === 'completed') {
+                    setFormData(prev => ({ ...prev, transcription: statusData.text }));
+                    return;
+                }
+
+                if (statusData.status === 'failed') {
+                    throw new Error(statusData.error || 'La transcripción falló');
+                }
+                // status === 'processing' → keep polling
             }
 
-            if (!data.success) {
-                throw new Error(data.error || 'Error desconocido');
-            }
-
-            setFormData(prev => ({ ...prev, transcription: data.text }));
+            throw new Error('La transcripción tardó demasiado. Intenta con un video más corto.');
         } catch (error) {
             console.error('Error generating transcription:', error);
             alert(`Error: ${error instanceof Error ? error.message : String(error)}`);
