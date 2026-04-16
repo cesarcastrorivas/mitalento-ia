@@ -83,8 +83,9 @@ export default async function StudentDashboard() {
     const certificates = certs;
 
     // 6. Process Progress Data
-    const totalRoutes = uniquePathIds.length;
-    const routesCompleted = (userData?.completedPaths || []).length;
+    const visiblePathIds = new Set(paths.map(p => p.id));
+    const totalRoutes = paths.length;
+    const routesCompleted = (userData?.completedPaths || []).filter((id: string) => visiblePathIds.has(id)).length;
 
     const totalModules = allModules.length;
 
@@ -107,7 +108,8 @@ export default async function StudentDashboard() {
         }
     }
 
-    const completedModules = passedModules.size;
+    const activeModuleIds = new Set(allModules.map((m: any) => m.id));
+    const completedModules = [...passedModules].filter(id => activeModuleIds.has(id)).length;
     const bestScores = Array.from(bestScorePerModule.values());
     const averageScore = bestScores.length > 0
         ? Math.round(bestScores.reduce((sum, s) => sum + s, 0) / bestScores.length)
