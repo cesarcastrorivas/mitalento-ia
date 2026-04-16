@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
+import { FIXED_PATHS } from '@/lib/constants';
 import {
     collection,
     query,
@@ -123,12 +124,13 @@ export default function UsersPage() {
             setUsers(mapUserDocs(usersSnapshot.docs));
 
             // Cargar Rutas Dinámicas (Especializadas) de Firestore para el modal
+            // Excluir las 3 rutas fijas (obligatorias para todos) del listado de asignación
+            const fixedIds = new Set(FIXED_PATHS.map(p => p.id));
             const pathsQ = query(collection(db, 'learning_paths'));
             const pathsSnapshot = await getDocs(pathsQ);
-            const loadedPaths = pathsSnapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data()
-            } as LearningPath));
+            const loadedPaths = pathsSnapshot.docs
+                .map(doc => ({ id: doc.id, ...doc.data() } as LearningPath))
+                .filter(p => !fixedIds.has(p.id));
             setPaths(loadedPaths);
         } catch (error) {
             console.error('Error loading data:', error);
