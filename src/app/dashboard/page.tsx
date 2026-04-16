@@ -82,12 +82,17 @@ export default async function StudentDashboard() {
     const paths = Array.from(pathsMap.values()).sort((a, b) => (a.order || 99) - (b.order || 99));
     const certificates = certs;
 
-    // 6. Process Progress Data
+    // 6. Filtrar cursos y módulos solo de rutas visibles (excluir huérfanos)
     const visiblePathIds = new Set(paths.map(p => p.id));
+    const visibleCourses = allCourses.filter((c: Course) => visiblePathIds.has(c.pathId));
+    const visibleCourseIds = new Set(visibleCourses.map((c: Course) => c.id));
+    const visibleModules = allModules.filter((m: any) => visibleCourseIds.has(m.courseId));
+
+    // 7. Process Progress Data
     const totalRoutes = paths.length;
     const routesCompleted = (userData?.completedPaths || []).filter((id: string) => visiblePathIds.has(id)).length;
 
-    const totalModules = allModules.length;
+    const totalModules = visibleModules.length;
 
     const passedModules = new Set<string>();
     const bestScorePerModule = new Map<string, number>();
@@ -108,7 +113,7 @@ export default async function StudentDashboard() {
         }
     }
 
-    const activeModuleIds = new Set(allModules.map((m: any) => m.id));
+    const activeModuleIds = new Set(visibleModules.map((m: any) => m.id));
     const completedModules = [...passedModules].filter(id => activeModuleIds.has(id)).length;
     const bestScores = Array.from(bestScorePerModule.values());
     const averageScore = bestScores.length > 0
