@@ -205,7 +205,7 @@ export default function CourseModulesPage({ params }: { params: Promise<{ course
 
     const handleGenerateQuiz = async () => {
         if (!formData.transcription.trim()) {
-            alert('Primero necesitas generar la transcripción para poder crear el examen.');
+            alert('Genera las transcripciones primero para poder crear las preguntas.');
             return;
         }
 
@@ -274,10 +274,7 @@ export default function CourseModulesPage({ params }: { params: Promise<{ course
             alert('Por favor completa el título y sube un video');
             return;
         }
-        if (!formData.transcription.trim()) {
-            alert('La transcripción es obligatoria. Genera la transcripción con IA y revísala antes de guardar.');
-            return;
-        }
+        // Transcripción y quiz son opcionales (ej. videos de bienvenida)
         // if (!formData.questions || formData.questions.length === 0) {
         //     alert('Debes generar el examen antes de guardar el módulo.');
         //     return;
@@ -375,7 +372,7 @@ export default function CourseModulesPage({ params }: { params: Promise<{ course
     if (loading) {
         return (
             <div className="flex items-center justify-center min-h-[50vh]">
-                <div className="w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
+                <div className="w-8 h-8 border-2 border-[#834f8f] border-t-transparent rounded-full animate-spin"></div>
             </div>
         );
     }
@@ -388,7 +385,7 @@ export default function CourseModulesPage({ params }: { params: Promise<{ course
             <div>
                 <Link
                     href={`/admin/paths/${course.pathId}`}
-                    className="inline-flex items-center gap-2 text-sm text-slate-500 hover:text-purple-600 transition-colors mb-4 group"
+                    className="inline-flex items-center gap-2 text-sm text-slate-500 hover:text-[#60356a] transition-colors mb-4 group"
                 >
                     <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
                     <span>Volver al Curso</span>
@@ -399,7 +396,7 @@ export default function CourseModulesPage({ params }: { params: Promise<{ course
                     subtitle="Gestión de Módulos y Videos"
                     icon={<Video size={18} />}
                     action={
-                        <Button onClick={openNewModuleModal} leftIcon={<Plus size={20} />} className="shadow-lg shadow-purple-500/25">
+                        <Button onClick={openNewModuleModal} leftIcon={<Plus size={20} />} className="shadow-lg shadow-[#834f8f]/25">
                             Nuevo Módulo
                         </Button>
                     }
@@ -408,8 +405,8 @@ export default function CourseModulesPage({ params }: { params: Promise<{ course
 
             {modules.length === 0 ? (
                 <div className="flex flex-col items-center justify-center p-16 bg-white rounded-3xl border border-slate-200 shadow-sm text-center">
-                    <div className="w-20 h-20 bg-purple-50 rounded-full flex items-center justify-center mb-6 text-purple-200">
-                        <Video size={40} className="text-purple-500" />
+                    <div className="w-20 h-20 bg-[#60356a]/5 rounded-full flex items-center justify-center mb-6 text-[#60356a]/20">
+                        <Video size={40} className="text-[#834f8f]" />
                     </div>
                     <h3 className="text-xl font-bold text-slate-900 mb-2">Sin módulos aún</h3>
                     <p className="text-slate-500 max-w-md mx-auto mb-8">
@@ -445,7 +442,7 @@ export default function CourseModulesPage({ params }: { params: Promise<{ course
                             <div className="flex-1 min-w-0 py-1">
                                 <div className="flex justify-between items-start">
                                     <div>
-                                        <span className="text-xs font-semibold tracking-wider text-purple-600 uppercase mb-1 block">
+                                        <span className="text-xs font-semibold tracking-wider text-[#60356a] uppercase mb-1 block">
                                             Módulo {module.order}
                                         </span>
                                         <h3 className="text-lg font-bold text-slate-900 mb-2">{module.title}</h3>
@@ -457,7 +454,7 @@ export default function CourseModulesPage({ params }: { params: Promise<{ course
                                     <div className="flex gap-2">
                                         <button
                                             onClick={() => handleEdit(module)}
-                                            className="p-2 text-slate-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
+                                            className="p-2 text-slate-400 hover:text-[#60356a] hover:bg-[#60356a]/5 rounded-lg transition-colors"
                                         >
                                             <Pencil size={18} />
                                         </button>
@@ -482,7 +479,7 @@ export default function CourseModulesPage({ params }: { params: Promise<{ course
                 onClose={() => setShowModal(false)}
                 title={editingModule ? 'Editar Módulo' : 'Nuevo Módulo'}
                 subtitle="Sube tu video y configura los requisitos de aprobación."
-                maxWidth="xl"
+                maxWidth="2.5xl"
                 footer={
                     <div className="flex justify-between w-full">
                         <div>
@@ -501,7 +498,7 @@ export default function CourseModulesPage({ params }: { params: Promise<{ course
                                     Siguiente paso
                                 </Button>
                             ) : (
-                                <Button onClick={handleSubmit} isLoading={isSubmitting || isUploading} disabled={isUploading || !formData.transcription.trim() || formData.questions.length === 0}>
+                                <Button onClick={handleSubmit} isLoading={isSubmitting || isUploading} disabled={isUploading}>
                                     {editingModule ? 'Guardar Cambios' : 'Crear Módulo'}
                                 </Button>
                             )}
@@ -509,49 +506,49 @@ export default function CourseModulesPage({ params }: { params: Promise<{ course
                     </div>
                 }
             >
-                <div className="mb-6 px-6 pt-4 pb-2">
+                <div className="mb-4 px-6 pt-3 pb-1">
                     {/* Wizard Steps Indicators (Stitch Variant 2 Style) */}
                     <div className="flex items-center justify-between relative max-w-lg mx-auto">
                         {/* Progress Line Background */}
-                        <div className="absolute top-1/2 left-0 w-full h-[2px] bg-purple-100 -translate-y-1/2 z-0"></div>
+                        <div className="absolute top-1/2 left-0 w-full h-[2px] bg-[#60356a]/10 -translate-y-1/2 z-0"></div>
 
                         {/* Active Progress Line */}
                         <div
-                            className="absolute top-1/2 left-0 h-[3px] bg-purple-600 -translate-y-1/2 z-0 transition-all duration-300 ease-in-out"
+                            className="absolute top-1/2 left-0 h-[3px] bg-[#60356a] -translate-y-1/2 z-0 transition-all duration-300 ease-in-out"
                             style={{ width: wizardStep === 1 ? '15%' : wizardStep === 2 ? '50%' : '100%' }}
                         ></div>
 
                         {/* Step 1 */}
                         <div className="relative z-10 flex flex-col items-center gap-2 bg-white px-2">
-                            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-300 ${wizardStep >= 1 ? 'bg-purple-600 text-white shadow-lg shadow-purple-600/30' : 'bg-slate-50 border-2 border-slate-200 text-slate-400'}`}>
+                            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-300 ${wizardStep >= 1 ? 'bg-[#60356a] text-white shadow-lg shadow-[#60356a]/30' : 'bg-slate-50 border-2 border-slate-200 text-slate-400'}`}>
                                 1
                             </div>
-                            <span className={`text-[10px] font-bold uppercase tracking-wider ${wizardStep >= 1 ? 'text-purple-600' : 'text-slate-400'}`}>Información</span>
+                            <span className={`text-[10px] font-bold uppercase tracking-wider ${wizardStep >= 1 ? 'text-[#60356a]' : 'text-slate-400'}`}>Información</span>
                         </div>
 
                         {/* Step 2 */}
                         <div className="relative z-10 flex flex-col items-center gap-2 bg-white px-2">
-                            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-300 ${wizardStep >= 2 ? 'bg-purple-600 text-white shadow-lg shadow-purple-600/30' : 'bg-slate-50 border-2 border-slate-200 text-slate-400'}`}>
+                            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-300 ${wizardStep >= 2 ? 'bg-[#60356a] text-white shadow-lg shadow-[#60356a]/30' : 'bg-slate-50 border-2 border-slate-200 text-slate-400'}`}>
                                 2
                             </div>
-                            <span className={`text-[10px] font-bold uppercase tracking-wider ${wizardStep >= 2 ? 'text-purple-600' : 'text-slate-400'}`}>Contenido</span>
+                            <span className={`text-[10px] font-bold uppercase tracking-wider ${wizardStep >= 2 ? 'text-[#60356a]' : 'text-slate-400'}`}>Contenido</span>
                         </div>
 
                         {/* Step 3 */}
                         <div className="relative z-10 flex flex-col items-center gap-2 bg-white px-2">
-                            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-300 ${wizardStep >= 3 ? 'bg-purple-600 text-white shadow-lg shadow-purple-600/30' : 'bg-slate-50 border-2 border-slate-200 text-slate-400'}`}>
+                            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-300 ${wizardStep >= 3 ? 'bg-[#60356a] text-white shadow-lg shadow-[#60356a]/30' : 'bg-slate-50 border-2 border-slate-200 text-slate-400'}`}>
                                 3
                             </div>
-                            <span className={`text-[10px] font-bold uppercase tracking-wider ${wizardStep >= 3 ? 'text-purple-600' : 'text-slate-400'}`}>Examen IA</span>
+                            <span className={`text-[10px] font-bold uppercase tracking-wider ${wizardStep >= 3 ? 'text-[#60356a]' : 'text-slate-400'}`}>Examen IA</span>
                         </div>
                     </div>
                 </div>
 
-                <div className="space-y-6">
+                <div className="space-y-4">
                     {wizardStep === 1 && (
-                        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                        <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
                             {/* Row 1: Title, Order, Active Status */}
-                            <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100/60 space-y-5">
+                            <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100/60 space-y-4">
                                 <div className="flex flex-col md:flex-row gap-5">
                                     <div className="flex-[2]">
                                         <Input
@@ -560,7 +557,7 @@ export default function CourseModulesPage({ params }: { params: Promise<{ course
                                             onChange={e => setFormData(prev => ({ ...prev, title: e.target.value }))}
                                             placeholder="Ej: Análisis de Mercado"
                                             required
-                                            className="bg-slate-50 border border-slate-200 focus:border-purple-500 focus:bg-white transition-colors"
+                                            className="bg-slate-50 border border-slate-200 focus:border-[#834f8f] focus:bg-white transition-colors"
                                         />
                                     </div>
                                     <div className="flex-1 min-w-[120px]">
@@ -570,7 +567,7 @@ export default function CourseModulesPage({ params }: { params: Promise<{ course
                                             value={formData.order}
                                             onChange={e => setFormData(prev => ({ ...prev, order: parseInt(e.target.value) || 1 }))}
                                             min={1}
-                                            className="bg-slate-50 border border-slate-200 text-center focus:border-purple-500 focus:bg-white transition-colors"
+                                            className="bg-slate-50 border border-slate-200 text-center focus:border-[#834f8f] focus:bg-white transition-colors"
                                         />
                                     </div>
                                     <div className="flex-1 flex flex-col justify-end pb-2 pl-2">
@@ -584,21 +581,21 @@ export default function CourseModulesPage({ params }: { params: Promise<{ course
                             </div>
 
                             {/* Row 2: Description */}
-                            <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100/60">
+                            <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100/60">
                                 <TextArea
                                     label="Descripción"
                                     value={formData.description}
                                     onChange={e => setFormData(prev => ({ ...prev, description: e.target.value }))}
                                     placeholder="Describe los objetivos y alcances de este módulo educativo..."
-                                    rows={4}
+                                    rows={2}
                                     required
-                                    className="bg-slate-50 border border-slate-200 focus:border-purple-500 focus:bg-white transition-colors text-sm"
+                                    className="bg-slate-50 border border-slate-200 focus:border-[#834f8f] focus:bg-white transition-colors text-sm"
                                 />
                             </div>
 
                             {/* Helper Tip */}
-                            <div className="flex items-start gap-4 p-5 bg-purple-50/50 rounded-2xl border border-purple-100/50">
-                                <div className="p-2 bg-purple-100 text-purple-600 rounded-xl shrink-0">
+                            <div className="flex items-start gap-3 p-3 bg-[#60356a]/5 rounded-xl border border-[#60356a]/10">
+                                <div className="p-2 bg-[#60356a]/10 text-[#60356a] rounded-xl shrink-0">
                                     <FileText size={18} />
                                 </div>
                                 <p className="text-sm text-slate-600 leading-relaxed font-medium">
@@ -633,21 +630,21 @@ export default function CourseModulesPage({ params }: { params: Promise<{ course
                                 ) : (
                                     <div
                                         onClick={() => fileInputRef.current?.click()}
-                                        className={`relative border-2 border-dashed rounded-xl p-6 text-center transition-all cursor-pointer h-full flex flex-col items-center justify-center min-h-[200px] ${isUploading ? 'border-purple-400 bg-purple-50/50' : 'border-slate-300 hover:border-purple-400 hover:bg-purple-50/10'}`}
+                                        className={`relative border-2 border-dashed rounded-xl p-6 text-center transition-all cursor-pointer h-full flex flex-col items-center justify-center min-h-[200px] ${isUploading ? 'border-[#834f8f] bg-[#60356a]/5/50' : 'border-slate-300 hover:border-[#834f8f] hover:bg-[#60356a]/5/10'}`}
                                     >
                                         {isUploading ? (
                                             <div className="w-full max-w-[200px]">
                                                 <div className="w-12 h-12 mx-auto mb-3 relative flex items-center justify-center">
-                                                    <div className="absolute inset-0 rounded-full border-4 border-purple-200 border-t-purple-600 animate-spin" />
+                                                    <div className="absolute inset-0 rounded-full border-4 border-[#60356a]/20 border-t-[#60356a] animate-spin" />
                                                 </div>
-                                                <p className="text-purple-700 font-medium text-sm mb-2 text-center">Subiendo video...</p>
-                                                <div className="w-full h-1.5 bg-purple-100 rounded-full overflow-hidden">
-                                                    <div className="h-full bg-purple-600 transition-all duration-300" style={{ width: `${uploadProgress}%` }} />
+                                                <p className="text-[#4a2852] font-medium text-sm mb-2 text-center">Subiendo video...</p>
+                                                <div className="w-full h-1.5 bg-[#60356a]/10 rounded-full overflow-hidden">
+                                                    <div className="h-full bg-[#60356a] transition-all duration-300" style={{ width: `${uploadProgress}%` }} />
                                                 </div>
                                             </div>
                                         ) : (
                                             <>
-                                                <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center mb-3 shadow-sm text-purple-600 border border-slate-100 group-hover:scale-110 transition-transform">
+                                                <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center mb-3 shadow-sm text-[#60356a] border border-slate-100 group-hover:scale-110 transition-transform">
                                                     <UploadCloud size={24} />
                                                 </div>
                                                 <h4 className="text-slate-900 font-medium text-sm mb-1">Subir Video MP4</h4>
@@ -670,7 +667,7 @@ export default function CourseModulesPage({ params }: { params: Promise<{ course
                             <div className="flex flex-col h-full bg-white rounded-xl border border-slate-200 overflow-hidden">
                                 <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
                                     <label className="text-sm font-medium text-slate-700 flex items-center gap-2">
-                                        <FileText size={16} className="text-purple-600" />
+                                        <FileText size={16} className="text-[#60356a]" />
                                         Transcripción del Video
                                     </label>
                                     <Button
@@ -679,7 +676,7 @@ export default function CourseModulesPage({ params }: { params: Promise<{ course
                                         variant="secondary"
                                         onClick={handleTranscribe}
                                         disabled={!formData.videoUrl || isTranscribing}
-                                        leftIcon={isTranscribing ? <div className="animate-spin rounded-full h-3 w-3 border-2 border-purple-600 border-t-transparent" /> : <Wand2 size={12} />}
+                                        leftIcon={isTranscribing ? <div className="animate-spin rounded-full h-3 w-3 border-2 border-[#60356a] border-t-transparent" /> : <Wand2 size={12} />}
                                     >
                                         {isTranscribing ? 'Transcribiendo video...' : 'Generar Automáticamente'}
                                     </Button>
@@ -696,17 +693,17 @@ export default function CourseModulesPage({ params }: { params: Promise<{ course
                     )}
 
                     {wizardStep === 3 && (
-                        <div className="bg-purple-50/50 rounded-xl p-5 border border-purple-100">
+                        <div className="bg-[#60356a]/5/50 rounded-xl p-5 border border-[#60356a]/10">
                             <div className="flex items-center justify-between mb-4">
                                 <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-                                    <BrainCircuit size={16} className="text-purple-600" />
+                                    <BrainCircuit size={16} className="text-[#60356a]" />
                                     Examen del Módulo ({formData.questions.length} preguntas)
                                 </h3>
                             </div>
 
                             <div className="bg-white p-4 rounded-lg border border-slate-200 mb-6 space-y-3">
                                 <label className="text-sm font-medium text-slate-700 flex items-center gap-2">
-                                    <Lightbulb size={16} className="text-amber-500" />
+                                    <Lightbulb size={16} className="text-[#f5a944]" />
                                     Contexto para IA (Opcional)
                                 </label>
                                 <p className="text-xs text-slate-500">
@@ -717,7 +714,7 @@ export default function CourseModulesPage({ params }: { params: Promise<{ course
                                     onChange={e => setFormData(prev => ({ ...prev, videoContext: e.target.value }))}
                                     placeholder="Ej. Enfócate solo en la sección donde hablo sobre las métricas de negocio..."
                                     rows={3}
-                                    className="bg-amber-50/10 focus:bg-white text-sm"
+                                    className="bg-[#f5a944]/10/10 focus:bg-white text-sm"
                                 />
                                 <div className="flex justify-end pt-2">
                                     <Button
@@ -734,8 +731,8 @@ export default function CourseModulesPage({ params }: { params: Promise<{ course
                             </div>
 
                             {!formData.transcription && (
-                                <div className="p-4 bg-orange-50 border border-orange-200 rounded-lg text-orange-800 text-sm mb-4">
-                                    Debes generar la transcripción del video en el paso anterior para poder crear preguntas para este examen.
+                                <div className="p-4 bg-[#f5a944]/10 border border-[#f5a944]/30 rounded-lg text-[#c47e25] text-sm mb-4">
+                                    Para generar preguntas con IA, primero debes generar la transcripción del video en el paso anterior.
                                 </div>
                             )}
 
@@ -745,7 +742,7 @@ export default function CourseModulesPage({ params }: { params: Promise<{ course
                                         <div key={qIndex} className="bg-white p-4 rounded-lg border border-slate-200 shadow-sm space-y-4">
                                             <div className="flex items-start justify-between gap-3">
                                                 <div className="flex items-start gap-3 flex-1">
-                                                    <span className="flex-shrink-0 w-6 h-6 rounded-full bg-purple-100 text-purple-700 flex items-center justify-center text-xs font-bold mt-1">
+                                                    <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#60356a]/10 text-[#4a2852] flex items-center justify-center text-xs font-bold mt-1">
                                                         {qIndex + 1}
                                                     </span>
                                                     <div className="flex-1">
@@ -777,13 +774,13 @@ export default function CourseModulesPage({ params }: { params: Promise<{ course
                                                             name={`correct-${qIndex}`}
                                                             checked={q.correctIndex === optIndex}
                                                             onChange={() => handleQuestionChange(qIndex, 'correctIndex', optIndex)}
-                                                            className="w-4 h-4 text-purple-600 focus:ring-purple-500 border-slate-300 cursor-pointer"
+                                                            className="w-4 h-4 text-[#60356a] focus:ring-[#834f8f] border-slate-300 cursor-pointer"
                                                         />
                                                         <input
                                                             type="text"
                                                             value={opt}
                                                             onChange={(e) => handleOptionChange(qIndex, optIndex, e.target.value)}
-                                                            className={`flex-1 text-sm rounded-md border-slate-200 focus:border-purple-500 focus:ring-purple-500 ${q.correctIndex === optIndex ? 'bg-emerald-50/50 border-emerald-200 font-medium' : ''}`}
+                                                            className={`flex-1 text-sm rounded-md border-slate-200 focus:border-[#834f8f] focus:ring-[#834f8f] ${q.correctIndex === optIndex ? 'bg-emerald-50/50 border-emerald-200 font-medium' : ''}`}
                                                         />
                                                     </div>
                                                 ))}

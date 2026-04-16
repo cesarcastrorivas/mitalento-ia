@@ -157,10 +157,10 @@ const DEFAULT_KB: KnowledgeBase = {
 // ─── Color utilities ──────────────────────────────────────────────────────────
 function getSectionColorClasses(color: string) {
     const map: Record<string, { bg: string; border: string; text: string; iconBg: string; ring: string }> = {
-        purple: { bg: 'bg-purple-50', border: 'border-purple-200', text: 'text-purple-700', iconBg: 'bg-purple-100', ring: 'ring-purple-300' },
+        purple: { bg: 'bg-[#60356a]/5', border: 'border-[#60356a]/20', text: 'text-[#4a2852]', iconBg: 'bg-[#60356a]/10', ring: 'ring-[#60356a]/30' },
         blue: { bg: 'bg-blue-50', border: 'border-blue-200', text: 'text-blue-700', iconBg: 'bg-blue-100', ring: 'ring-blue-300' },
         emerald: { bg: 'bg-emerald-50', border: 'border-emerald-200', text: 'text-emerald-700', iconBg: 'bg-emerald-100', ring: 'ring-emerald-300' },
-        amber: { bg: 'bg-amber-50', border: 'border-amber-200', text: 'text-amber-700', iconBg: 'bg-amber-100', ring: 'ring-amber-300' },
+        amber: { bg: 'bg-[#f5a944]/10', border: 'border-[#f5a944]/30', text: 'text-[#c47e25]', iconBg: 'bg-[#f5a944]/20', ring: 'ring-[#f5a944]/50' },
         red: { bg: 'bg-red-50', border: 'border-red-200', text: 'text-red-700', iconBg: 'bg-red-100', ring: 'ring-red-300' },
     };
     return map[color] || map.purple;
@@ -275,10 +275,10 @@ export default function SofiaKnowledgeBase() {
         };
         if (length < 5000) return {
             label: 'Bajo',
-            color: 'text-orange-500',
-            bg: 'bg-orange-500',
-            borderColor: 'border-orange-200',
-            gradient: 'from-orange-400 to-orange-500',
+            color: 'text-[#f5a944]',
+            bg: 'bg-[#f5a944]',
+            borderColor: 'border-[#f5a944]/30',
+            gradient: 'from-[#f5a944]/90 to-[#f5a944]',
             percent,
             message: 'Contexto insuficiente. Completa al menos los datos del proyecto.',
             description: 'Agrega precios, metrajes y ubicacion para reducir alucinaciones.',
@@ -305,10 +305,10 @@ export default function SofiaKnowledgeBase() {
         };
         return {
             label: 'Excedido',
-            color: 'text-amber-600',
-            bg: 'bg-amber-500',
-            borderColor: 'border-amber-200',
-            gradient: 'from-amber-500 to-orange-500',
+            color: 'text-[#e09536]',
+            bg: 'bg-[#f5a944]',
+            borderColor: 'border-[#f5a944]/30',
+            gradient: 'from-[#f5a944] to-[#f5a944]',
             percent: 100,
             message: 'Excede el rango recomendado. Revisa contenido redundante.',
             description: 'Mas de 15k chars aumenta costos sin mejorar precision significativamente.',
@@ -388,7 +388,7 @@ export default function SofiaKnowledgeBase() {
                                             isEmpty
                                                 ? section.required ? 'bg-red-400' : 'bg-gray-300'
                                                 : isBelowMin
-                                                    ? 'bg-amber-400'
+                                                    ? 'bg-[#f5a944]/90'
                                                     : 'bg-emerald-400'
                                         }`} />
                                         {isExpanded ? <ChevronUp size={16} className="text-gray-400" /> : <ChevronDown size={16} className="text-gray-400" />}
@@ -408,7 +408,7 @@ export default function SofiaKnowledgeBase() {
                                             <textarea
                                                 value={kb[section.key]}
                                                 onChange={(e) => updateField(section.key, e.target.value)}
-                                                className={`w-full p-4 rounded-lg border bg-gray-50/50 text-gray-800 leading-7 font-mono text-[13px] outline-none resize-none transition-all duration-200 focus:bg-white focus:ring-2 ${colors.ring} focus:border-transparent custom-scrollbar selection:bg-purple-100 selection:text-purple-900`}
+                                                className={`w-full p-4 rounded-lg border bg-gray-50/50 text-gray-800 leading-7 font-mono text-[13px] outline-none resize-none transition-all duration-200 focus:bg-white focus:ring-2 ${colors.ring} focus:border-transparent custom-scrollbar selection:bg-[#60356a]/10 selection:text-[#4a2852]`}
                                                 placeholder={section.placeholder}
                                                 spellCheck={false}
                                                 rows={Math.max(6, Math.min(16, Math.ceil(kb[section.key].length / 80)))}
@@ -421,7 +421,7 @@ export default function SofiaKnowledgeBase() {
                                                 {charCount.toLocaleString()} chars
                                             </span>
                                             {isBelowMin && (
-                                                <span className="text-[11px] text-amber-600 font-medium">
+                                                <span className="text-[11px] text-[#e09536] font-medium">
                                                     Sugerido: min. {section.minSuggested.toLocaleString()} caracteres
                                                 </span>
                                             )}
@@ -446,7 +446,7 @@ export default function SofiaKnowledgeBase() {
                             <Button
                                 onClick={handleSave}
                                 disabled={saving}
-                                className="!px-8 !py-2.5 !rounded-lg shadow-lg shadow-purple-500/20 !bg-gray-900 hover:!bg-gray-800 !text-white transition-all transform active:scale-95 flex items-center gap-2 group w-full lg:w-auto"
+                                className="!px-8 !py-2.5 !rounded-lg shadow-lg shadow-[#834f8f]/20 !bg-gray-900 hover:!bg-gray-800 !text-white transition-all transform active:scale-95 flex items-center gap-2 group w-full lg:w-auto"
                             >
                                 {saving ? (
                                     <>
@@ -455,7 +455,7 @@ export default function SofiaKnowledgeBase() {
                                     </>
                                 ) : (
                                     <>
-                                        <Save size={16} className="group-hover:text-purple-300 transition-colors" />
+                                        <Save size={16} className="group-hover:text-[#60356a]/30 transition-colors" />
                                         <span>Guardar Configuracion</span>
                                     </>
                                 )}
@@ -492,7 +492,7 @@ export default function SofiaKnowledgeBase() {
                                 {/* Zone backgrounds: 0-2k critical | 2k-5k low | 5k-8k acceptable | 8k-15k optimal */}
                                 <div className="absolute inset-0 flex w-full h-full opacity-30">
                                     <div className="w-[13%] bg-red-100 border-r border-dotted border-red-200"></div>
-                                    <div className="w-[20%] bg-orange-50 border-r border-dotted border-orange-200"></div>
+                                    <div className="w-[20%] bg-[#f5a944]/10 border-r border-dotted border-[#f5a944]/30"></div>
                                     <div className="w-[20%] bg-yellow-50 border-r border-dotted border-yellow-200"></div>
                                     <div className="flex-1 bg-emerald-50"></div>
                                 </div>
@@ -512,8 +512,8 @@ export default function SofiaKnowledgeBase() {
                                     <div className="w-0.5 h-1.5 bg-gray-300 mb-0.5"></div>
                                     <span>0</span>
                                 </div>
-                                <div className={`absolute left-[33%] top-0 transform -translate-x-1/2 flex flex-col items-center ${totalChars >= 5000 ? 'text-orange-500' : ''}`}>
-                                    <div className={`w-0.5 h-2 mb-0.5 ${totalChars >= 5000 ? 'bg-orange-400' : 'bg-gray-300'}`}></div>
+                                <div className={`absolute left-[33%] top-0 transform -translate-x-1/2 flex flex-col items-center ${totalChars >= 5000 ? 'text-[#f5a944]' : ''}`}>
+                                    <div className={`w-0.5 h-2 mb-0.5 ${totalChars >= 5000 ? 'bg-[#f5a944]/90' : 'bg-gray-300'}`}></div>
                                     <span>5k</span>
                                 </div>
                                 <div className={`absolute left-[53%] top-0 transform -translate-x-1/2 flex flex-col items-center ${totalChars >= 8000 ? 'text-yellow-600' : ''}`}>
@@ -556,7 +556,7 @@ export default function SofiaKnowledgeBase() {
                                         <div className={`w-2 h-2 rounded-full flex-shrink-0 ${
                                             status === 'empty-required' ? 'bg-red-400'
                                                 : status === 'empty' ? 'bg-gray-300'
-                                                    : status === 'low' ? 'bg-amber-400'
+                                                    : status === 'low' ? 'bg-[#f5a944]/90'
                                                         : 'bg-emerald-400'
                                         }`} />
                                         <span className="text-xs text-gray-600 flex-1 truncate">{section.title}</span>

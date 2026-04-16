@@ -23,7 +23,7 @@ export interface LeaderboardEntry {
 export async function GET() {
     const user = await getServerUser();
     if (!user) {
-        return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+        return NextResponse.json({ error: 'Tu sesión ha expirado. Por favor, recarga la página o inicia sesión nuevamente.' }, { status: 401 });
     }
 
     try {

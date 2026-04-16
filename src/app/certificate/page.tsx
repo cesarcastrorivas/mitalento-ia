@@ -46,32 +46,30 @@ export default function CertificatePage() {
         try {
             if (!user) return;
 
-            // 1. Empezamos con las 3 rutas obligatorias (Fijas)
-            // 1. Empezamos con las 3 rutas obligatorias (Fijas)
-            let allPaths: LearningPath[] = [...FIXED_PATHS];
+            // 1. Cargar perfil de usuario para ver rutas asignadas y completadas
             let completedPaths: string[] = [];
-
-            // 2. Cargar perfil de usuario para ver si tiene rutas adicionales asignadas y rutas completadas
             const userDocSnap = await getDoc(doc(db, 'users', user.uid));
-            if (userDocSnap.exists()) {
-                const userData = userDocSnap.data() as User;
-                completedPaths = userData.completedPaths || [];
-                const assignedIds = userData.assignedPathIds || [];
+            const userData = userDocSnap.exists() ? userDocSnap.data() as User : null;
+            completedPaths = userData?.completedPaths || [];
+            const assignedIds = userData?.assignedPathIds || [];
 
-                // 3. Si tiene rutas asignadas, las verificamos en Firestore
-                if (assignedIds.length > 0) {
-                    const pathsQ = query(collection(db, 'learning_paths'), where('__name__', 'in', assignedIds));
-                    const pathsSnapshot = await getDocs(pathsQ);
-
-                    const dynamicPaths = pathsSnapshot.docs.map(doc => ({
-                        id: doc.id,
-                        ...doc.data()
-                    } as LearningPath));
-
-                    // Fusionar y ordenar (el orden por defecto es 'order' o 99 si no existe)
-                    allPaths = [...allPaths, ...dynamicPaths].sort((a, b) => (a.order || 99) - (b.order || 99));
-                }
+            // 2. Consultar TODAS las rutas (fijas + asignadas) desde Firestore
+            const allIds = [...new Set([...FIXED_PATHS.map(p => p.id), ...assignedIds])];
+            let dynamicPaths: LearningPath[] = [];
+            if (allIds.length > 0) {
+                const pathsQ = query(collection(db, 'learning_paths'), where('__name__', 'in', allIds.slice(0, 30)));
+                const pathsSnapshot = await getDocs(pathsQ);
+                dynamicPaths = pathsSnapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                } as LearningPath));
             }
+
+            // 3. Merge: Firestore sobreescribe FIXED_PATHS hardcodeados
+            const pathsMap = new Map<string, LearningPath>();
+            FIXED_PATHS.forEach(p => pathsMap.set(p.id, p));
+            dynamicPaths.forEach(p => pathsMap.set(p.id, { ...pathsMap.get(p.id)!, ...p }));
+            const allPaths = Array.from(pathsMap.values()).sort((a, b) => (a.order || 99) - (b.order || 99));
 
             // 4. Get user's certificates
             const certsSnap = await getDocs(

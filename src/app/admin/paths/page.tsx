@@ -15,6 +15,9 @@ import {
     doc,
     setDoc,
     deleteDoc,
+    where,
+    updateDoc,
+    arrayRemove,
     Timestamp
 } from 'firebase/firestore';
 import {
@@ -139,6 +142,15 @@ export default function PathsPage() {
 
         try {
             await deleteDoc(doc(db, 'learning_paths', pathId));
+
+            // Limpiar assignedPathIds de usuarios que tenían esta ruta asignada
+            const usersQ = query(collection(db, 'users'), where('assignedPathIds', 'array-contains', pathId));
+            const usersSnap = await getDocs(usersQ);
+            const cleanupPromises = usersSnap.docs.map(userDoc =>
+                updateDoc(doc(db, 'users', userDoc.id), { assignedPathIds: arrayRemove(pathId) })
+            );
+            await Promise.all(cleanupPromises);
+
             await loadDynamicPaths();
         } catch (error) {
             console.error('Error deleting path:', error);
@@ -147,7 +159,16 @@ export default function PathsPage() {
     };
 
     // Fusión de rutas fijas y dinámicas
-    const allPaths = [...FIXED_PATHS, ...dynamicPaths].sort((a, b) => (a.order || 99) - (b.order || 99));
+    const allPathsMap = new Map();
+    FIXED_PATHS.forEach(p => allPathsMap.set(p.id, p));
+    dynamicPaths.forEach(p => {
+        if (allPathsMap.has(p.id)) {
+            allPathsMap.set(p.id, { ...allPathsMap.get(p.id), ...p });
+        } else {
+            allPathsMap.set(p.id, p);
+        }
+    });
+    const allPaths = Array.from(allPathsMap.values()).sort((a, b) => (a.order || 99) - (b.order || 99));
 
     const filteredPaths = allPaths.filter(path =>
         path.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -159,7 +180,7 @@ export default function PathsPage() {
     if (loading) {
         return (
             <div className="flex justify-center items-center min-h-[400px]">
-                <div className="w-12 h-12 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
+                <div className="w-12 h-12 border-4 border-[#60356a]/20 border-t-[#60356a] rounded-full animate-spin"></div>
             </div>
         );
     }
@@ -173,7 +194,7 @@ export default function PathsPage() {
                 action={
                     <button
                         onClick={() => handleOpenModal()}
-                        className="flex items-center gap-1.5 px-3 py-2 bg-[#135bec] text-white font-semibold hover:bg-[#0f4ac0] rounded-xl text-xs sm:text-sm sm:px-5 sm:py-2.5 transition-all duration-200 shadow-[0_2px_8px_rgba(19,91,236,0.3)] active:scale-95"
+                        className="flex items-center gap-1.5 px-3 py-2 bg-[#f5a944] text-white font-semibold hover:bg-[#f5a944]/90 rounded-xl text-xs sm:text-sm sm:px-5 sm:py-2.5 transition-all duration-200 shadow-[0_2px_8px_rgba(245,169,68,0.3)] active:scale-95"
                     >
                         <Plus size={16} strokeWidth={2.5} />
                         <span className="hidden sm:inline">Nueva Ruta</span>
@@ -190,7 +211,7 @@ export default function PathsPage() {
                 <input
                     type="text"
                     placeholder="Buscar rutas..."
-                    className="w-full pl-10 pr-4 py-2.5 bg-white/70 backdrop-blur-md border border-slate-200/80 rounded-xl focus:ring-4 focus:ring-[#135bec]/10 focus:border-[#135bec] text-sm text-slate-800 placeholder:text-slate-400 outline-none transition-all shadow-sm"
+                    className="w-full pl-10 pr-4 py-2.5 bg-white/70 backdrop-blur-md border border-slate-200/80 rounded-xl focus:ring-4 focus:ring-[#60356a]/10 focus:border-[#60356a] text-sm text-[#60356a] placeholder:text-slate-400 outline-none transition-all shadow-sm"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                 />
@@ -220,10 +241,10 @@ export default function PathsPage() {
                         };
                     } else if (path.certificationLevel === 'professional') {
                         levelStyles = {
-                            bg: 'bg-amber-50/80',
-                            text: 'text-amber-700',
-                            border: 'border-amber-200/60',
-                            iconBg: 'bg-amber-100 text-amber-600',
+                            bg: 'bg-[#f5a944]/10/80',
+                            text: 'text-[#c47e25]',
+                            border: 'border-[#f5a944]/30/60',
+                            iconBg: 'bg-[#f5a944]/20 text-[#e09536]',
                             label: 'Profesional'
                         };
                     } else if (path.certificationLevel === 'elite') {
@@ -243,14 +264,14 @@ export default function PathsPage() {
                         >
                             <div className="flex flex-col md:flex-row items-start md:items-center gap-6 relative z-10 w-full">
                                 {/* Icon Container */}
-                                <div className={`shrink-0 w-16 h-16 rounded-[18px] flex items-center justify-center text-3xl transition-transform duration-300 group-hover:scale-105 ${levelStyles.iconBg}`}>
+                                <div className={`shrink-0 w-16 h-16 rounded-[18px] flex items-center justify-center text-3xl transition-transform duration-300 group-hover:scale-105 bg-[#f5a944] text-white`}>
                                     {path.icon}
                                 </div>
 
                                 {/* Main Content */}
                                 <div className="flex-1 min-w-0 flex flex-col justify-center">
                                     <div className="flex items-center gap-3 mb-1.5 flex-wrap">
-                                        <h3 className="text-[1.15rem] font-bold text-slate-800 tracking-tight leading-tight">
+                                        <h3 className="text-[1.15rem] font-bold text-[#60356a] tracking-tight leading-tight">
                                             {path.title}
                                         </h3>
                                         <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wide uppercase border ${levelStyles.bg} ${levelStyles.text} ${levelStyles.border}`}>
@@ -281,15 +302,15 @@ export default function PathsPage() {
                                     </div>
 
                                     <div className="flex items-center gap-3 w-full md:w-auto justify-end">
-                                        {!esFija && (
-                                            <div className="flex items-center gap-1 mr-1">
-                                                <button
-                                                    onClick={() => handleOpenModal(path)}
-                                                    className="p-2.5 text-slate-400 hover:text-[#135bec] hover:bg-[#135bec]/5 rounded-xl transition-all"
-                                                    title="Editar Ruta"
-                                                >
-                                                    <Edit2 size={18} />
-                                                </button>
+                                        <div className="flex items-center gap-1 mr-1">
+                                            <button
+                                                onClick={() => handleOpenModal(path)}
+                                                className="p-2.5 text-slate-400 hover:text-[#f5a944] hover:bg-[#f5a944]/10 rounded-xl transition-all"
+                                                title="Editar Ruta"
+                                            >
+                                                <Edit2 size={18} />
+                                            </button>
+                                            {!esFija && (
                                                 <button
                                                     onClick={() => handleDeletePath(path.id)}
                                                     className="p-2.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all"
@@ -297,12 +318,12 @@ export default function PathsPage() {
                                                 >
                                                     <Trash2 size={18} />
                                                 </button>
-                                            </div>
-                                        )}
+                                            )}
+                                        </div>
 
                                         <Link
                                             href={`/admin/paths/${path.id}`}
-                                            className="shrink-0 px-6 py-2.5 bg-slate-50 text-[#135bec] font-semibold hover:bg-[#135bec] hover:text-white rounded-full transition-all duration-300 flex items-center gap-2 border border-[#135bec]/10 hover:border-transparent group/btn active:scale-95"
+                                            className="shrink-0 px-6 py-2.5 bg-[#60356a] text-white font-semibold hover:bg-[#834f8f] rounded-full transition-all duration-300 flex items-center gap-2 border border-transparent group/btn active:scale-95"
                                             title="Gestionar Cursos en esta Ruta"
                                         >
                                             <BookOpen size={18} className="transition-transform group-hover/btn:-translate-y-0.5" />
@@ -344,11 +365,11 @@ export default function PathsPage() {
                         <div className="p-6 overflow-y-auto">
                             <form id="path-form" onSubmit={handleSavePath} className="space-y-5">
                                 <div>
-                                    <label className="block text-sm font-semibold text-slate-700 mb-1.5">Título de la Ruta</label>
+                                    <label className="block text-sm font-semibold text-[#60356a] mb-1.5">Título de la Ruta</label>
                                     <input
                                         type="text"
                                         required
-                                        className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all outline-none"
+                                        className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#60356a]/20 focus:border-[#60356a] transition-all outline-none text-[#60356a]"
                                         value={formData.title}
                                         onChange={e => setFormData({ ...formData, title: e.target.value })}
                                         placeholder="Ej: Marketing Digital Avanzado"
@@ -356,11 +377,11 @@ export default function PathsPage() {
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-semibold text-slate-700 mb-1.5">Descripción</label>
+                                    <label className="block text-sm font-semibold text-[#60356a] mb-1.5">Descripción</label>
                                     <textarea
                                         required
                                         rows={3}
-                                        className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all outline-none resize-none"
+                                        className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#60356a]/20 focus:border-[#60356a] transition-all outline-none resize-none text-slate-600"
                                         value={formData.description}
                                         onChange={e => setFormData({ ...formData, description: e.target.value })}
                                         placeholder="Breve descripción de los objetivos de esta especialización..."
@@ -369,22 +390,22 @@ export default function PathsPage() {
 
                                 <div className="grid grid-cols-2 gap-5">
                                     <div>
-                                        <label className="block text-sm font-semibold text-slate-700 mb-1.5">Icono (Emoji)</label>
+                                        <label className="block text-sm font-semibold text-[#60356a] mb-1.5">Icono (Emoji)</label>
                                         <input
                                             type="text"
-                                            className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all outline-none text-center text-xl"
+                                            className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#60356a]/20 focus:border-[#60356a] transition-all outline-none text-center text-xl"
                                             value={formData.icon}
                                             onChange={e => setFormData({ ...formData, icon: e.target.value })}
                                             placeholder="📚"
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-semibold text-slate-700 mb-1.5">Orden de Visualización</label>
+                                        <label className="block text-sm font-semibold text-[#60356a] mb-1.5">Orden de Visualización</label>
                                         <input
                                             type="number"
                                             required
-                                            min="4"
-                                            className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all outline-none"
+                                            min="1"
+                                            className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#60356a]/20 focus:border-[#60356a] transition-all outline-none text-slate-600"
                                             value={formData.order}
                                             onChange={e => setFormData({ ...formData, order: Number(e.target.value) })}
                                         />
@@ -421,7 +442,7 @@ export default function PathsPage() {
                                 type="submit"
                                 form="path-form"
                                 disabled={saving}
-                                className="px-5 py-2.5 bg-indigo-600 text-white font-medium hover:bg-indigo-700 rounded-xl transition-all shadow-sm hover:shadow-indigo-200 disabled:opacity-70 disabled:cursor-not-allowed flex items-center gap-2"
+                                className="px-5 py-2.5 bg-[#60356a] text-white font-medium hover:bg-[#834f8f] rounded-xl transition-all shadow-sm hover:shadow-[#60356a]/30 disabled:opacity-70 disabled:cursor-not-allowed flex items-center gap-2"
                             >
                                 {saving ? (
                                     <>

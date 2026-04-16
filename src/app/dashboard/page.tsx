@@ -32,8 +32,8 @@ export default async function StudentDashboard() {
 
     // 3. Prepare all parallel queries
     let pathsPromise = Promise.resolve([] as any[]);
-    if (assignedIds.length > 0) {
-        pathsPromise = db.collection('learning_paths').where('__name__', 'in', assignedIds).get()
+    if (uniquePathIds.length > 0) {
+        pathsPromise = db.collection('learning_paths').where('__name__', 'in', uniquePathIds.slice(0, 30)).get()
             .then((snap: any) => snap.docs.map((d: any) => ({ id: d.id, ...d.data() })));
     }
 
@@ -75,9 +75,11 @@ export default async function StudentDashboard() {
             .then((snap: any) => snap.docs.map((d: any) => ({ id: d.id, ...d.data() } as any)))
         : [];
 
-    // 5. Process Paths
-    const paths = [...FIXED_PATHS, ...dynamicPaths as LearningPath[]]
-        .sort((a, b) => (a.order || 99) - (b.order || 99));
+    // 5. Process Paths (Firestore data overrides hardcoded FIXED_PATHS)
+    const pathsMap = new Map<string, LearningPath>();
+    FIXED_PATHS.forEach(p => pathsMap.set(p.id, p));
+    (dynamicPaths as LearningPath[]).forEach(p => pathsMap.set(p.id, { ...pathsMap.get(p.id)!, ...p }));
+    const paths = Array.from(pathsMap.values()).sort((a, b) => (a.order || 99) - (b.order || 99));
     const certificates = certs;
 
     // 6. Process Progress Data
@@ -96,6 +98,14 @@ export default async function StudentDashboard() {
             bestScorePerModule.set(session.moduleId, session.score);
         }
     });
+
+    // Agregar módulos sin quiz completados por visionado (score null)
+    const userProgressData = (userDoc.exists ? userDoc.data()?.progress : null) || {};
+    for (const [moduleId, data] of Object.entries(userProgressData)) {
+        if ((data as any).completed && (data as any).score == null) {
+            passedModules.add(moduleId);
+        }
+    }
 
     const completedModules = passedModules.size;
     const bestScores = Array.from(bestScorePerModule.values());

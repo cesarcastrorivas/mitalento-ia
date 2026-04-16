@@ -6,7 +6,8 @@ import { FIXED_PATHS } from '@/lib/constants';
 // Grading Utilities — Lógica centralizada de validación
 // Reglas:
 //   Módulo aprobado: score ≥ max(80, passingScore)
-//   Curso aprobado:  TODOS sus módulos aprobados
+//   Módulo sin quiz: completado al ver el video al % requerido
+//   Curso aprobado:  TODOS sus módulos aprobados/completados
 //   Ruta aprobada:   TODOS sus cursos aprobados
 //   Certificado:     Solo si la ruta está aprobada
 // ═══════════════════════════════════════════════════
@@ -60,6 +61,40 @@ export function isPathCompleted(
 }
 
 /**
+ * Obtiene el set de módulos completados fusionando ambas fuentes de verdad:
+ * 1. quiz_sessions (módulos con quiz aprobado)
+ * 2. users.progress (módulos sin quiz, completados por visionado)
+ */
+async function getPassedModuleIds(userId: string): Promise<{ passedModuleIds: Set<string>; totalScore: number; scoredCount: number }> {
+    const sessionsQ = query(
+        collection(db, 'quiz_sessions'),
+        where('userId', '==', userId),
+        where('passed', '==', true)
+    );
+    const sessionsSnap = await getDocs(sessionsQ);
+    const passedModuleIds = new Set<string>();
+    let totalScore = 0;
+    sessionsSnap.docs.forEach(d => {
+        const data = d.data();
+        passedModuleIds.add(data.moduleId);
+        totalScore += data.score;
+    });
+
+    // Módulos sin quiz completados por visionado (score es null)
+    const userDoc = await getDoc(doc(db, 'users', userId));
+    if (userDoc.exists()) {
+        const progress = userDoc.data().progress || {};
+        for (const [moduleId, data] of Object.entries(progress)) {
+            if ((data as any).completed && (data as any).score == null) {
+                passedModuleIds.add(moduleId);
+            }
+        }
+    }
+
+    return { passedModuleIds, totalScore, scoredCount: sessionsSnap.docs.length };
+}
+
+/**
  * Después de que un módulo es aprobado, verifica en cascada:
  * 1. ¿El curso del módulo está completo?
  * 2. Si sí, ¿la ruta del curso está completa?
@@ -94,17 +129,8 @@ export async function checkCascadeCompletion(
         const modulesSnap = await getDocs(modulesQ);
         const courseModuleIds = modulesSnap.docs.map(d => d.id);
 
-        // 2. Obtener las sesiones aprobadas del usuario
-        const sessionsQ = query(
-            collection(db, 'quiz_sessions'),
-            where('userId', '==', userId),
-            where('passed', '==', true)
-        );
-        const sessionsSnap = await getDocs(sessionsQ);
-        const passedModuleIds = new Set<string>();
-        sessionsSnap.docs.forEach(d => {
-            passedModuleIds.add(d.data().moduleId);
-        });
+        // 2. Obtener módulos completados (quiz_sessions + progress sin quiz)
+        const { passedModuleIds } = await getPassedModuleIds(userId);
 
         // 3. ¿El curso está completo?
         if (!isCourseCompleted(passedModuleIds, courseModuleIds)) {
@@ -156,14 +182,11 @@ export async function checkCascadeCompletion(
         result.pathCompleted = true;
         result.completedPathId = pathId;
 
-        // 8. Obtener el nivel de certificación de la ruta
-        let pathObj = FIXED_PATHS.find((p: any) => p.id === pathId);
-        if (!pathObj) {
-            const dynamicPathDoc = await getDoc(doc(db, 'learning_paths', pathId));
-            if (dynamicPathDoc.exists()) {
-                pathObj = { id: dynamicPathDoc.id, ...dynamicPathDoc.data() } as any;
-            }
-        }
+        // 8. Obtener el nivel de certificación de la ruta (Firestore primero, FIXED_PATHS fallback)
+        const dynamicPathDoc = await getDoc(doc(db, 'learning_paths', pathId));
+        const pathObj = dynamicPathDoc.exists()
+            ? { id: dynamicPathDoc.id, ...dynamicPathDoc.data() } as any
+            : FIXED_PATHS.find((p: any) => p.id === pathId) || null;
         const pathCertLevel = pathObj ? pathObj.certificationLevel : null;
 
         // 9. Actualizar usuario con curso y ruta completados + certificationLevel
@@ -261,32 +284,22 @@ export async function canGenerateCertificate(userId: string, targetPathId?: stri
         const userData = userDoc.data();
         const assignedPathIds: string[] = userData.assignedPathIds || [];
 
-        // 2. Obtener todas las sesiones aprobadas del usuario
-        const sessionsQ = query(
-            collection(db, 'quiz_sessions'),
-            where('userId', '==', userId),
-            where('passed', '==', true)
-        );
-        const sessionsSnap = await getDocs(sessionsQ);
-        const passedModuleIds = new Set<string>();
-        let totalScore = 0;
-        sessionsSnap.docs.forEach(d => {
-            const data = d.data();
-            passedModuleIds.add(data.moduleId);
-            totalScore += data.score;
-        });
-        const averageScore = sessionsSnap.docs.length > 0
-            ? Math.round(totalScore / sessionsSnap.docs.length)
+        // 2. Obtener módulos completados (quiz_sessions + progress sin quiz)
+        const { passedModuleIds, totalScore, scoredCount } = await getPassedModuleIds(userId);
+        const averageScore = scoredCount > 0
+            ? Math.round(totalScore / scoredCount)
             : 0;
 
         // 3. Obtener rutas activas (Fijas + Dinámicas si las hay)
-        let paths = [...FIXED_PATHS] as any[];
-
+        // 3. Obtener rutas activas (Firestore sobreescribe FIXED_PATHS, sin duplicados)
         const dynamicPathsQ = query(collection(db, 'learning_paths'), where('isActive', '==', true));
         const dynamicPathsSnap = await getDocs(dynamicPathsQ);
         const dynamicPaths = dynamicPathsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-        paths = [...paths, ...dynamicPaths];
+        const pathsMap = new Map<string, any>();
+        FIXED_PATHS.forEach(p => pathsMap.set(p.id, p));
+        dynamicPaths.forEach(p => pathsMap.set(p.id, { ...pathsMap.get(p.id), ...p }));
+        let paths = Array.from(pathsMap.values());
 
         // Si se especificó un pathId, filtrar solo esa ruta
         if (targetPathId) {

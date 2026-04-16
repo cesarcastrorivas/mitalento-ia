@@ -120,7 +120,7 @@ export async function POST(req: NextRequest) {
     try {
         const user = await getServerUser();
         if (!user) {
-            return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+            return NextResponse.json({ error: 'Tu sesión ha expirado. Por favor, recarga la página o inicia sesión nuevamente.' }, { status: 401 });
         }
 
         // 60 mensajes/hora por usuario

@@ -67,33 +67,38 @@ export default function AdminShell({
     return (
         <div className="flex min-h-[100dvh] bg-surface font-sans text-on-surface">
             {/* Global Top Header (Native iOS Style PWA) */}
-            <header className="fixed top-0 left-0 right-0 min-h-[64px] pt-[env(safe-area-inset-top,0px)] glass-panel z-50 px-4 xl:px-6 flex items-center justify-between border-b border-outline-variant/15 transition-all duration-300">
+            <header className="fixed top-0 left-0 right-0 min-h-[64px] pt-[env(safe-area-inset-top,0px)] bg-[#60356a] text-white z-50 px-4 xl:px-6 flex items-center justify-between shadow-md transition-all duration-300">
                 <div className="flex items-center gap-4 lg:gap-6">
                     <button
                         onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-                        className="p-2 -ml-2 text-on-surface hover:text-primary hover:bg-surface-container-low rounded-lg transition-all active:scale-95"
+                        className="p-2 -ml-2 text-white hover:bg-white/10 rounded-lg transition-all active:scale-95"
                         title={isSidebarOpen ? "Cerrar menú" : "Abrir menú"}
                     >
                         {isSidebarOpen ? <X size={24} /> : <Menu size={24} />}
                     </button>
                     {/* Brand */}
-                    <div className="flex items-center gap-2.5 select-none">
-                        <div className="w-8 h-8 flex items-center justify-center rounded-lg bg-gradient-to-tr from-primary to-primary-container text-white shadow-md">
-                            <GraduationCap size={16} strokeWidth={2.5} />
-                        </div>
-                        <span className="font-extrabold text-primary text-lg tracking-tight uppercase hidden sm:block">
-                            Mi Talento <span className="text-secondary font-medium">| Admin</span>
+                    <Link href="/admin" className="flex items-center gap-2.5 select-none hover:opacity-90 transition-opacity">
+                        <Image 
+                            src="/logo-urbanity.png" 
+                            alt="Urbanity" 
+                            width={110} 
+                            height={28} 
+                            className="object-contain h-7 w-auto brightness-0 invert" 
+                            priority
+                        />
+                        <span className="font-extrabold text-white text-lg tracking-tight uppercase hidden sm:block border-l-2 border-white/30 pl-2">
+                            ADMIN
                         </span>
-                    </div>
+                    </Link>
                 </div>
 
                 {/* Top Right User Info & Actions */}
                 <div className="flex items-center gap-4">
                     <div className="hidden md:flex flex-col items-end justify-center">
-                        <p className="text-sm font-extrabold text-gray-900 leading-tight">{user.displayName}</p>
-                        <p className="text-[10px] text-gray-600 font-bold uppercase tracking-wider">{user.email}</p>
+                        <p className="text-sm font-extrabold text-white leading-tight">{user.displayName}</p>
+                        <p className="text-[10px] text-white/80 font-bold uppercase tracking-wider">{user.email}</p>
                     </div>
-                    <div className="relative w-9 h-9 rounded-full bg-gradient-to-br from-primary to-primary-container flex flex-shrink-0 items-center justify-center text-white font-bold text-sm shadow-sm border border-white overflow-hidden">
+                    <div className="relative w-9 h-9 rounded-full bg-white flex flex-shrink-0 items-center justify-center text-[#60356a] font-bold text-sm shadow-sm overflow-hidden">
                         {user.photoURL ? (
                             <Image src={user.photoURL} alt={user.displayName || ''} fill className="object-cover" sizes="36px" />
                         ) : (
@@ -102,7 +107,7 @@ export default function AdminShell({
                     </div>
                     <button
                         onClick={signOut}
-                        className="p-2 text-on-surface hover:text-error hover:bg-error/10 rounded-lg transition-colors"
+                        className="p-2 text-white hover:text-red-200 hover:bg-white/10 rounded-lg transition-colors"
                         title="Cerrar sesión"
                     >
                         <LogOut size={18} />
@@ -120,7 +125,7 @@ export default function AdminShell({
 
             {/* Sidebar Drawer */}
             <aside className={`
-                fixed top-0 bottom-0 left-0 bg-surface-container-lowest border-r border-outline-variant/15 z-[45] w-[260px]
+                fixed top-0 bottom-0 left-0 bg-[#f5a944] border-r-0 z-[45] w-[260px]
                 transition-transform duration-300 cubic-bezier(0.4, 0, 0.2, 1) shadow-xl
                 flex flex-col pt-[calc(env(safe-area-inset-top,0px)+4rem)] pb-[env(safe-area-inset-bottom,0px)] select-none
                 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
@@ -129,7 +134,7 @@ export default function AdminShell({
                     {/* Navigation */}
                     <div className="px-3 space-y-7 overflow-y-auto flex-1 custom-scrollbar">
                         <div className="space-y-1">
-                            <p className="px-3 text-[10px] font-extrabold text-gray-500 uppercase tracking-widest mb-3">Principal</p>
+                            <p className="px-3 text-[10px] font-extrabold text-[#60356a] uppercase tracking-widest mb-3">Principal</p>
                             <NavLink href="/admin" icon={<LayoutDashboard size={18} />} text="Dashboard" active={pathname === '/admin'} />
                             <NavLink href="/admin/paths" icon={<Map size={18} />} text="Rutas y Cursos" active={pathname.startsWith('/admin/paths')} />
                             <NavLink href="/admin/users" icon={<Users size={18} />} text="Usuarios" active={pathname.startsWith('/admin/users')} />
@@ -138,7 +143,7 @@ export default function AdminShell({
                         </div>
 
                         <div className="space-y-1">
-                            <p className="px-3 text-[10px] font-extrabold text-gray-500 uppercase tracking-widest mb-3">Analítica</p>
+                            <p className="px-3 text-[10px] font-extrabold text-[#60356a] uppercase tracking-widest mb-3">Analítica</p>
                             <NavLink href="/admin/reports" icon={<BarChart3 size={18} />} text="Reportes" active={pathname.startsWith('/admin/reports')} />
                         </div>
                     </div>
@@ -163,20 +168,20 @@ function NavLink({ href, icon, text, active }: { href: string; icon: React.React
         <Link
             href={href}
             className={`
-                group flex items-center px-4 py-3 mx-2 rounded-xl transition-all duration-300 justify-between
+                group flex items-center px-4 py-3 mx-2 rounded-full transition-all duration-300 justify-between
                 ${active
-                    ? 'bg-surface-container-low text-primary font-extrabold shadow-[0_4px_10px_rgba(71,30,82,0.06)]'
-                    : 'text-on-surface hover:text-primary hover:bg-surface-dim/40'
+                    ? 'bg-white text-[#60356a] font-extrabold shadow-sm'
+                    : 'text-[#60356a]/90 hover:text-[#60356a] hover:bg-white/20'
                 }
             `}
         >
             <div className="flex items-center gap-3">
-                <span className={`transition-transform duration-300 ${active ? 'scale-110 text-primary' : 'group-hover:scale-105 opacity-80'}`}>
+                <span className={`transition-transform duration-300 ${active ? 'scale-110 text-[#60356a]' : 'group-hover:scale-105 opacity-90'}`}>
                     {icon}
                 </span>
-                <span className="text-[14px] whitespace-nowrap overflow-hidden text-ellipsis leading-none">{text}</span>
+                <span className="text-[14px] font-bold whitespace-nowrap overflow-hidden text-ellipsis leading-none">{text}</span>
             </div>
-            {active && <div className="w-1.5 h-1.5 rounded-full bg-secondary flex-shrink-0" />}
+            {active && <div className="w-1.5 h-1.5 rounded-full bg-[#60356a] flex-shrink-0" />}
         </Link>
     );
 }

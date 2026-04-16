@@ -10,7 +10,7 @@ export async function POST(request: NextRequest) {
     try {
         const user = await getServerUser();
         if (!user) {
-            return NextResponse.json({ success: false, error: 'No autorizado' }, { status: 401 });
+            return NextResponse.json({ success: false, error: 'Tu sesión ha expirado. Por favor, recarga la página o inicia sesión nuevamente.' }, { status: 401 });
         }
 
         if (user.role !== 'admin') {

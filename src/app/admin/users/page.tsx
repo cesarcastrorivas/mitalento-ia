@@ -532,11 +532,11 @@ export default function UsersPage() {
                     <button
                         onClick={loadMoreUsers}
                         disabled={loadingMoreUsers}
-                        className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-semibold text-indigo-600 border border-indigo-200 hover:bg-indigo-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-semibold text-[#60356a] border border-[#60356a]/20 hover:bg-[#60356a]/5 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         {loadingMoreUsers ? (
                             <>
-                                <div className="w-4 h-4 border-2 border-indigo-400 border-t-transparent rounded-full animate-spin" />
+                                <div className="w-4 h-4 border-2 border-[#60356a]/40 border-t-transparent rounded-full animate-spin" />
                                 Cargando...
                             </>
                         ) : (
@@ -556,8 +556,8 @@ export default function UsersPage() {
                         className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 text-center"
                         onClick={(e) => e.stopPropagation()}
                     >
-                        <div className="w-14 h-14 rounded-full bg-amber-50 flex items-center justify-center mx-auto mb-4">
-                            <AlertTriangle size={24} className="text-amber-500" />
+                        <div className="w-14 h-14 rounded-full bg-[#f5a944]/10 flex items-center justify-center mx-auto mb-4">
+                            <AlertTriangle size={24} className="text-[#f5a944]" />
                         </div>
                         <h3 className="text-lg font-bold text-slate-800 mb-1">Dar de baja usuario</h3>
                         <p className="text-sm text-slate-500 mb-6">
@@ -572,7 +572,7 @@ export default function UsersPage() {
                             </button>
                             <button
                                 onClick={confirmDelete}
-                                className="flex-1 px-4 py-2.5 text-white font-medium bg-amber-500 hover:bg-amber-600 rounded-xl transition-colors"
+                                className="flex-1 px-4 py-2.5 text-white font-medium bg-[#f5a944] hover:bg-[#e09536] rounded-xl transition-colors"
                             >
                                 Dar de baja
                             </button>
@@ -593,7 +593,7 @@ export default function UsersPage() {
                     >
                         <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-white">
                             <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-xl bg-indigo-50 border border-indigo-100 text-indigo-600 flex items-center justify-center">
+                                <div className="w-10 h-10 rounded-xl bg-[#60356a]/10 border border-[#60356a]/20 text-[#60356a] flex items-center justify-center">
                                     <UserPlus size={20} />
                                 </div>
                                 <div>
@@ -619,7 +619,7 @@ export default function UsersPage() {
                                         </div>
                                         <input
                                             type="text"
-                                            className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all outline-none shadow-sm placeholder:text-slate-400"
+                                            className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:ring-4 focus:ring-[#60356a]/10 focus:border-[#60356a] transition-all outline-none shadow-sm placeholder:text-slate-400"
                                             value={formData.displayName}
                                             onChange={(e) => setFormData(prev => ({ ...prev, displayName: e.target.value }))}
                                             placeholder="Ej: Juan Pérez"
@@ -636,7 +636,7 @@ export default function UsersPage() {
                                         </div>
                                         <input
                                             type="email"
-                                            className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all outline-none shadow-sm placeholder:text-slate-400"
+                                            className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:ring-4 focus:ring-[#60356a]/10 focus:border-[#60356a] transition-all outline-none shadow-sm placeholder:text-slate-400"
                                             value={formData.email}
                                             onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
                                             placeholder="ejemplo@empresa.com"
@@ -653,7 +653,7 @@ export default function UsersPage() {
                                         </div>
                                         <input
                                             type="password"
-                                            className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all outline-none shadow-sm placeholder:text-slate-400"
+                                            className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:ring-4 focus:ring-[#60356a]/10 focus:border-[#60356a] transition-all outline-none shadow-sm placeholder:text-slate-400"
                                             value={formData.password}
                                             onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
                                             placeholder="Mínimo 6 caracteres"
@@ -670,7 +670,7 @@ export default function UsersPage() {
                                             <Shield size={18} />
                                         </div>
                                         <select
-                                            className="w-full pl-10 pr-10 py-2.5 bg-white border border-slate-200 rounded-xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all outline-none text-slate-700 shadow-sm appearance-none"
+                                            className="w-full pl-10 pr-10 py-2.5 bg-white border border-slate-200 rounded-xl focus:ring-4 focus:ring-[#60356a]/10 focus:border-[#834f8f] transition-all outline-none text-slate-700 shadow-sm appearance-none"
                                             value={formData.role}
                                             onChange={(e) => setFormData(prev => ({ ...prev, role: e.target.value as UserRole }))}
                                             style={{ backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`, backgroundPosition: `right 0.5rem center`, backgroundRepeat: `no-repeat`, backgroundSize: `1.5em 1.5em` }}
@@ -695,7 +695,7 @@ export default function UsersPage() {
                                 type="submit"
                                 form="create-user-form"
                                 disabled={creating}
-                                className="px-5 py-2.5 bg-indigo-600 text-white font-medium hover:bg-indigo-700 rounded-xl transition-all shadow-sm hover:shadow-indigo-200 disabled:opacity-70 disabled:cursor-not-allowed flex items-center gap-2"
+                                className="px-5 py-2.5 bg-[#60356a] text-white font-medium hover:bg-[#834f8f] rounded-xl transition-all shadow-sm hover:shadow-[#60356a]/20 disabled:opacity-70 disabled:cursor-not-allowed flex items-center gap-2"
                             >
                                 {creating ? (
                                     <>
@@ -728,8 +728,8 @@ export default function UsersPage() {
                         </div>
 
                         <div className="p-6">
-                            <div className="bg-indigo-50 border border-indigo-100 rounded-xl p-4 mb-6">
-                                <p className="text-sm text-indigo-800 flex items-start gap-2">
+                            <div className="bg-[#60356a]/5 border border-[#60356a]/10 rounded-xl p-4 mb-6">
+                                <p className="text-sm text-[#60356a] flex items-start gap-2">
                                     <span className="text-lg leading-none">💡</span>
                                     <span>
                                         Este usuario ya cuenta con acceso automático a las <strong>3 rutas obligatorias</strong> del sistema.
@@ -750,26 +750,26 @@ export default function UsersPage() {
                                             <div
                                                 key={path.id}
                                                 className={`flex items-center gap-4 p-4 rounded-xl border transition-all cursor-pointer ${isAssigned
-                                                    ? 'border-indigo-500 bg-indigo-50/50'
-                                                    : 'border-slate-200 hover:border-indigo-300 hover:bg-slate-50'
+                                                    ? 'border-[#60356a] bg-[#60356a]/5'
+                                                    : 'border-slate-200 hover:border-[#60356a]/30 hover:bg-slate-50'
                                                     }`}
                                                 onClick={() => handleTogglePath(path.id)}
                                             >
-                                                <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-xl shrink-0 ${isAssigned ? 'bg-indigo-100' : 'bg-slate-100'
+                                                <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-xl shrink-0 ${isAssigned ? 'bg-[#60356a]/10' : 'bg-slate-100'
                                                     }`}>
                                                     {path.icon || '📚'}
                                                 </div>
                                                 <div className="flex-1 min-w-0">
-                                                    <h4 className={`font-semibold ${isAssigned ? 'text-indigo-900' : 'text-slate-900'} truncate`}>
+                                                    <h4 className={`font-semibold ${isAssigned ? 'text-[#60356a]' : 'text-slate-900'} truncate`}>
                                                         {path.title}
                                                     </h4>
-                                                    <p className={`text-sm ${isAssigned ? 'text-indigo-700/70' : 'text-slate-500'} truncate`}>
+                                                    <p className={`text-sm ${isAssigned ? 'text-[#60356a]/70' : 'text-slate-500'} truncate`}>
                                                         {path.description}
                                                     </p>
                                                 </div>
                                                 <div className="shrink-0">
                                                     <div className={`w-6 h-6 rounded-md border flex items-center justify-center transition-colors ${isAssigned
-                                                        ? 'bg-indigo-500 border-indigo-500 text-white'
+                                                        ? 'bg-[#60356a] border-[#60356a] text-white'
                                                         : 'border-slate-300 bg-white'
                                                         }`}>
                                                         {isAssigned && <CheckCircle size={14} strokeWidth={3} />}
@@ -792,7 +792,7 @@ export default function UsersPage() {
                             <button
                                 onClick={handleAssignPaths}
                                 disabled={savingPaths}
-                                className="px-5 py-2.5 bg-indigo-600 text-white font-medium hover:bg-indigo-700 rounded-xl transition-all shadow-sm flex items-center gap-2"
+                                className="px-5 py-2.5 bg-[#60356a] text-white font-medium hover:bg-[#834f8f] rounded-xl transition-all shadow-sm flex items-center gap-2"
                             >
                                 {savingPaths ? 'Guardando...' : 'Guardar Especializaciones'}
                             </button>
@@ -816,7 +816,7 @@ export default function UsersPage() {
                             <div className="flex items-center gap-4">
                                 {/* Avatar con opción de cambiar foto */}
                                 <div className="relative group">
-                                    <div className="relative w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 text-white flex items-center justify-center font-bold text-2xl shadow-lg overflow-hidden ring-2 ring-white">
+                                    <div className="relative w-16 h-16 rounded-2xl bg-gradient-to-br from-[#60356a] to-[#834f8f] text-white flex items-center justify-center font-bold text-2xl shadow-lg overflow-hidden ring-2 ring-white">
                                         {editPhotoURL ? (
                                             <Image src={editPhotoURL} alt="Avatar" fill className="object-cover" sizes="64px" />
                                         ) : (
@@ -827,7 +827,7 @@ export default function UsersPage() {
                                         type="button"
                                         onClick={() => editFileInputRef.current?.click()}
                                         disabled={uploadingEditPhoto}
-                                        className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-indigo-600 text-white flex items-center justify-center shadow-lg border-2 border-white hover:bg-indigo-700 transition-all cursor-pointer disabled:opacity-60"
+                                        className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-[#60356a] text-white flex items-center justify-center shadow-lg border-2 border-white hover:bg-[#834f8f] transition-all cursor-pointer disabled:opacity-60"
                                         title="Cambiar foto de perfil"
                                     >
                                         {uploadingEditPhoto ? (
@@ -868,7 +868,7 @@ export default function UsersPage() {
                                     </div>
                                     <input
                                         type="text"
-                                        className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all outline-none shadow-sm placeholder:text-slate-400"
+                                        className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:ring-4 focus:ring-[#60356a]/10 focus:border-[#60356a] transition-all outline-none shadow-sm placeholder:text-slate-400"
                                         value={editFormData.displayName}
                                         onChange={(e) => setEditFormData(prev => ({ ...prev, displayName: e.target.value }))}
                                         placeholder="Nombre del usuario"
@@ -885,7 +885,7 @@ export default function UsersPage() {
                                     </div>
                                     <input
                                         type="email"
-                                        className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all outline-none shadow-sm placeholder:text-slate-400"
+                                        className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:ring-4 focus:ring-[#60356a]/10 focus:border-[#60356a] transition-all outline-none shadow-sm placeholder:text-slate-400"
                                         value={editFormData.email}
                                         onChange={(e) => setEditFormData(prev => ({ ...prev, email: e.target.value }))}
                                         placeholder="correo@ejemplo.com"
@@ -902,7 +902,7 @@ export default function UsersPage() {
                                     </div>
                                     <input
                                         type="password"
-                                        className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all outline-none shadow-sm placeholder:text-slate-400"
+                                        className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:ring-4 focus:ring-[#60356a]/10 focus:border-[#60356a] transition-all outline-none shadow-sm placeholder:text-slate-400"
                                         value={editFormData.password}
                                         onChange={(e) => setEditFormData(prev => ({ ...prev, password: e.target.value }))}
                                         placeholder="Dejar vacío para no cambiar"
@@ -919,7 +919,7 @@ export default function UsersPage() {
                                         <Shield size={18} />
                                     </div>
                                     <select
-                                        className="w-full pl-10 pr-10 py-2.5 bg-white border border-slate-200 rounded-xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all outline-none text-slate-700 shadow-sm appearance-none"
+                                        className="w-full pl-10 pr-10 py-2.5 bg-white border border-slate-200 rounded-xl focus:ring-4 focus:ring-[#60356a]/10 focus:border-[#834f8f] transition-all outline-none text-slate-700 shadow-sm appearance-none"
                                         value={editFormData.role}
                                         onChange={(e) => setEditFormData(prev => ({ ...prev, role: e.target.value as UserRole }))}
                                         style={{ backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`, backgroundPosition: `right 0.5rem center`, backgroundRepeat: `no-repeat`, backgroundSize: `1.5em 1.5em` }}
@@ -934,13 +934,13 @@ export default function UsersPage() {
                             <div className="border-t border-slate-200 pt-4 mt-2">
                                 <div className={`rounded-xl p-4 transition-all ${editingUser.isActive
                                     ? 'bg-emerald-50 border border-emerald-200'
-                                    : 'bg-amber-50 border border-amber-200'
+                                    : 'bg-[#f5a944]/10 border border-[#f5a944]/30'
                                     }`}>
                                     <div className="flex items-center justify-between">
                                         <div className="flex items-center gap-3">
                                             <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${editingUser.isActive
                                                 ? 'bg-emerald-100 text-emerald-600'
-                                                : 'bg-amber-100 text-amber-600'
+                                                : 'bg-[#f5a944]/20 text-[#e09536]'
                                                 }`}>
                                                 {editingUser.isActive ? <CheckCircle size={18} /> : <AlertTriangle size={18} />}
                                             </div>
@@ -984,7 +984,7 @@ export default function UsersPage() {
                             <button
                                 onClick={handleSaveEdit}
                                 disabled={savingEdit}
-                                className="px-5 py-2.5 bg-indigo-600 text-white font-medium hover:bg-indigo-700 rounded-xl transition-all shadow-sm hover:shadow-indigo-200 disabled:opacity-70 disabled:cursor-not-allowed flex items-center gap-2"
+                                className="px-5 py-2.5 bg-[#60356a] text-white font-medium hover:bg-[#834f8f] rounded-xl transition-all shadow-sm hover:shadow-[#60356a]/20 disabled:opacity-70 disabled:cursor-not-allowed flex items-center gap-2"
                             >
                                 {savingEdit ? (
                                     <>

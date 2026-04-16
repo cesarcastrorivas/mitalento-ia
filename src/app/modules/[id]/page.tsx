@@ -2,9 +2,10 @@
 
 import { useEffect, useState, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { doc, getDoc, query, where, orderBy, getDocs, Timestamp, collection } from 'firebase/firestore';
+import { doc, getDoc, query, where, orderBy, getDocs, Timestamp, collection, updateDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { Module } from '@/types';
+import { checkCascadeCompletion } from '@/lib/grading-utils';
 import { useAuth } from '@/contexts/AuthContext';
 import { ChevronLeft, ChevronRight, CheckCircle, Lock, AlertCircle, Trophy, Clock, PlayCircle, Menu, X, Info } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
@@ -30,6 +31,7 @@ export default function ModulePage() {
     const { user } = useAuth();
     const videoRef = useRef<HTMLVideoElement>(null);
     const lastWatchedRef = useRef(0);
+    const autoCompletedRef = useRef(false);
     const moduleId = params.id as string;
 
     const [module, setModule] = useState<Module | null>(null);
@@ -48,8 +50,34 @@ export default function ModulePage() {
     const [userProgress, setUserProgress] = useState<Record<string, any>>({});
     const [courseTitle, setCourseTitle] = useState('');
     const [coursePathId, setCoursePathId] = useState<string | null>(null);
+    const [videoSrc, setVideoSrc] = useState<string>('');
 
     useEffect(() => {
+        if (!module || !module.videoUrl) return;
+        // Preview mode uses mock URL directly
+        if (module.id === 'preview') {
+            setVideoSrc(module.videoUrl);
+            return;
+        }
+        let cancelled = false;
+        fetch('/api/video-url', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ moduleId: module.id }),
+        })
+            .then(res => res.json())
+            .then(data => {
+                if (!cancelled && data.url) setVideoSrc(data.url);
+            })
+            .catch(() => {
+                // Fallback to direct URL if signed URL fails
+                if (!cancelled) setVideoSrc(module.videoUrl);
+            });
+        return () => { cancelled = true; };
+    }, [module]);
+
+    useEffect(() => {
+        autoCompletedRef.current = false;
         loadModuleData();
 
         let scrollTicking = false;
@@ -170,7 +198,9 @@ export default function ModulePage() {
         }
     };
 
-    const handleTimeUpdate = () => {
+    const hasQuiz = !!(module?.questions && module.questions.length > 0);
+
+    const handleTimeUpdate = async () => {
         if (!videoRef.current || !module) return;
         const percentage = (videoRef.current.currentTime / videoRef.current.duration) * 100;
 
@@ -181,6 +211,35 @@ export default function ModulePage() {
 
         if (percentage >= module.requiredWatchPercentage) {
             setCanTakeQuiz(true);
+
+            // Auto-completar módulos sin quiz al alcanzar el porcentaje requerido
+            if (!hasQuiz && !autoCompletedRef.current && !userProgress[module.id]?.completed && user) {
+                autoCompletedRef.current = true;
+                try {
+                    const userRef = doc(db, 'users', user.uid);
+                    await updateDoc(userRef, {
+                        [`progress.${module.id}`]: {
+                            completed: true,
+                            score: null,
+                            lastAttempt: Timestamp.now(),
+                        }
+                    });
+                    setUserProgress(prev => ({
+                        ...prev,
+                        [module.id]: { completed: true, score: null }
+                    }));
+
+                    // Verificar completación en cascada (curso → ruta)
+                    try {
+                        await checkCascadeCompletion(user.uid, module.id, module.courseId);
+                    } catch (cascadeError) {
+                        console.error('Error en validación en cascada:', cascadeError);
+                    }
+                } catch (error) {
+                    console.error('Error auto-completing module:', error);
+                    autoCompletedRef.current = false;
+                }
+            }
         }
     };
 
@@ -315,11 +374,14 @@ export default function ModulePage() {
                         <div className="w-full max-w-5xl aspect-video bg-surface-dim relative shadow-md">
                             <video
                                 ref={videoRef}
-                                src={module.videoUrl}
+                                src={videoSrc || undefined}
                                 controls
+                                controlsList="nodownload noplaybackrate"
+                                disablePictureInPicture
+                                onContextMenu={(e) => e.preventDefault()}
                                 onTimeUpdate={handleTimeUpdate}
                                 onEnded={() => {
-                                    if (canTakeQuiz) {
+                                    if (canTakeQuiz && hasQuiz) {
                                         setShowQuizModal(true);
                                     }
                                 }}
@@ -364,12 +426,12 @@ export default function ModulePage() {
                                 </div>
                             </div>
 
-                            {/* Requisito Quiz */}
+                            {/* Requisito para avanzar */}
                             <div className="space-y-2">
                                 <div className="flex justify-between items-center text-sm font-bold">
                                     <div className="flex items-center gap-2 text-secondary">
                                         <Trophy size={16} className={canTakeQuiz ? 'text-emerald-500' : 'text-secondary/70'} />
-                                        <span>Requisito Quiz</span>
+                                        <span>{hasQuiz ? 'Requisito Quiz' : 'Requisito Video'}</span>
                                     </div>
                                     <span className="text-on-surface">{module.requiredWatchPercentage}%</span>
                                 </div>
@@ -385,19 +447,50 @@ export default function ModulePage() {
                         {!canTakeQuiz && (
                             <div className="glass-panel bg-orange-50/50 border border-orange-200/50 rounded-2xl p-4 flex items-start gap-3">
                                 <AlertCircle size={20} className="text-orange-500 flex-shrink-0" />
-                                <p className="text-xs text-orange-900 leading-relaxed font-medium">Debes ver al menos el <strong className="font-extrabold">{module.requiredWatchPercentage}% del video</strong> para habilitar la evaluación y avanzar.</p>
+                                <p className="text-xs text-orange-900 leading-relaxed font-medium">
+                                    {hasQuiz
+                                        ? <>Debes ver al menos el <strong className="font-extrabold">{module.requiredWatchPercentage}% del video</strong> para habilitar la evaluación y avanzar.</>
+                                        : <>Debes ver al menos el <strong className="font-extrabold">{module.requiredWatchPercentage}% del video</strong> para completar este módulo y avanzar.</>
+                                    }
+                                </p>
                             </div>
                         )}
 
                         <div className="pt-6 border-t border-outline-variant/15 mt-auto">
-                            <Button
-                                onClick={handleStartQuiz}
-                                disabled={!canTakeQuiz && !userProgress[module.id]?.completed}
-                                className="w-full py-4 uppercase tracking-widest text-xs font-black shadow-xl"
-                                variant={userProgress[module.id]?.completed ? 'secondary' : 'primary'}
-                            >
-                                {userProgress[module.id]?.completed ? 'Revisar Resultados' : 'Iniciar Evaluación'}
-                            </Button>
+                            {hasQuiz ? (
+                                <Button
+                                    onClick={handleStartQuiz}
+                                    disabled={!canTakeQuiz && !userProgress[module.id]?.completed}
+                                    className="w-full py-4 uppercase tracking-widest text-xs font-black shadow-xl"
+                                    variant={userProgress[module.id]?.completed ? 'secondary' : 'primary'}
+                                >
+                                    {userProgress[module.id]?.completed ? 'Revisar Resultados' : 'Iniciar Evaluación'}
+                                </Button>
+                            ) : userProgress[module.id]?.completed ? (
+                                <div className="flex flex-col items-center gap-3">
+                                    <div className="flex items-center gap-2 text-emerald-600">
+                                        <CheckCircle size={20} />
+                                        <span className="text-sm font-bold uppercase tracking-wider">Módulo completado</span>
+                                    </div>
+                                    {nextModule && (
+                                        <Button
+                                            onClick={handleNext}
+                                            className="w-full py-4 uppercase tracking-widest text-xs font-black shadow-xl"
+                                            variant="primary"
+                                        >
+                                            Siguiente Módulo <ChevronRight size={16} className="inline ml-1" />
+                                        </Button>
+                                    )}
+                                </div>
+                            ) : (
+                                <div className="flex flex-col items-center gap-2 text-secondary">
+                                    <PlayCircle size={24} className="text-primary" />
+                                    <p className="text-xs text-center font-medium leading-relaxed">
+                                        Este módulo no requiere evaluación.<br />
+                                        Completa el video para continuar.
+                                    </p>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>

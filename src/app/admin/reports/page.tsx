@@ -129,7 +129,7 @@ export default function ExamReportsPage() {
 
     const getScoreColorInfo = (score: number) => {
         if (score >= 80) return { bg: 'bg-emerald-50 text-emerald-600', border: 'border-emerald-200' };
-        if (score >= 60) return { bg: 'bg-amber-50 text-amber-600', border: 'border-amber-200' };
+        if (score >= 60) return { bg: 'bg-[#f5a944]/10 text-[#e09536]', border: 'border-[#f5a944]/30' };
         return { bg: 'bg-rose-50 text-rose-600', border: 'border-rose-200' };
     };
 
@@ -152,8 +152,8 @@ export default function ExamReportsPage() {
             {/* Stats Cards */}
             <div className="grid grid-cols-3 gap-2 sm:gap-6">
                 <div className="bg-white rounded-2xl p-3 sm:p-6 shadow-sm border border-slate-100 flex flex-col sm:flex-row items-center sm:items-start gap-2 sm:gap-5">
-                    <div className="w-10 h-10 sm:w-14 sm:h-14 rounded-xl sm:rounded-[16px] bg-[#135bec]/10 flex items-center justify-center shrink-0">
-                        <FileText className="w-5 h-5 sm:w-7 sm:h-7 text-[#135bec]" />
+                    <div className="w-10 h-10 sm:w-14 sm:h-14 rounded-xl sm:rounded-[16px] bg-[#60356a]/10 flex items-center justify-center shrink-0">
+                        <FileText className="w-5 h-5 sm:w-7 sm:h-7 text-[#60356a]" />
                     </div>
                     <div className="text-center sm:text-left">
                         <p className="text-[10px] sm:text-sm text-slate-500 font-semibold uppercase tracking-wide leading-tight">Total</p>
@@ -162,8 +162,8 @@ export default function ExamReportsPage() {
                 </div>
 
                 <div className="bg-white rounded-2xl p-3 sm:p-6 shadow-sm border border-slate-100 flex flex-col sm:flex-row items-center sm:items-start gap-2 sm:gap-5">
-                    <div className="w-10 h-10 sm:w-14 sm:h-14 rounded-xl sm:rounded-[16px] bg-indigo-50 flex items-center justify-center shrink-0">
-                        <Users className="w-5 h-5 sm:w-7 sm:h-7 text-indigo-600" />
+                    <div className="w-10 h-10 sm:w-14 sm:h-14 rounded-xl sm:rounded-[16px] bg-[#60356a]/5 flex items-center justify-center shrink-0">
+                        <Users className="w-5 h-5 sm:w-7 sm:h-7 text-[#60356a]" />
                     </div>
                     <div className="text-center sm:text-left">
                         <p className="text-[10px] sm:text-sm text-slate-500 font-semibold uppercase tracking-wide leading-tight">Promedio</p>
@@ -195,7 +195,7 @@ export default function ExamReportsPage() {
                             placeholder="Buscar por estudiante o módulo..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full pl-11 pr-4 py-2.5 bg-slate-50/50 hover:bg-slate-50 border border-slate-200/80 rounded-full focus:ring-4 focus:ring-[#135bec]/10 focus:border-[#135bec] text-sm text-slate-800 placeholder:text-slate-400 outline-none transition-all shadow-sm"
+                            className="w-full pl-11 pr-4 py-2.5 bg-slate-50/50 hover:bg-slate-50 border border-slate-200/80 rounded-full focus:ring-4 focus:ring-[#60356a]/10 focus:border-[#60356a] text-sm text-slate-800 placeholder:text-slate-400 outline-none transition-all shadow-sm"
                         />
                     </div>
                 </div>
@@ -217,7 +217,7 @@ export default function ExamReportsPage() {
                                 <tr>
                                     <td colSpan={6} className="px-6 py-16 text-center text-slate-500">
                                         <div className="flex justify-center items-center gap-3">
-                                            <div className="w-6 h-6 border-2 border-[#135bec] border-t-transparent rounded-full animate-spin"></div>
+                                            <div className="w-6 h-6 border-2 border-[#60356a] border-t-transparent rounded-full animate-spin"></div>
                                             <span className="font-medium">Cargando datos...</span>
                                         </div>
                                     </td>
@@ -260,7 +260,7 @@ export default function ExamReportsPage() {
                                                         setSelectedSession(session);
                                                         setActiveQuestionIdx(0);
                                                     }}
-                                                    className="inline-flex items-center justify-center gap-2 px-5 py-2 bg-slate-50 border border-slate-200 rounded-full text-sm font-semibold text-[#135bec] hover:bg-[#135bec] hover:text-white hover:border-transparent transition-all shadow-sm focus:outline-none"
+                                                    className="inline-flex items-center justify-center gap-2 px-5 py-2 bg-slate-50 border border-slate-200 rounded-full text-sm font-semibold text-[#60356a] hover:bg-[#60356a] hover:text-white hover:border-transparent transition-all shadow-sm focus:outline-none"
                                                 >
                                                     <Eye className="w-4 h-4" />
                                                     Detalles
@@ -283,7 +283,7 @@ export default function ExamReportsPage() {
                         <button
                             onClick={loadMore}
                             disabled={loadingMore}
-                            className="inline-flex items-center gap-2 px-5 py-2 rounded-full text-sm font-semibold text-[#135bec] border border-[#135bec]/20 hover:bg-[#135bec] hover:text-white hover:border-transparent transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="inline-flex items-center gap-2 px-5 py-2 rounded-full text-sm font-semibold text-[#60356a] border border-[#60356a]/20 hover:bg-[#60356a] hover:text-white hover:border-transparent transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             {loadingMore ? (
                                 <>
@@ -355,11 +355,11 @@ export default function ExamReportsPage() {
                                                 key={q.id}
                                                 onClick={() => setActiveQuestionIdx(idx)}
                                                 className={`w-full text-left px-4 py-3.5 rounded-2xl flex items-center justify-between transition-all outline-none border ${isActive
-                                                    ? 'bg-[#135bec]/5 border-[#135bec]/20'
+                                                    ? 'bg-[#60356a]/5 border-[#60356a]/20'
                                                     : 'bg-white border-transparent hover:bg-slate-50 hover:border-slate-100'
                                                     }`}
                                             >
-                                                <span className={`text-sm font-semibold ${isActive ? 'text-[#135bec]' : 'text-slate-600'}`}>
+                                                <span className={`text-sm font-semibold ${isActive ? 'text-[#60356a]' : 'text-slate-600'}`}>
                                                     Pregunta {idx + 1}
                                                 </span>
                                                 <div className={`w-2.5 h-2.5 rounded-full shadow-sm ${isCorrect ? 'bg-emerald-500' : 'bg-rose-500'}`} title={isCorrect ? 'Correcta' : 'Incorrecta'} />
@@ -454,8 +454,8 @@ export default function ExamReportsPage() {
                                                 {/* Explanation */}
                                                 {question.explanation && (
                                                     <div className="mt-8 md:pl-[68px]">
-                                                        <div className="p-6 rounded-2xl bg-[#135bec]/5 border border-[#135bec]/10">
-                                                            <div className="flex items-center gap-2.5 mb-3 text-[#135bec]">
+                                                        <div className="p-6 rounded-2xl bg-[#60356a]/5 border border-[#60356a]/10">
+                                                            <div className="flex items-center gap-2.5 mb-3 text-[#60356a]">
                                                                 <FileText className="w-5 h-5" />
                                                                 <strong className="text-sm font-bold uppercase tracking-widest">Explicación</strong>
                                                             </div>
@@ -486,7 +486,7 @@ export default function ExamReportsPage() {
                                     <button
                                         onClick={() => setActiveQuestionIdx(prev => Math.min(selectedSession.questions.length - 1, prev + 1))}
                                         disabled={activeQuestionIdx === selectedSession.questions.length - 1}
-                                        className="flex items-center gap-2 px-6 py-2.5 rounded-full text-sm font-bold text-white bg-[#135bec] hover:bg-[#0f4ac0] disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-[0_4px_14px_0_rgba(19,91,236,0.25)] hover:shadow-[0_6px_20px_0_rgba(19,91,236,0.35)] active:scale-95"
+                                        className="flex items-center gap-2 px-6 py-2.5 rounded-full text-sm font-bold text-white bg-[#60356a] hover:bg-[#834f8f] disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-[0_4px_14px_0_rgba(96,53,106,0.25)] hover:shadow-[0_6px_20px_0_rgba(96,53,106,0.35)] active:scale-95"
                                     >
                                         Siguiente
                                         <ChevronRight className="w-4 h-4" />

@@ -167,7 +167,7 @@ export default function ModulesPage() {
                                         </div>
                                     ) : (
                                         <>
-                                            <video src={module.videoUrl} preload="none" className="w-full h-full object-cover" />
+                                            <video src={module.videoUrl} preload="none" onContextMenu={(e) => e.preventDefault()} className="w-full h-full object-cover" />
                                             <div className="absolute inset-0 bg-primary/20 group-hover:bg-primary/10 transition-colors flex items-center justify-center">
                                                 <div className="w-14 h-14 rounded-full glass-panel flex flex-col items-center justify-center text-primary shadow-lg group-hover:scale-110 transition-transform duration-300">
                                                     <span className="ml-1 text-xl">▶</span>

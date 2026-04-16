@@ -60,3 +60,7 @@ export function getAdminDb() {
 export function getFirestoreTimestamp() {
     return getFirebaseAdmin().firestore.Timestamp;
 }
+
+export function getAdminStorage() {
+    return getFirebaseAdmin().storage();
+}

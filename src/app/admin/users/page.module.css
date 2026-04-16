@@ -62,8 +62,8 @@
 .searchInput:focus {
     outline: none;
     background: #fff;
-    border-color: #5b13ec;
-    box-shadow: 0 0 0 4px rgba(91, 19, 236, 0.08);
+    border-color: #60356a;
+    box-shadow: 0 0 0 4px rgba(96, 53, 106, 0.08);
 }
 
 .searchIcon {
@@ -76,7 +76,7 @@
 }
 
 .primaryBtn {
-    background: #5b13ec;
+    background: #60356a;
     color: white;
     border: none;
     padding: 0.7rem 1.25rem;
@@ -90,7 +90,7 @@
     gap: 0.5rem;
     transition: all 0.2s;
     white-space: nowrap;
-    box-shadow: 0 4px 12px rgba(91, 19, 236, 0.2);
+    box-shadow: 0 4px 12px rgba(96, 53, 106, 0.2);
 }
 
 .primaryBtn:active {
@@ -183,7 +183,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #5b13ec;
+    color: #60356a;
     font-weight: 800;
     font-size: 1.1rem;
     overflow: hidden;
@@ -240,7 +240,7 @@
 
 .badgePillAdmin {
     background: #eef2ff;
-    color: #5b13ec;
+    color: #60356a;
 }
 
 .badgePillStudent {
@@ -270,7 +270,7 @@
 
 .iconBtn:hover {
     background: #eef2ff;
-    color: #5b13ec;
+    color: #60356a;
 }
 
 .deleteBtn:hover {

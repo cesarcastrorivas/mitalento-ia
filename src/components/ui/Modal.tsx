@@ -10,7 +10,7 @@ interface ModalProps {
     subtitle?: string;
     children: React.ReactNode;
     footer?: React.ReactNode;
-    maxWidth?: 'sm' | 'md' | 'lg' | 'xl' | '2xl';
+    maxWidth?: 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '2.5xl' | '3xl' | '4xl' | '5xl';
 }
 
 const maxWidthClasses = {
@@ -19,6 +19,10 @@ const maxWidthClasses = {
     lg: 'max-w-lg',
     xl: 'max-w-xl',
     '2xl': 'max-w-2xl',
+    '2.5xl': 'max-w-[720px]',
+    '3xl': 'max-w-3xl',
+    '4xl': 'max-w-4xl',
+    '5xl': 'max-w-5xl',
 };
 
 export const Modal: React.FC<ModalProps> = ({
@@ -56,7 +60,7 @@ export const Modal: React.FC<ModalProps> = ({
     return (
         <div
             ref={overlayRef}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4"
+            className="fixed inset-0 z-[100] flex items-center justify-center p-4"
             onClick={(e) => { if (e.target === overlayRef.current) onClose(); }}
             style={{ animation: 'modal-overlay-in 200ms ease-out forwards' }}
         >
@@ -70,10 +74,10 @@ export const Modal: React.FC<ModalProps> = ({
                 onClick={(e) => e.stopPropagation()}
             >
                 {/* Purple accent line */}
-                <div className="h-1 w-full bg-gradient-to-r from-purple-600 via-violet-500 to-indigo-500" />
+                <div className="h-1 w-full bg-gradient-to-r from-[#60356a] via-[#834f8f] to-[#f5a944]" />
 
                 {/* Header */}
-                <div className="px-6 py-5 border-b border-slate-100 flex items-start justify-between">
+                <div className="px-6 py-3.5 border-b border-slate-100 flex items-start justify-between">
                     <div>
                         <h2 className="text-lg font-semibold text-slate-900 tracking-tight">{title}</h2>
                         {subtitle && (
@@ -89,13 +93,13 @@ export const Modal: React.FC<ModalProps> = ({
                 </div>
 
                 {/* Body - Increased max height and added better scrolling padding */}
-                <div className="px-6 py-5 max-h-[75vh] min-h-[40vh] overflow-y-auto overflow-x-hidden space-y-5 custom-scrollbar">
+                <div className="px-6 py-4 max-h-[60vh] overflow-y-auto overflow-x-hidden space-y-4 custom-scrollbar">
                     {children}
                 </div>
 
                 {/* Footer */}
                 {footer && (
-                    <div className="px-6 py-4 border-t border-slate-100 bg-slate-50/50 flex items-center justify-end gap-3">
+                    <div className="px-6 py-3 border-t border-slate-100 bg-slate-50/50 flex items-center justify-end gap-3">
                         {footer}
                     </div>
                 )}

@@ -89,6 +89,13 @@ export default function PathDetailsPage({ params }: { params: Promise<{ pathId: 
             const coursesData = coursesSnapshot.docs.map(c => ({ id: c.id, ...c.data() } as Course));
             const passedModuleIds = new Set(sessionsSnapshot.docs.map(s => s.data().moduleId));
 
+            // Agregar módulos sin quiz completados por visionado (score null)
+            for (const [moduleId, data] of Object.entries(progress)) {
+                if ((data as any).completed && (data as any).score == null) {
+                    passedModuleIds.add(moduleId);
+                }
+            }
+
             const courseIds = coursesData.map(c => c.id);
             let allModules: Module[] = [];
             if (courseIds.length > 0) {

@@ -233,7 +233,7 @@ export default function PathCoursesPage({ params }: { params: Promise<{ pathId: 
     if (loading) {
         return (
             <div className="flex items-center justify-center min-h-[50vh]">
-                <div className="w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
+                <div className="w-8 h-8 border-2 border-[#60356a] border-t-transparent rounded-full animate-spin"></div>
             </div>
         );
     }
@@ -246,7 +246,7 @@ export default function PathCoursesPage({ params }: { params: Promise<{ pathId: 
             <div>
                 <Link
                     href="/admin/paths"
-                    className="inline-flex items-center gap-2 text-sm text-slate-500 hover:text-purple-600 transition-colors mb-4 group"
+                    className="inline-flex items-center gap-2 text-sm text-slate-500 hover:text-[#60356a] transition-colors mb-4 group"
                 >
                     <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
                     <span>Volver a Rutas</span>
@@ -257,7 +257,7 @@ export default function PathCoursesPage({ params }: { params: Promise<{ pathId: 
                     subtitle="Gestión de Cursos"
                     icon={<span className="text-lg">{path.icon}</span>}
                     action={
-                        <Button onClick={openNewCourseModal} leftIcon={<Plus size={20} />} className="shadow-lg shadow-purple-500/25">
+                        <Button onClick={openNewCourseModal} leftIcon={<Plus size={20} />} className="shadow-lg shadow-[#60356a]/25 bg-[#60356a] hover:bg-[#834f8f] border-transparent text-white">
                             Nuevo Curso
                         </Button>
                     }
@@ -317,7 +317,7 @@ export default function PathCoursesPage({ params }: { params: Promise<{ pathId: 
                             <div className="flex items-center gap-3 pt-4 border-t border-slate-100 mt-auto">
                                 <Link
                                     href={`/admin/courses/${course.id}/modules`}
-                                    className="flex-1 flex items-center justify-center gap-2 text-sm font-medium text-slate-700 hover:text-white bg-white hover:bg-purple-600 px-4 py-2.5 rounded-lg transition-all border border-slate-200 hover:border-purple-600 shadow-sm group/btn"
+                                    className="flex-1 flex items-center justify-center gap-2 text-sm font-medium text-slate-700 hover:text-white bg-white hover:bg-[#60356a] px-4 py-2.5 rounded-lg transition-all border border-slate-200 hover:border-[#60356a] shadow-sm group/btn"
                                 >
                                     <Folder size={16} className="text-slate-400 group-hover/btn:text-white/90 transition-colors" />
                                     Ver Módulos
@@ -325,7 +325,7 @@ export default function PathCoursesPage({ params }: { params: Promise<{ pathId: 
                                 <div className="flex items-center gap-1 border-l border-slate-100 pl-3">
                                     <button
                                         onClick={() => handleEdit(course)}
-                                        className="p-2.5 text-slate-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
+                                        className="p-2.5 text-slate-400 hover:text-[#60356a] hover:bg-[#60356a]/10 rounded-lg transition-colors"
                                         title="Editar Curso"
                                     >
                                         <Pencil size={18} />
@@ -346,12 +346,12 @@ export default function PathCoursesPage({ params }: { params: Promise<{ pathId: 
                 {/* Add New Card */}
                 <button
                     onClick={openNewCourseModal}
-                    className="flex flex-col items-center justify-center p-8 rounded-2xl border-2 border-dashed border-slate-200 hover:border-purple-300 hover:bg-purple-50/50 transition-all group h-full min-h-[300px]"
+                    className="flex flex-col items-center justify-center p-8 rounded-2xl border-2 border-dashed border-slate-200 hover:border-[#60356a]/30 hover:bg-[#60356a]/5 transition-all group h-full min-h-[300px]"
                 >
-                    <div className="w-16 h-16 rounded-full bg-slate-50 group-hover:bg-purple-100 flex items-center justify-center text-slate-400 group-hover:text-purple-600 transition-colors mb-4 shadow-sm">
+                    <div className="w-16 h-16 rounded-full bg-slate-50 group-hover:bg-[#60356a]/10 flex items-center justify-center text-slate-400 group-hover:text-[#60356a] transition-colors mb-4 shadow-sm">
                         <Plus size={32} />
                     </div>
-                    <span className="text-base font-semibold text-slate-600 group-hover:text-purple-700">Crear Nuevo Curso</span>
+                    <span className="text-base font-semibold text-slate-600 group-hover:text-[#60356a]">Crear Nuevo Curso</span>
                     <span className="text-sm text-slate-400 mt-1">Añade contenido a esta ruta</span>
                 </button>
             </div>
@@ -433,7 +433,7 @@ export default function PathCoursesPage({ params }: { params: Promise<{ pathId: 
                                         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3 backdrop-blur-sm">
                                             <button
                                                 onClick={() => fileInputRef.current?.click()}
-                                                className="p-2 bg-white/90 rounded-lg text-slate-700 hover:text-purple-600 transition-colors shadow-lg"
+                                                className="p-2 bg-white/90 rounded-lg text-slate-700 hover:text-[#60356a] transition-colors shadow-lg"
                                                 title="Cambiar imagen"
                                             >
                                                 <Pencil size={20} />
@@ -450,17 +450,17 @@ export default function PathCoursesPage({ params }: { params: Promise<{ pathId: 
                                 ) : (
                                     <div
                                         onClick={() => fileInputRef.current?.click()}
-                                        className={`relative h-48 border-2 border-dashed rounded-xl flex flex-col items-center justify-center cursor-pointer transition-all ${isUploading ? 'border-purple-400 bg-purple-50/30' : 'border-slate-200 hover:border-purple-400 hover:bg-slate-50'}`}
+                                        className={`relative h-48 border-2 border-dashed rounded-xl flex flex-col items-center justify-center cursor-pointer transition-all ${isUploading ? 'border-[#60356a]/50 bg-[#60356a]/5' : 'border-slate-200 hover:border-[#60356a]/50 hover:bg-slate-50'}`}
                                     >
                                         {isUploading ? (
                                             <div className="w-full max-w-[150px] text-center">
-                                                <div className="w-10 h-10 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin mx-auto mb-3" />
-                                                <p className="text-sm font-medium text-purple-600">Subiendo...</p>
-                                                <p className="text-xs text-purple-400">{Math.round(uploadProgress)}%</p>
+                                                <div className="w-10 h-10 border-4 border-[#60356a]/30 border-t-[#60356a] rounded-full animate-spin mx-auto mb-3" />
+                                                <p className="text-sm font-medium text-[#60356a]">Subiendo...</p>
+                                                <p className="text-xs text-[#60356a]/70">{Math.round(uploadProgress)}%</p>
                                             </div>
                                         ) : (
                                             <>
-                                                <div className="w-12 h-12 bg-purple-50 text-purple-500 rounded-2xl flex items-center justify-center mb-3 shadow-sm group-hover:scale-110 transition-transform">
+                                                <div className="w-12 h-12 bg-[#60356a]/10 text-[#60356a] rounded-2xl flex items-center justify-center mb-3 shadow-sm group-hover:scale-110 transition-transform">
                                                     <ImageIcon size={24} />
                                                 </div>
                                                 <p className="text-sm font-medium text-slate-600">Sube una imagen</p>
