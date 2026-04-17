@@ -25,6 +25,9 @@ export async function GET() {
     if (!user) {
         return NextResponse.json({ error: 'Tu sesión ha expirado. Por favor, recarga la página o inicia sesión nuevamente.' }, { status: 401 });
     }
+    if (user.role !== 'admin') {
+        return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
+    }
 
     try {
         const db = getAdminDb();

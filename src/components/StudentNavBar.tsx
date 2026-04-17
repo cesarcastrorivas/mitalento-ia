@@ -5,12 +5,12 @@ import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useAuth } from '@/contexts/AuthContext';
-import { Home, LogOut, Sparkles, Trophy, GraduationCap } from 'lucide-react';
+import { Home, LogOut, Sparkles, GraduationCap, Wrench } from 'lucide-react';
 
 const navItems = [
     { href: '/dashboard', label: 'Inicio', icon: Home },
     { href: '/sofia', label: 'Bally IA', icon: Sparkles },
-    { href: '/leaderboard', label: 'Ranking', icon: Trophy },
+    { href: '/tools', label: 'UBK', icon: Wrench },
 ];
 
 function StudentNavBar() {

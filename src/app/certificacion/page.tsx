@@ -276,10 +276,6 @@ export default function CertificacionPage() {
 
                 {/* Quick actions */}
                 <div className={styles.quickActions}>
-                    <Link href="/leaderboard" className={styles.quickActionCard}>
-                        <div className={styles.quickActionIcon}>🏆</div>
-                        <div className={styles.quickActionLabel}>Ranking</div>
-                    </Link>
                     <Link href="/certificate" className={styles.quickActionCard}>
                         <div className={styles.quickActionIcon}>🎖️</div>
                         <div className={styles.quickActionLabel}>Certificado</div>
