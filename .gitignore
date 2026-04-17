@@ -31,6 +31,32 @@ yarn-error.log*
 .pnpm-debug.log*
 *.log
 
+# deploy/build/error outputs (pueden contener API keys en trazas)
+deploy_*.txt
+deploy.log
+last_deploy*
+failed-deploy*.txt
+final_error*.txt
+error-*.txt
+error-final.txt
+build-log*.txt
+build_log*.txt
+build_output*.txt
+func-log*.txt
+functions-logs*.txt
+functions_log*.txt
+firebase_logs.txt
+out.txt
+out2.txt
+test-keys*.txt
+test-keys*.mjs
+test-models-output*.txt
+test-model.log
+test-models*.mjs
+test-transcribe.*
+test-upload.*
+test2.*
+
 # env files (can opt-in for committing if needed)
 .env*
 
