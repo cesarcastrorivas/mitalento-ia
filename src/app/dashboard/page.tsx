@@ -142,7 +142,7 @@ export default async function StudentDashboard() {
     const firstName = (userClaims as any).name ? (userClaims as any).name.split(' ')[0] : (userData?.displayName?.split(' ')[0] || '');
 
     return (
-        <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-12 pt-20 sm:pt-28 pb-32 font-sans animate-fade-in scroll-smooth">
+        <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-12 pb-32 font-sans animate-fade-in scroll-smooth" style={{ paddingTop: 'calc(5rem + env(safe-area-inset-top, 0px))' }}>
 
             {/* ── Desktop two-column layout (lg+) ── */}
             <div className="lg:grid lg:grid-cols-[380px_1fr] lg:gap-10 xl:gap-14 lg:items-start">

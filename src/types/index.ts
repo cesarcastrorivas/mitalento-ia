@@ -155,3 +155,42 @@ export interface LeaderboardEntry {
     certificationLevel: CertificationLevel;
     completedAt: Timestamp;
 }
+
+// ═══════════════════════════════════════════════════
+// Herramientas — Repositorio central admin → alumno
+// ═══════════════════════════════════════════════════
+
+export type ToolType = 'video' | 'audio' | 'image' | 'pdf' | 'script';
+
+export interface Tool {
+    id: string;
+    title: string;
+    description?: string;
+    type: ToolType;
+    category: string;        // "root" o "folder_{folderId}"
+    url: string;             // Storage URL (video/audio/image/pdf) o contenido texto (script)
+    thumbnailUrl?: string | null;
+    fileName?: string;
+    fileSize?: number;
+    mimeType?: string;
+    duration?: number;
+    order: number;
+    isActive: boolean;
+    createdAt: Timestamp;
+    createdBy: string;
+    updatedAt?: Timestamp;
+    updatedBy?: string;
+}
+
+export interface ToolFolder {
+    id: string;
+    name: string;
+    icon?: string;
+    parentId: string | null; // null = raíz
+    order: number;
+    isActive: boolean;
+    createdAt: Timestamp;
+    createdBy: string;
+    updatedAt?: Timestamp;
+    updatedBy?: string;
+}

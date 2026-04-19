@@ -7,7 +7,7 @@ import { db } from '@/lib/firebase';
 import { Module } from '@/types';
 import { checkCascadeCompletion } from '@/lib/grading-utils';
 import { useAuth } from '@/contexts/AuthContext';
-import { ChevronLeft, ChevronRight, CheckCircle, Lock, AlertCircle, Trophy, Clock, PlayCircle, Menu, X, Info } from 'lucide-react';
+import { ChevronLeft, ChevronRight, CheckCircle, Lock, AlertCircle, Trophy, Clock, PlayCircle, Menu, X, Info, Play, Pause, Volume2, VolumeX, Maximize, Minimize } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import LoadingScreen from '@/components/LoadingScreen';
 import Toast, { ToastType } from '@/components/Toast';
@@ -31,6 +31,7 @@ export default function ModulePage() {
     const { user } = useAuth();
     const videoRef = useRef<HTMLVideoElement>(null);
     const lastWatchedRef = useRef(0);
+    const maxTimeRef = useRef(0);
     const autoCompletedRef = useRef(false);
     const moduleId = params.id as string;
 
@@ -45,6 +46,13 @@ export default function ModulePage() {
 
     const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
     const [showQuizModal, setShowQuizModal] = useState(false);
+
+    const [isPlaying, setIsPlaying] = useState(false);
+    const [isMuted, setIsMuted] = useState(false);
+    const [isFullscreen, setIsFullscreen] = useState(false);
+    const [videoCurrentTime, setVideoCurrentTime] = useState(0);
+    const [videoDuration, setVideoDuration] = useState(0);
+    const videoContainerRef = useRef<HTMLDivElement>(null);
 
     const [courseModules, setCourseModules] = useState<Module[]>([]);
     const [userProgress, setUserProgress] = useState<Record<string, any>>({});
@@ -200,9 +208,50 @@ export default function ModulePage() {
 
     const hasQuiz = !!(module?.questions && module.questions.length > 0);
 
+    const togglePlay = () => {
+        const v = videoRef.current;
+        if (!v) return;
+        if (v.paused) v.play(); else v.pause();
+    };
+
+    const toggleMute = () => {
+        const v = videoRef.current;
+        if (!v) return;
+        v.muted = !v.muted;
+        setIsMuted(v.muted);
+    };
+
+    const toggleFullscreen = () => {
+        const el = videoContainerRef.current;
+        if (!el) return;
+        if (!document.fullscreenElement) {
+            (el.requestFullscreen?.() || (el as any).webkitRequestFullscreen?.());
+        } else {
+            document.exitFullscreen?.();
+        }
+    };
+
+    useEffect(() => {
+        const onFsChange = () => setIsFullscreen(!!document.fullscreenElement);
+        document.addEventListener('fullscreenchange', onFsChange);
+        return () => document.removeEventListener('fullscreenchange', onFsChange);
+    }, []);
+
+    const formatTime = (t: number) => {
+        if (!isFinite(t) || t < 0) return '0:00';
+        const m = Math.floor(t / 60);
+        const s = Math.floor(t % 60);
+        return `${m}:${s.toString().padStart(2, '0')}`;
+    };
+
     const handleTimeUpdate = async () => {
         if (!videoRef.current || !module) return;
-        const percentage = (videoRef.current.currentTime / videoRef.current.duration) * 100;
+        const currentTime = videoRef.current.currentTime;
+        setVideoCurrentTime(currentTime);
+        if (currentTime > maxTimeRef.current) {
+            maxTimeRef.current = currentTime;
+        }
+        const percentage = (currentTime / videoRef.current.duration) * 100;
 
         if (percentage - lastWatchedRef.current >= 2) {
             lastWatchedRef.current = percentage;
@@ -371,22 +420,85 @@ export default function ModulePage() {
 
                 <div className="flex-1 overflow-y-auto w-full relative">
                     <div className="w-full flex justify-center bg-surface-container-lowest">
-                        <div className="w-full max-w-5xl aspect-video bg-surface-dim relative shadow-md">
+                        <div ref={videoContainerRef} className="w-full max-w-5xl aspect-video bg-black relative shadow-md group/video">
                             <video
                                 ref={videoRef}
                                 src={videoSrc || undefined}
-                                controls
-                                controlsList="nodownload noplaybackrate"
+                                playsInline
                                 disablePictureInPicture
                                 onContextMenu={(e) => e.preventDefault()}
                                 onTimeUpdate={handleTimeUpdate}
+                                onLoadedMetadata={(e) => setVideoDuration(e.currentTarget.duration || 0)}
+                                onPlay={() => setIsPlaying(true)}
+                                onPause={() => setIsPlaying(false)}
+                                onVolumeChange={(e) => setIsMuted(e.currentTarget.muted)}
+                                onSeeking={(e) => {
+                                    const v = e.currentTarget;
+                                    if (v.currentTime > maxTimeRef.current + 1) {
+                                        v.currentTime = maxTimeRef.current;
+                                    }
+                                }}
+                                onClick={togglePlay}
                                 onEnded={() => {
+                                    setIsPlaying(false);
                                     if (canTakeQuiz && hasQuiz) {
                                         setShowQuizModal(true);
                                     }
                                 }}
-                                className="w-full h-full object-contain"
+                                className="w-full h-full object-contain lesson-video"
                             />
+
+                            {/* Play overlay cuando el video está pausado */}
+                            {!isPlaying && (
+                                <button
+                                    onClick={togglePlay}
+                                    className="absolute inset-0 flex items-center justify-center bg-black/30 hover:bg-black/40 transition-colors"
+                                    aria-label="Reproducir"
+                                >
+                                    <div className="w-20 h-20 rounded-full bg-white/90 flex items-center justify-center shadow-xl">
+                                        <Play size={36} className="text-[#60356a] ml-1" fill="currentColor" />
+                                    </div>
+                                </button>
+                            )}
+
+                            {/* Controles custom (sin timeline) */}
+                            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent px-3 sm:px-4 py-2 sm:py-3 flex items-center gap-2 sm:gap-3 select-none">
+                                <button
+                                    onClick={togglePlay}
+                                    className="p-1.5 text-white hover:text-[#f5a944] transition-colors"
+                                    aria-label={isPlaying ? 'Pausar' : 'Reproducir'}
+                                >
+                                    {isPlaying ? <Pause size={22} fill="currentColor" /> : <Play size={22} fill="currentColor" />}
+                                </button>
+
+                                <button
+                                    onClick={toggleMute}
+                                    className="p-1.5 text-white hover:text-[#f5a944] transition-colors"
+                                    aria-label={isMuted ? 'Activar sonido' : 'Silenciar'}
+                                >
+                                    {isMuted ? <VolumeX size={20} /> : <Volume2 size={20} />}
+                                </button>
+
+                                <span className="text-white text-xs sm:text-sm font-medium tabular-nums">
+                                    {formatTime(videoCurrentTime)} / {formatTime(videoDuration)}
+                                </span>
+
+                                {/* Barra visual no interactiva (solo indicador) */}
+                                <div className="flex-1 h-1 bg-white/20 rounded-full overflow-hidden pointer-events-none">
+                                    <div
+                                        className="h-full bg-[#f5a944] transition-[width] duration-200"
+                                        style={{ width: videoDuration ? `${(videoCurrentTime / videoDuration) * 100}%` : '0%' }}
+                                    />
+                                </div>
+
+                                <button
+                                    onClick={toggleFullscreen}
+                                    className="p-1.5 text-white hover:text-[#f5a944] transition-colors"
+                                    aria-label={isFullscreen ? 'Salir de pantalla completa' : 'Pantalla completa'}
+                                >
+                                    {isFullscreen ? <Minimize size={20} /> : <Maximize size={20} />}
+                                </button>
+                            </div>
                         </div>
                     </div>
 

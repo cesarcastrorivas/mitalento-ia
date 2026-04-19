@@ -33,6 +33,7 @@ export interface StudentRow {
     supervisorFeedback?: string;
     responses: EvalResponse[];
     stageChecklist?: Record<string, boolean>;
+    isCertified?: boolean;
 }
 
 const STAGE_REQUIREMENTS: Record<string, string[]> = {
@@ -263,7 +264,11 @@ export default function AdminCertificationsClient({ initialStudents }: AdminCert
                                         const progressPct = reqs.length > 0 ? Math.round((reqsChecked / reqs.length) * 100) : 0;
 
                                         return (
-                                            <div key={student.uid} className={styles.kanbanCard} onClick={() => openDrawer(student)}>
+                                            <div
+                                                key={student.uid}
+                                                className={`${styles.kanbanCard} ${student.isCertified ? styles.kanbanCardCertified : ''}`}
+                                                onClick={() => openDrawer(student)}
+                                            >
                                                 <div className={styles.cardHeaderRow}>
                                                     <div className={styles.cardAvatarGroup}>
                                                         <div className={styles.avatarWrapper} style={{ borderColor: theme.dot, position: 'relative', overflow: 'hidden' }}>
@@ -274,9 +279,12 @@ export default function AdminCertificationsClient({ initialStudents }: AdminCert
                                                             )}
                                                         </div>
                                                     </div>
-                                                    <div className={styles.cardStatusBadge} style={{ backgroundColor: theme.bg, color: theme.text }}>
-                                                        {SEMAPHORE_LABELS[student.attitudinalStatus]}
-                                                    </div>
+                                                    {student.isCertified && (
+                                                        <span className={styles.certifiedLabel}>
+                                                            <Award size={12} />
+                                                            CERTIFICADO
+                                                        </span>
+                                                    )}
                                                 </div>
 
                                                 <div className={styles.cardIdentity}>

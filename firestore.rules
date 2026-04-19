@@ -109,5 +109,18 @@ service cloud.firestore {
         && request.resource.data.userId == request.auth.uid;
       allow update, delete: if isAdmin();
     }
+
+    // Herramientas (repositorio central admin → alumno)
+    // - Lectura: cualquier autenticado.
+    // - Escritura: solo admins.
+    match /tools/{toolId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+
+    match /tool_folders/{folderId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
   }
 }

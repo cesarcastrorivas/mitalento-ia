@@ -1,6 +1,7 @@
 import { collection, query, where, getDocs, doc, getDoc, updateDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { FIXED_PATHS } from '@/lib/constants';
+import { CertificationLevel } from '@/types';
 
 // ═══════════════════════════════════════════════════
 // Grading Utilities — Lógica centralizada de validación
@@ -58,6 +59,44 @@ export function isPathCompleted(
     return requiredCourses.every(course =>
         isCourseCompleted(passedModuleIds, course.moduleIds)
     );
+}
+
+type DocLike<T> = { id: string; data: () => T };
+
+/**
+ * Construye moduleId → certificationLevel fusionando FIXED_PATHS + learning_paths dinámicos,
+ * resolviendo el pathId del módulo (denormalizado o vía courseId).
+ * FIXED_PATHS primero, Firestore sobreescribe (mismo patrón que canGenerateCertificate).
+ */
+export function buildModuleLevelMap(
+    modulesDocs: DocLike<{ courseId?: string; pathId?: string }>[],
+    coursesDocs: DocLike<{ pathId?: string }>[],
+    dynamicPathsDocs: DocLike<{ certificationLevel?: string }>[],
+): Map<string, CertificationLevel> {
+    const pathToLevel = new Map<string, CertificationLevel>();
+    FIXED_PATHS.forEach(p => {
+        if (p.certificationLevel) pathToLevel.set(p.id, p.certificationLevel);
+    });
+    dynamicPathsDocs.forEach(d => {
+        const lvl = d.data().certificationLevel as CertificationLevel | undefined;
+        if (lvl) pathToLevel.set(d.id, lvl);
+    });
+
+    const courseToPath = new Map<string, string>();
+    coursesDocs.forEach(d => {
+        const pid = d.data().pathId;
+        if (pid) courseToPath.set(d.id, pid);
+    });
+
+    const moduleToLevel = new Map<string, CertificationLevel>();
+    modulesDocs.forEach(d => {
+        const data = d.data();
+        const pid = data.pathId || (data.courseId ? courseToPath.get(data.courseId) : undefined);
+        if (!pid) return;
+        const lvl = pathToLevel.get(pid);
+        if (lvl) moduleToLevel.set(d.id, lvl);
+    });
+    return moduleToLevel;
 }
 
 /**

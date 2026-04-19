@@ -18,7 +18,7 @@ import {
     Award,
     TrendingUp,
     Trophy,
-    Wrench
+    Briefcase
 } from 'lucide-react';
 
 export default function AdminShell({
@@ -140,7 +140,7 @@ export default function AdminShell({
                             <NavLink href="/admin" icon={<LayoutDashboard size={18} />} text="Dashboard" active={pathname === '/admin'} />
                             <NavLink href="/admin/paths" icon={<Map size={18} />} text="Rutas y Cursos" active={pathname.startsWith('/admin/paths')} />
                             <NavLink href="/admin/users" icon={<Users size={18} />} text="Usuarios" active={pathname.startsWith('/admin/users')} />
-                            <NavLink href="/admin/tools" icon={<Wrench size={18} />} text="Herramientas" active={pathname.startsWith('/admin/tools')} />
+                            <NavLink href="/admin/tools" icon={<Briefcase size={18} />} text="Herramientas" active={pathname.startsWith('/admin/tools')} />
                             <NavLink href="/admin/sofia" icon={<Bot size={18} />} text="Bally IA Knowledge" active={pathname.startsWith('/admin/sofia')} />
                             <NavLink href="/admin/certifications" icon={<Award size={18} />} text="Certificaciones" active={pathname.startsWith('/admin/certifications')} />
                         </div>
@@ -149,6 +149,7 @@ export default function AdminShell({
                             <p className="px-3 text-[10px] font-extrabold text-[#60356a] uppercase tracking-widest mb-3">Analítica</p>
                             <NavLink href="/admin/reports" icon={<BarChart3 size={18} />} text="Reportes" active={pathname.startsWith('/admin/reports')} />
                             <NavLink href="/admin/ranking" icon={<Trophy size={18} />} text="Ranking" active={pathname.startsWith('/admin/ranking')} />
+                            <NavLink href="/admin/diplomas" icon={<GraduationCap size={18} />} text="Diplomas Élite" active={pathname.startsWith('/admin/diplomas')} />
                         </div>
                     </div>
                 </div>

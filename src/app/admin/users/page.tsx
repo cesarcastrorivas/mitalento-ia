@@ -498,13 +498,15 @@ export default function UsersPage() {
                                 </div>
 
                                 <div className={styles.itemActions}>
-                                    <button
-                                        onClick={() => handleOpenPathModal(user)}
-                                        className={styles.iconBtn}
-                                        title="Rutas"
-                                    >
-                                        <Map size={18} />
-                                    </button>
+                                    {user.role === 'student' && (
+                                        <button
+                                            onClick={() => handleOpenPathModal(user)}
+                                            className={styles.iconBtn}
+                                            title="Rutas"
+                                        >
+                                            <Map size={18} />
+                                        </button>
+                                    )}
                                     <button
                                         onClick={() => handleOpenEditModal(user)}
                                         className={styles.iconBtn}
@@ -715,17 +717,26 @@ export default function UsersPage() {
 
             {/* Modal para asignar rutas especializadas */}
             {showPathModal && selectedUserPath && (
-                <div className={styles.modalOverlay} onClick={() => setShowPathModal(false)}>
-                    <div className={`${styles.modal} max-w-2xl`} onClick={(e) => e.stopPropagation()}>
-                        <div className={styles.modalHeader}>
+                <div
+                    className="fixed inset-0 top-16 bg-slate-900/60 backdrop-blur-md z-50 flex items-center justify-center p-4 animate-fade-in"
+                    onClick={() => setShowPathModal(false)}
+                >
+                    <div
+                        className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[calc(100vh-88px)] ring-1 ring-slate-900/5"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-white">
                             <div>
                                 <h2 className="text-xl font-bold text-slate-800">Especializaciones Adicionales</h2>
                                 <p className="text-sm text-slate-500 mt-1">
                                     Asignando rutas a <strong>{selectedUserPath.displayName}</strong>
                                 </p>
                             </div>
-                            <button onClick={() => setShowPathModal(false)} className={styles.closeBtn}>
-                                <XCircle size={20} />
+                            <button
+                                onClick={() => setShowPathModal(false)}
+                                className="w-8 h-8 flex items-center justify-center rounded-full text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors"
+                            >
+                                <XCircle size={22} />
                             </button>
                         </div>
 

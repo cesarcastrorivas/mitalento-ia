@@ -5,12 +5,12 @@ import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useAuth } from '@/contexts/AuthContext';
-import { Home, LogOut, Sparkles, GraduationCap, Wrench } from 'lucide-react';
+import { Home, LogOut, Sparkles, GraduationCap, Briefcase } from 'lucide-react';
 
 const navItems = [
     { href: '/dashboard', label: 'Inicio', icon: Home },
     { href: '/sofia', label: 'Bally IA', icon: Sparkles },
-    { href: '/tools', label: 'UBK', icon: Wrench },
+    { href: '/tools', label: 'UBK', icon: Briefcase },
 ];
 
 function StudentNavBar() {
@@ -32,15 +32,15 @@ function StudentNavBar() {
         <>
             {/* Top Header Bar */}
             {showTopBar && (
-                <header className="fixed top-0 left-0 right-0 z-50 bg-[#60356a] text-white border-b border-outline-variant/15 px-4 h-16 flex items-center pt-[env(safe-area-inset-top)]">
-                    <div className="w-full max-w-[1400px] mx-auto flex items-center justify-between">
+                <header className="fixed top-0 left-0 right-0 z-50 bg-[#60356a] text-white border-b border-white/10 pt-[env(safe-area-inset-top,0px)]">
+                    <div className="h-20 px-5 w-full max-w-[1400px] mx-auto flex items-center justify-between">
                         <Link href="/dashboard" className="flex items-center gap-2.5 group">
-                            <Image 
-                                src="/logo-urbanity.png" 
-                                alt="Urbanity Construyendo Futuro" 
-                                width={160} 
-                                height={40} 
-                                className="object-contain h-10 w-auto group-hover:opacity-90 transition-opacity" 
+                            <Image
+                                src="/logo-urbanity.png"
+                                alt="Urbanity Construyendo Futuro"
+                                width={180}
+                                height={44}
+                                className="object-contain h-11 w-auto group-hover:opacity-90 transition-opacity"
                                 priority
                             />
                         </Link>
@@ -50,7 +50,7 @@ function StudentNavBar() {
                                 <p className="text-sm font-bold text-white leading-tight">{user?.displayName}</p>
                                 <p className="text-[10px] text-white/70 font-semibold uppercase tracking-wider">{user?.email}</p>
                             </div>
-                            <div className="relative w-9 h-9 rounded-full bg-primary text-white border-2 border-surface flex items-center justify-center font-bold text-sm overflow-hidden shadow-sm">
+                            <div className="relative w-10 h-10 rounded-full bg-primary text-white border-2 border-white/30 flex items-center justify-center font-bold text-sm overflow-hidden shadow-md">
                                 {user?.photoURL ? (
                                     <Image
                                         src={user.photoURL}
@@ -72,8 +72,11 @@ function StudentNavBar() {
             )}
 
             {/* Bottom Navigation (Floating Pill Style) */}
-            <nav className="fixed bottom-6 w-full z-50 md:hidden px-4 pb-[env(safe-area-inset-bottom)] pointer-events-none">
-                <div className="bg-white/90 backdrop-blur-md rounded-[2rem] border border-outline-variant/20 shadow-[0_20px_40px_rgba(71,30,82,0.12)] flex justify-around items-center p-2 mx-auto max-w-[22rem] pointer-events-auto">
+            <nav
+                className="fixed bottom-0 left-0 right-0 z-50 md:hidden px-4 pointer-events-none"
+                style={{ paddingBottom: 'max(1.25rem, calc(env(safe-area-inset-bottom, 0px) + 0.5rem))' }}
+            >
+                <div className="bg-white/95 backdrop-blur-md rounded-[2rem] border border-outline-variant/20 shadow-[0_20px_40px_rgba(71,30,82,0.15)] flex justify-around items-center p-2.5 mx-auto max-w-[min(28rem,calc(100%-2rem))] pointer-events-auto mb-2">
                     {navItems.map((item) => {
                         const isDashboardSubPath = item.href === '/dashboard' && (pathname.startsWith('/paths/') || pathname.startsWith('/courses/') || pathname.startsWith('/modules/'));
                         const isActive = pathname === item.href || isDashboardSubPath;
@@ -90,7 +93,7 @@ function StudentNavBar() {
                                 }`}
                             >
                                 <Icon size={22} strokeWidth={isActive ? 2.5 : 2} />
-                                <span className="font-sans text-[10px] font-bold uppercase tracking-wider mt-1">
+                                <span className="font-sans text-xs font-bold uppercase tracking-wider mt-1">
                                     {item.label}
                                 </span>
                             </Link>

@@ -75,6 +75,13 @@
 }
 
 @layer components {
+  /* Lesson video — hide seek/timeline controls to prevent skipping */
+  .lesson-video::-webkit-media-controls-timeline,
+  .lesson-video::-webkit-media-controls-seek-back-button,
+  .lesson-video::-webkit-media-controls-seek-forward-button {
+    display: none !important;
+  }
+
   /* Premium Card -> Ambient Shadow & Roundedness xl (1.5rem / 24px) */
   .card-premium {
     background: var(--color-surface);
