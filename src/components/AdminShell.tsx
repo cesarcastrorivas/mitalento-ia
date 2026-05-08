@@ -141,7 +141,7 @@ export default function AdminShell({
                             <NavLink href="/admin/paths" icon={<Map size={18} />} text="Rutas y Cursos" active={pathname.startsWith('/admin/paths')} />
                             <NavLink href="/admin/users" icon={<Users size={18} />} text="Usuarios" active={pathname.startsWith('/admin/users')} />
                             <NavLink href="/admin/tools" icon={<Briefcase size={18} />} text="Herramientas" active={pathname.startsWith('/admin/tools')} />
-                            <NavLink href="/admin/sofia" icon={<Bot size={18} />} text="Bally IA Knowledge" active={pathname.startsWith('/admin/sofia')} />
+                            <NavLink href="/admin/bally" icon={<Bot size={18} />} text="Bally IA Knowledge" active={pathname.startsWith('/admin/bally')} />
                             <NavLink href="/admin/certifications" icon={<Award size={18} />} text="Certificaciones" active={pathname.startsWith('/admin/certifications')} />
                         </div>
 

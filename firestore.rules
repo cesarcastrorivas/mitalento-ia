@@ -82,7 +82,7 @@ service cloud.firestore {
     }
 
     // Colección: knowledge_base
-    // - Lectura pública: necesario para que el chat de SofIA/Bally lea el contexto sin sesión de usuario.
+    // - Lectura pública: necesario para que el chat de Bally IA lea el contexto sin sesión de usuario.
     // - Escritura: SOLO admins. Esta colección define el comportamiento de la IA; un write no autorizado
     //   podría inyectar contenido malicioso en las respuestas del chatbot (prompt injection indirecto).
     match /knowledge_base/{docId} {

@@ -26,9 +26,7 @@ const DAYS: DayConfig[] = [
         title: 'Cultura, Marco Legal y ADN Urbanity',
         subtitle: 'Evaluar mentalidad, comprensión del negocio y alineación cultural',
         minScore: 80,
-        extraActions: [
-            { label: 'Compromiso', href: '/compromiso', icon: '📜' },
-        ],
+        extraActions: [],
     },
     {
         level: 'professional',

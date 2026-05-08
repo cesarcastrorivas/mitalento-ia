@@ -34,6 +34,8 @@ async function getKnowledgeBase(): Promise<KnowledgeBase> {
 
     try {
         const db = getAdminDb();
+        // NOTA: el doc id 'sofia' es legacy (Bally IA se llamaba SofIA antes). Se conserva
+        // intencionalmente para no migrar datos en Firestore. Ver LENGUAJE_UBICUO.md.
         const docSnap = await db.collection('knowledge_base').doc('sofia').get();
 
         if (docSnap.exists) {

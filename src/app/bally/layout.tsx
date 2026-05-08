@@ -6,7 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import StudentNavBar from '@/components/StudentNavBar';
 import LoadingScreen from '@/components/LoadingScreen';
 
-export default function SofiaLayout({
+export default function BallyLayout({
     children,
 }: {
     children: React.ReactNode;

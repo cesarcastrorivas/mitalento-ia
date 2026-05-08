@@ -8,6 +8,10 @@ import { Bot, Save, AlertCircle, Sparkles, ChevronDown, ChevronUp, Building2, Ta
 import Toast, { ToastType } from '@/components/Toast';
 import AdminPageHeader from '@/components/AdminPageHeader';
 
+// Doc id legacy: Bally IA se llamaba SofIA antes. Se conserva 'sofia' para no migrar
+// datos en Firestore. Ver LENGUAJE_UBICUO.md (sección "Términos deprecados").
+const BALLY_KB_DOC_ID = 'sofia';
+
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface KnowledgeBase {
     identity: string;
@@ -167,7 +171,7 @@ function getSectionColorClasses(color: string) {
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
-export default function SofiaKnowledgeBase() {
+export default function BallyKnowledgeBase() {
     const [kb, setKb] = useState<KnowledgeBase>(DEFAULT_KB);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
@@ -186,7 +190,7 @@ export default function SofiaKnowledgeBase() {
 
     const loadKnowledgeBase = async () => {
         try {
-            const docRef = doc(db, 'knowledge_base', 'sofia');
+            const docRef = doc(db, 'knowledge_base', BALLY_KB_DOC_ID);
             const docSnap = await getDoc(docRef);
 
             if (docSnap.exists()) {
@@ -229,7 +233,7 @@ export default function SofiaKnowledgeBase() {
 
         setSaving(true);
         try {
-            await setDoc(doc(db, 'knowledge_base', 'sofia'), {
+            await setDoc(doc(db, 'knowledge_base', BALLY_KB_DOC_ID), {
                 identity: kb.identity,
                 projectData: kb.projectData,
                 salesPitch: kb.salesPitch,

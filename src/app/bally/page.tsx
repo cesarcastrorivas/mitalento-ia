@@ -57,7 +57,7 @@ const TypewriterMessage = ({ content, isUser }: { content: string, isUser: boole
 };
 
 
-export default function SofiaPage() {
+export default function BallyPage() {
     const { user } = useAuth();
     const [messages, setMessages] = useState<Message[]>([
         { role: 'model', content: '¡Hola! Soy Bally IA, tu asistente de Inteligencia Artificial en Urbanity. ¿En qué puedo ayudarte hoy con tus estudios o ventas?' }

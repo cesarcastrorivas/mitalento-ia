@@ -41,6 +41,14 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  async redirects() {
+    // Rename SofIA → Bally IA: las URLs viejas redirigen a las nuevas con 301
+    // para no romper bookmarks de asesores. Ver LENGUAJE_UBICUO.md.
+    return [
+      { source: '/sofia', destination: '/bally', permanent: true },
+      { source: '/admin/sofia', destination: '/admin/bally', permanent: true },
+    ];
+  },
   async headers() {
     // Firebase domains needed for CSP connect-src
     const firebaseDomains = [

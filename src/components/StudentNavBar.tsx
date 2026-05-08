@@ -9,7 +9,7 @@ import { Home, LogOut, Sparkles, GraduationCap, Briefcase } from 'lucide-react';
 
 const navItems = [
     { href: '/dashboard', label: 'Inicio', icon: Home },
-    { href: '/sofia', label: 'Bally IA', icon: Sparkles },
+    { href: '/bally', label: 'Bally IA', icon: Sparkles },
     { href: '/tools', label: 'UBK', icon: Briefcase },
 ];
 
@@ -18,11 +18,11 @@ function StudentNavBar() {
     const { user, signOut } = useAuth();
 
     // Don't show on module player pages or admin
-    if (pathname.startsWith('/modules/') || pathname.startsWith('/admin') || pathname.startsWith('/verify/') || pathname.startsWith('/compromiso') || pathname === '/') {
+    if (pathname.startsWith('/modules/') || pathname.startsWith('/admin') || pathname.startsWith('/verify/') || pathname === '/') {
         return null;
     }
 
-    const showTopBar = pathname !== '/sofia';
+    const showTopBar = pathname !== '/bally';
 
     const getInitial = () => {
         return user?.displayName?.charAt(0).toUpperCase() || 'U';
