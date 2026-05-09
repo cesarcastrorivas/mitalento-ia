@@ -20,6 +20,7 @@ import {
     FileText,
     ClipboardCopy,
     UploadCloud,
+    Package,
 } from 'lucide-react';
 
 interface ToolFormModalProps {
@@ -33,11 +34,12 @@ interface ToolFormModalProps {
 }
 
 const TYPE_TABS: { type: ToolType; label: string; icon: React.ComponentType<{ size?: number }> }[] = [
-    { type: 'video',  label: 'Video',  icon: Play },
-    { type: 'audio',  label: 'Audio',  icon: Volume2 },
-    { type: 'image',  label: 'Imagen', icon: ImageIcon },
-    { type: 'pdf',    label: 'PDF',    icon: FileText },
-    { type: 'script', label: 'Script', icon: ClipboardCopy },
+    { type: 'video',  label: 'Video',      icon: Play },
+    { type: 'audio',  label: 'Audio',      icon: Volume2 },
+    { type: 'image',  label: 'Imagen',     icon: ImageIcon },
+    { type: 'pdf',    label: 'PDF',        icon: FileText },
+    { type: 'script', label: 'Script',     icon: ClipboardCopy },
+    { type: 'exe',    label: 'Instalador', icon: Package },
 ];
 
 function buildCategoryOptions(folders: ToolFolder[]) {
@@ -128,13 +130,20 @@ export default function ToolFormModal({
         // El atributo `accept` solo filtra el diálogo del SO; el usuario puede saltárselo
         // eligiendo "Todos los archivos". Validamos explícitamente para evitar que se suba
         // un PDF como "Imagen" y reviente browser-image-compression con un error genérico.
-        if (!allowedMimes.includes(f.type)) {
+        // Caso especial 'exe': el MIME es inconsistente entre browsers/OS (a veces vacío,
+        // a veces application/octet-stream, a veces application/x-msdownload).
+        // Aceptamos por extensión .exe como fallback.
+        const isExeByExtension =
+            kind === 'exe' && f.name.toLowerCase().endsWith('.exe');
+
+        if (!allowedMimes.includes(f.type) && !isExeByExtension) {
             const ext = f.name.includes('.') ? f.name.split('.').pop()!.toUpperCase() : f.type || 'desconocido';
             const friendly: Record<Exclude<ToolType, 'script'>, string> = {
                 video: 'un video MP4',
                 audio: 'un audio MP3',
                 image: 'una imagen JPG, PNG o WebP',
                 pdf: 'un PDF',
+                exe: 'un instalador .exe',
             };
             setError(
                 `Tipo seleccionado "${typeLabel}" pero el archivo es ${ext}. Cambia la pestaña de tipo o sube ${friendly[kind]}.`,
@@ -274,7 +283,7 @@ export default function ToolFormModal({
                     {/* Tabs */}
                     <div>
                         <label className="block text-sm font-semibold text-[#60356a] mb-2">Tipo</label>
-                        <div className="grid grid-cols-5 gap-1.5">
+                        <div className="grid grid-cols-3 sm:grid-cols-6 gap-1.5">
                             {TYPE_TABS.map(({ type: t, label, icon: Icon }) => (
                                 <button
                                     key={t}

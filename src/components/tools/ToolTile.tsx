@@ -9,6 +9,7 @@ import {
     MoreVertical,
     Edit2,
     Trash2,
+    Package,
 } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 import type { Tool, ToolType } from '@/types';
@@ -22,11 +23,12 @@ interface ToolTileProps {
 }
 
 const TYPE_META: Record<ToolType, { icon: React.ComponentType<{ size?: number }>; label: string; color: string; bg: string }> = {
-    video:  { icon: Play,          label: 'Video',  color: 'text-rose-600',    bg: 'bg-rose-50' },
-    audio:  { icon: Volume2,       label: 'Audio',  color: 'text-indigo-600',  bg: 'bg-indigo-50' },
-    image:  { icon: ImageIcon,     label: 'Imagen', color: 'text-emerald-600', bg: 'bg-emerald-50' },
-    pdf:    { icon: FileText,      label: 'PDF',    color: 'text-amber-600',   bg: 'bg-amber-50' },
-    script: { icon: ClipboardCopy, label: 'Script', color: 'text-[#60356a]',   bg: 'bg-[#60356a]/10' },
+    video:  { icon: Play,          label: 'Video',      color: 'text-rose-600',    bg: 'bg-rose-50' },
+    audio:  { icon: Volume2,       label: 'Audio',      color: 'text-indigo-600',  bg: 'bg-indigo-50' },
+    image:  { icon: ImageIcon,     label: 'Imagen',     color: 'text-emerald-600', bg: 'bg-emerald-50' },
+    pdf:    { icon: FileText,      label: 'PDF',        color: 'text-amber-600',   bg: 'bg-amber-50' },
+    script: { icon: ClipboardCopy, label: 'Script',     color: 'text-[#60356a]',   bg: 'bg-[#60356a]/10' },
+    exe:    { icon: Package,       label: 'Instalador', color: 'text-sky-700',     bg: 'bg-sky-50' },
 };
 
 export default function ToolTile({ tool, canEdit = false, onOpen, onEdit, onDelete }: ToolTileProps) {

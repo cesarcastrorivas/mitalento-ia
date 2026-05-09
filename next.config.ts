@@ -69,9 +69,15 @@ const nextConfig: NextConfig = {
       // Firebase Auth SDK loads a hidden iframe from firebaseapp.com for cross-origin
       // session persistence between mitalento-ia.web.app and mitalento-ia.firebaseapp.com.
       // Blocking this iframe causes auth/network-request-failed on signIn.
-      "frame-src https://mitalento-ia.firebaseapp.com",
+      // mitalento-ia.firebaseapp.com: Firebase Auth iframe.
+      // firebasestorage.googleapis.com / *.firebasestorage.app: visor PDF nativo
+      // del navegador como fallback cuando react-pdf no puede renderizar.
+      "frame-src https://mitalento-ia.firebaseapp.com https://firebasestorage.googleapis.com https://*.firebasestorage.app",
       "frame-ancestors 'none'",
       "object-src 'none'",
+      // pdf.js (react-pdf) carga su worker como módulo same-origin
+      // y puede crear blob URLs internamente para ciertos recursos.
+      "worker-src 'self' blob:",
       "base-uri 'self'",
     ].join('; ');
 

@@ -1,0 +1,21 @@
+[
+  {
+    "origin": [
+      "https://mitalento-ia.web.app",
+      "https://mitalento-ia.firebaseapp.com",
+      "https://urbanityacademy.com",
+      "http://localhost:3000"
+    ],
+    "method": ["GET", "HEAD"],
+    "maxAgeSeconds": 3600,
+    "responseHeader": [
+      "Content-Type",
+      "Content-Length",
+      "Content-Range",
+      "Content-Disposition",
+      "Accept-Ranges",
+      "ETag",
+      "Last-Modified"
+    ]
+  }
+]

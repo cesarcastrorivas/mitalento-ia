@@ -26,20 +26,27 @@ service firebase.storage {
         && firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
 
-    // Herramientas: archivos del repositorio central (video/audio/image/pdf)
+    // Herramientas: archivos del repositorio central (video/audio/image/pdf/exe)
     // - Lectura: cualquier autenticado (reproducir/ver/descargar inline).
-    // - Escritura: solo admins. Tope global 100MB (videos); los límites por tipo
-    //   se enforzan en UI antes de subir.
+    // - Escritura: solo admins. Límite por tipo enforzado aquí Y en UI:
+    //     image 5MB · pdf 10MB · audio 20MB · video 100MB · exe 500MB
     match /tools/{toolId}/{allPaths=**} {
       allow read: if request.auth != null;
       allow write: if request.auth != null
         && firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role == 'admin'
-        && request.resource.size < 100 * 1024 * 1024
         && (
-          request.resource.contentType.matches('image/.*')
-          || request.resource.contentType == 'video/mp4'
-          || request.resource.contentType == 'audio/mpeg'
-          || request.resource.contentType == 'application/pdf'
+          (request.resource.contentType.matches('image/.*')        && request.resource.size <   5 * 1024 * 1024) ||
+          (request.resource.contentType == 'video/mp4'             && request.resource.size < 100 * 1024 * 1024) ||
+          (request.resource.contentType == 'audio/mpeg'            && request.resource.size <  20 * 1024 * 1024) ||
+          (request.resource.contentType == 'application/pdf'       && request.resource.size <  10 * 1024 * 1024) ||
+          (
+            (
+              request.resource.contentType == 'application/x-msdownload' ||
+              request.resource.contentType == 'application/vnd.microsoft.portable-executable' ||
+              request.resource.contentType == 'application/octet-stream'
+            )
+            && request.resource.size < 500 * 1024 * 1024
+          )
         );
     }
   }

@@ -27,12 +27,13 @@ export interface UploadResult {
 
 export type UploadProgress = (percent: number) => void;
 
-// Límites por tipo (en MB). El techo global de 100MB vive en storage.rules.
+// Límites por tipo (en MB). Los topes por tipo se enforzan también en storage.rules.
 export const TOOL_MAX_MB: Record<Exclude<ToolType, 'script'>, number> = {
     video: 100,
     audio: 20,
     image: 5,
     pdf: 10,
+    exe: 500,
 };
 
 export const TOOL_ACCEPT: Record<Exclude<ToolType, 'script'>, string> = {
@@ -40,6 +41,7 @@ export const TOOL_ACCEPT: Record<Exclude<ToolType, 'script'>, string> = {
     audio: 'audio/mpeg,audio/mp3',
     image: 'image/jpeg,image/png,image/webp',
     pdf: 'application/pdf',
+    exe: 'application/x-msdownload,application/vnd.microsoft.portable-executable,application/octet-stream,.exe',
 };
 
 async function readDuration(file: File, kind: 'video' | 'audio'): Promise<number | undefined> {

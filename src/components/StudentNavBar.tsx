@@ -10,7 +10,7 @@ import { Home, LogOut, Sparkles, GraduationCap, Briefcase } from 'lucide-react';
 const navItems = [
     { href: '/dashboard', label: 'Inicio', icon: Home },
     { href: '/sofia', label: 'Bally IA', icon: Sparkles },
-    { href: '/tools', label: 'UBK', icon: Briefcase },
+    { href: '/tools', label: 'Herramientas', icon: Briefcase },
 ];
 
 function StudentNavBar() {

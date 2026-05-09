@@ -69,3 +69,15 @@ test2.*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Diploma render test artifacts
+diploma-test-output.pdf
+
+# Local IDE / agent configs
+.claude/
+
+# Backups manuales y diag dumps (no committear)
+backup_*.zip
+cloud-logs.txt
+diag.txt
+dummy.txt

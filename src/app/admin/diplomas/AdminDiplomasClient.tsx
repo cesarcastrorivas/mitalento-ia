@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import Image from 'next/image';
-import { GraduationCap, Search, Download, Inbox } from 'lucide-react';
+import { GraduationCap, Search, Download, Inbox, Loader2 } from 'lucide-react';
 import AdminPageHeader from '@/components/AdminPageHeader';
 
 export interface DiplomaRow {
@@ -44,9 +44,43 @@ export default function AdminDiplomasClient({ rows }: Props) {
         );
     }, [rows, q]);
 
-    const handleDownload = (row: DiplomaRow) => {
-        setNotice(`Diseño del diploma pendiente. Disponible cuando se reciba el modelo oficial de Urbanity Academy. (Código ${row.verificationCode})`);
-        window.setTimeout(() => setNotice(''), 4000);
+    const [downloadingId, setDownloadingId] = useState<string | null>(null);
+
+    const handleDownload = async (row: DiplomaRow) => {
+        if (downloadingId) return;
+        setDownloadingId(row.id);
+        setNotice('');
+        try {
+            const res = await fetch(`/api/admin/diplomas-pdf?userId=${encodeURIComponent(row.userId)}`, {
+                credentials: 'include',
+            });
+            if (!res.ok) {
+                let msg = `Error ${res.status} generando el diploma.`;
+                try {
+                    const j = await res.json();
+                    if (j?.error) msg = j.error;
+                } catch { /* ignore parse error */ }
+                setNotice(msg);
+                window.setTimeout(() => setNotice(''), 5000);
+                return;
+            }
+            const blob = await res.blob();
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            const safeName = row.userName.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-zA-Z0-9\-_]/g, '-');
+            a.download = `Diploma-${safeName}-${row.verificationCode || 'URBANITY'}.pdf`;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            URL.revokeObjectURL(url);
+        } catch (err) {
+            console.error('Error descargando diploma:', err);
+            setNotice('Error de red al descargar el diploma. Revisa tu conexión e intenta nuevamente.');
+            window.setTimeout(() => setNotice(''), 5000);
+        } finally {
+            setDownloadingId(null);
+        }
     };
 
     return (
@@ -137,11 +171,15 @@ export default function AdminDiplomasClient({ rows }: Props) {
                                             <td className="px-5 py-4 text-right">
                                                 <button
                                                     onClick={() => handleDownload(row)}
-                                                    className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[#D4AF37] hover:bg-[#B8941F] text-white text-xs font-bold transition shadow-sm"
+                                                    disabled={downloadingId === row.id}
+                                                    className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[#D4AF37] hover:bg-[#B8941F] disabled:opacity-60 disabled:cursor-not-allowed text-white text-xs font-bold transition shadow-sm"
                                                     title="Descargar diploma en PDF"
                                                 >
-                                                    <Download size={14} />
-                                                    Descargar PDF
+                                                    {downloadingId === row.id ? (
+                                                        <><Loader2 size={14} className="animate-spin" /> Generando...</>
+                                                    ) : (
+                                                        <><Download size={14} /> Descargar PDF</>
+                                                    )}
                                                 </button>
                                             </td>
                                         </tr>

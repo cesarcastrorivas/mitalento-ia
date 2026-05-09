@@ -160,7 +160,7 @@ export interface LeaderboardEntry {
 // Herramientas — Repositorio central admin → alumno
 // ═══════════════════════════════════════════════════
 
-export type ToolType = 'video' | 'audio' | 'image' | 'pdf' | 'script';
+export type ToolType = 'video' | 'audio' | 'image' | 'pdf' | 'script' | 'exe';
 
 export interface Tool {
     id: string;
